@@ -40,3 +40,6 @@ collectors/spoon-callgraph/data/collection/*.json
 collectors/code2vec-callgraph/data/collection/*.json
 collectors/structure-collector/data/collection/*.json
 collectors/structure-collector/spooned
+
+# Agent guidance (local filename; canonical file is AGENT.md)
+CLAUDE.md
