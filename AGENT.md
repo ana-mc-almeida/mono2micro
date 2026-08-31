@@ -95,12 +95,49 @@ make build
 
 ## Testing
 
-- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. The
-  committed suite is a single context-load smoke test (`Mono2microApplicationTests`);
-  most builds use `-DskipTests`.
+- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. JUnit 4,
+  AssertJ, and Mockito come from `spring-boot-starter-test`; no other test dependency
+  is needed. `Mono2microApplicationTests` is a `@SpringBootTest` context-load smoke
+  test and **needs a running MongoDB** (`docker-compose up mongo`) — it is the only
+  test that does.
 - **Go tool:** unit and integration tests are separated by **build tags**
   (`-tags=unit`, `-tags=integration`), not by file location.
 - **Frontend:** `npm test` (react-scripts, jsdom).
+
+### Codebase fixtures
+
+Availability tests need a codebase whose uploaded representations are known. `codebases/`
+is gitignored and empty in a fresh clone, so tests carry their own data:
+`<pkg>/fixtures/CodebaseFixtures` (test sources) builds codebases in memory — one per
+representation group, plus `empty()`.
+
+```java
+Codebase offered  = CodebaseFixtures.repositoryBased();  // has authorship + commit data
+Codebase withheld = CodebaseFixtures.accessesBased();    // deliberately does not
+```
+
+Availability is derived from representation **types** alone, so a fixture is plain objects:
+nothing is persisted and no database is contacted. Tests using them run in milliseconds,
+offline, with the same result on any machine. For a service that looks a codebase up, stub
+the repository with Mockito rather than starting Spring —
+`CodebaseServiceAvailabilityTest` is the worked example to copy.
+
+Two rules, from the Phase 1 spec's testing decisions:
+
+- **Assert the derived answer, not the derivation.** Never assert that a particular map was
+  read or a method called in an order — those internals are what the refactor is free to
+  change.
+- **Prefer a difference over an absolute set** where the claim is that two codebases get
+  different answers, so the test keeps meaning as features are added.
+
+Add a fixture when a new representation group appears;
+`everyRepresentationGroupIsCoveredByAFixture` fails until you do.
+
+**Limit.** Fixtures call constructors directly and skip `init()`, so the collections that
+`AccessesRepresentation` and `StructureRepresentation` parse from their file (functionality
+names, entity names) are empty. Availability never reads them. A test that needs a codebase
+with *real* functionalities or entities should load committed collector output instead —
+sample files live in `../codebases-structure/` (SpringPetclinic is 24K).
 
 ## Backend layout
 
