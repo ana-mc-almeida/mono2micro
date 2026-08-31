@@ -1,5 +1,5 @@
 # Build Stage
-FROM golang:1.14-buster AS build-stage
+FROM golang:1.21-bookworm AS build-stage
 
 RUN apt-get update && apt-get install -y ca-certificates
 
@@ -11,7 +11,7 @@ RUN sed -i 's/\r$//' /app/scripts/compile.sh
 RUN make build
 
 # Final Stage
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y ca-certificates
 

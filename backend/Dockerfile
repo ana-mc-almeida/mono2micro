@@ -1,4 +1,4 @@
-FROM maven:3-jdk-11
+FROM maven:3.9-eclipse-temurin-11
 
 COPY backend/pom.xml ./pom.xml
 RUN mvn dependency:go-offline -B
