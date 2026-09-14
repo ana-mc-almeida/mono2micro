@@ -155,6 +155,16 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.2</version>
+				<configuration>
+					<!-- Report the @ParameterizedTest display names ("structure produces a
+					     decomposition for quizzes-tutor") instead of the method signature.
+					     Without this, DecompositionE2ETest's per-strategy cases are reported
+					     as [1]..[7] and a failure does not say which strategy broke. -->
+					<statelessTestsetReporter
+							implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+						<usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+					</statelessTestsetReporter>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

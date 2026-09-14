@@ -15,8 +15,10 @@ import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.cluster.Partition;
 import pt.ist.socialsoftware.mono2micro.element.DomainEntity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,9 +35,13 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
     private final TestRestTemplate rest;
     private final String base;
 
-    HttpDecompositionPipeline(TestRestTemplate rest, int port) {
+    /** The fixture folder to read representation files from, e.g. {@code quizzes-tutor}. */
+    private final String caseName;
+
+    HttpDecompositionPipeline(TestRestTemplate rest, int port, String caseName) {
         this.rest = rest;
         this.base = "http://localhost:" + port + "/mono2micro";
+        this.caseName = caseName;
     }
 
     @Override
@@ -52,14 +58,17 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
     }
 
     @Override
-    public void addAccessesRepresentations(String codebaseName, byte[] idToEntity, byte[] accesses) {
+    public void addRepresentations(String codebaseName, StrategyCase strategyCase) {
         MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 
         // Index-aligned repeated parts: representationTypes[i] describes representations[i].
-        form.add("representationTypes", "IDToEntity");
-        form.add("representations", filePart(idToEntity, "idToEntity.json"));
-        form.add("representationTypes", "Accesses");
-        form.add("representations", filePart(accesses, "accesses.json"));
+        // LinkedHashMap keeps the group's declared order, which the backend relies on only in
+        // that it pairs the two lists by position.
+        for (Map.Entry<String, String> representation : strategyCase.representations().entrySet()) {
+            byte[] content = RepresentationFiles.read(caseName, representation.getValue());
+            form.add("representationTypes", representation.getKey());
+            form.add("representations", filePart(content, caseName + representation.getValue()));
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -70,41 +79,46 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
                 new HttpEntity<>(form, headers),
                 String.class,
                 codebaseName,
-                "Accesses Based");
+                strategyCase.representationGroup());
 
         require(response, HttpStatus.CREATED, "add representations to " + codebaseName);
     }
 
     @Override
-    public String createStrategy(String codebaseName) {
+    public String createStrategy(String codebaseName, StrategyCase strategyCase) {
+        // strategyTypes is a repeated query parameter, so a multi-type strategy such as
+        // Repository sends it twice rather than as one comma-joined value.
+        StringBuilder url = new StringBuilder(
+                base + "/codebase/{name}/createStrategy?algorithmType={algorithm}");
+        List<Object> uriVariables = new ArrayList<>();
+        uriVariables.add(codebaseName);
+        uriVariables.add("SciPy Clustering");
+
+        for (String strategyType : strategyCase.strategyTypes()) {
+            url.append("&strategyTypes={type").append(uriVariables.size()).append("}");
+            uriVariables.add(strategyType);
+        }
+
         ResponseEntity<String> response = rest.postForEntity(
-                base + "/codebase/{name}/createStrategy?algorithmType={algorithm}&strategyTypes={types}",
-                null, String.class, codebaseName, "SciPy Clustering", "Accesses");
+                url.toString(), null, String.class, uriVariables.toArray());
 
         require(response, HttpStatus.CREATED, "create strategy for " + codebaseName);
 
-        // Deterministic: Strategy's constructor builds "<codebase> - <initials> Strategy",
-        // and the initials of the single strategy type "Accesses" are "A".
-        return codebaseName + " - A Strategy";
+        return strategyCase.strategyName(codebaseName);
     }
 
     @Override
-    public String createSimilarity(String strategyName) {
-        Map<String, Object> weights = new LinkedHashMap<>();
-        weights.put("type", "ACCESSES_WEIGHTS");
-        weights.put("accessMetricWeight", 25);
-        weights.put("writeMetricWeight", 25);
-        weights.put("readMetricWeight", 25);
-        weights.put("sequenceMetricWeight", 25);
-
+    public String createSimilarity(String strategyName, StrategyCase strategyCase) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("type", "SIMILARITY_SCIPY_ACCESSES_REPOSITORY");
+        body.put("type", strategyCase.similarityType());
         body.put("strategyName", strategyName);
-        body.put("profile", "Generic");          // the only profile AccessesRepresentation creates
         body.put("linkageType", "average");
-        body.put("tracesMaxLimit", 0);
-        body.put("traceType", "ALL");
-        body.put("weightsList", new Object[]{weights});
+        body.putAll(strategyCase.extraSimilarityFields());
+
+        // Class and Entity Vectorization take no weights: their DTOs have no such field, and
+        // sending one would be silently dropped rather than rejected.
+        if (!strategyCase.weights().isEmpty())
+            body.put("weightsList", strategyCase.weights());
 
         ResponseEntity<String> response = rest.exchange(
                 base + "/similarity/create",

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,14 +29,24 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Asserts that the tool produces <em>a</em> decomposition from uploaded representations.
+ * Asserts that the tool produces <em>a</em> decomposition from uploaded representations, for
+ * every strategy it supports.
  *
  * <p>Deliberately says nothing about decomposition quality — no cohesion, coupling or
  * complexity thresholds. The question is whether the pipeline still runs end to end, so that
  * an upcoming refactor of the backend's modularity (and the deferred Spring Boot upgrade) has
  * a net underneath it.
+ *
+ * <p>Covering every strategy matters because each one is registered by <em>type string</em>
+ * across five registries that do not agree on spelling. Miss one and the variant breaks at
+ * runtime rather than compile time, so a suite covering one strategy would leave the other six
+ * free to rot. The strategies are described as data in {@link StrategyCase}.
+ *
+ * <p>The one gap is {@code Structure}, which has no fixture anywhere in this repository and is
+ * skipped — narrowly, and only on that ground. See {@link #requireFixtures}.
  *
  * <p>Each case runs twice, once per {@link DecompositionPipeline} implementation. The HTTP
  * implementation is the net and should survive that refactor untouched; the service
@@ -62,6 +73,12 @@ class DecompositionE2ETest {
 
     private static final int MONGO_PORT = 27017;
 
+    /** {@link #CASES} × every strategy — the full matrix this suite covers. */
+    static Stream<Arguments> strategies() {
+        return CASES.stream().flatMap(caseName ->
+                StrategyCase.all().stream().map(strategy -> Arguments.of(caseName, strategy)));
+    }
+
     @LocalServerPort
     private int port;
 
@@ -75,41 +92,36 @@ class DecompositionE2ETest {
     private final List<Runnable> cleanups = new ArrayList<>();
 
     @BeforeAll
-    static void requireStackAndFixtures() {
+    static void requireStack() {
         requireReachable("localhost", MONGO_PORT, "MongoDB");
         requireScriptsService();
-        CASES.forEach(RepresentationFiles::requirePresent);
     }
 
-    static Stream<String> cases() {
-        return CASES.stream();
-    }
+    @ParameterizedTest(name = "{1} produces a decomposition for {0}")
+    @MethodSource("strategies")
+    void generatesDecomposition(String caseName, StrategyCase strategyCase) {
+        requireFixtures(caseName, strategyCase);
 
-    @ParameterizedTest(name = "{0} produces a decomposition")
-    @MethodSource("cases")
-    void generatesDecomposition(String caseName) {
-        for (DecompositionPipeline pipeline : pipelines()) {
-            // Unique per run and per layer: re-uploading a representation type to an existing
-            // codebase throws "Re-sending representations is not allowed."
-            String codebaseName = caseName + "-" + pipeline.layer() + "-" + System.currentTimeMillis();
+        for (DecompositionPipeline pipeline : pipelines(caseName)) {
+            // Unique per run, per layer and per strategy: re-uploading a representation type to
+            // an existing codebase throws "Re-sending representations is not allowed."
+            String codebaseName = caseName + "-" + strategyCase.label() + "-"
+                    + pipeline.layer() + "-" + System.currentTimeMillis();
 
             pipeline.createCodebase(codebaseName);
             cleanups.add(() -> pipeline.deleteCodebase(codebaseName));
 
-            pipeline.addAccessesRepresentations(
-                    codebaseName,
-                    RepresentationFiles.idToEntity(caseName),
-                    RepresentationFiles.accesses(caseName));
+            pipeline.addRepresentations(codebaseName, strategyCase);
 
             // Guards a silent failure: RepresentationService returns without doing anything
             // when both request parameters bind to null, which would otherwise surface several
             // steps later as an unrelated error.
             assertThat(pipeline.representationCount(codebaseName))
                     .as("representations uploaded via %s", pipeline.layer())
-                    .isEqualTo(2);
+                    .isEqualTo(strategyCase.representations().size());
 
-            String strategyName = pipeline.createStrategy(codebaseName);
-            String similarityName = pipeline.createSimilarity(strategyName);
+            String strategyName = pipeline.createStrategy(codebaseName, strategyCase);
+            String similarityName = pipeline.createSimilarity(strategyName, strategyCase);
             String decompositionName = pipeline.createDecomposition(similarityName);
 
             Map<String, Cluster> clusters = pipeline.getClusters(decompositionName);
@@ -138,12 +150,37 @@ class DecompositionE2ETest {
         cleanups.clear();
     }
 
-    private List<DecompositionPipeline> pipelines() {
+    private List<DecompositionPipeline> pipelines(String caseName) {
         return Arrays.asList(
-                new HttpDecompositionPipeline(rest, port),
+                new HttpDecompositionPipeline(rest, port, caseName),
                 new ServiceDecompositionPipeline(
                         codebaseService, representationService, strategyService,
-                        similarityService, decompositionService));
+                        similarityService, decompositionService, caseName));
+    }
+
+    /**
+     * Checks the fixtures this strategy needs, before anything is created.
+     *
+     * <p>Missing fixtures <b>fail</b>, with one deliberate exception: the Structure strategy is
+     * skipped when its fixture is absent, because no {@code _structure.json} exists for any
+     * case in this repository — the only one is a git-lfs pointer stub under
+     * {@code collectors/codeql-collector/data/} and {@code git lfs} is not installed. Dropping
+     * the case entirely would hide that the strategy is uncovered; failing the build for a file
+     * nobody can currently obtain would make the suite useless.
+     *
+     * <p>The skip is deliberately narrow. It asks only whether the file is on the classpath,
+     * never whether the pipeline works — supply the fixture and the case runs and fails loudly
+     * like every other one.
+     */
+    private void requireFixtures(String caseName, StrategyCase strategyCase) {
+        if (strategyCase.representations().containsValue(RepresentationFiles.STRUCTURE_SUFFIX))
+            assumeTrue(
+                    RepresentationFiles.isPresent(caseName, RepresentationFiles.STRUCTURE_SUFFIX),
+                    "No structure fixture for " + caseName + " (expected representations/" + caseName + "/"
+                            + caseName + RepresentationFiles.STRUCTURE_SUFFIX + "), so the Structure"
+                            + " strategy is not covered. See that folder's README.md.");
+
+        RepresentationFiles.requirePresent(caseName, strategyCase.fixtureSuffixes());
     }
 
     private static void requireReachable(String host, int port, String what) {

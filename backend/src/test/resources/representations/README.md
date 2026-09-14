@@ -12,27 +12,71 @@ them and place them here.
 ## Expected layout
 
 One folder per case, named after the codebase. Filenames must match exactly —
-the test derives them from the folder name:
+the test derives them from the folder name. **The casing is inconsistent and
+that is deliberate**: `_IDToEntity.json` capitalizes the leading I,
+`_entityToID.json` does not. These are collector filenames.
 
 ```
 backend/src/test/resources/representations/
 └── <case-name>/
     ├── <case-name>_IDToEntity.json
-    └── <case-name>_accesses.json
+    ├── <case-name>_entityToID.json
+    ├── <case-name>_accesses.json
+    ├── <case-name>_author.json
+    ├── <case-name>_commit.json
+    └── <case-name>_code_embeddings.json
 ```
 
 The reference case is `quizzes-tutor`:
 
 ```
 representations/quizzes-tutor/
-├── quizzes-tutor_IDToEntity.json     ~236 B   13 entities
-└── quizzes-tutor_accesses.json       ~129 KB  47 functionalities
+├── quizzes-tutor_IDToEntity.json       ~236 B   13 entities
+├── quizzes-tutor_entityToID.json       ~210 B   the inverse map
+├── quizzes-tutor_accesses.json         ~129 KB  47 functionalities
+├── quizzes-tutor_author.json           ~7 KB    contains real email addresses
+├── quizzes-tutor_commit.json           ~81 KB   co-change counts
+└── quizzes-tutor_code_embeddings.json  ~4.2 MB  856 methods, 384-float vectors
 ```
 
-Only these two files are needed for the Accesses strategy — the group
-`Accesses Based` requires exactly `IDToEntity` and `Accesses`
-(`Representation.java:26,31`). Other collector outputs (author, commit,
-code embeddings, entityToID) belong to strategies that are not yet covered.
+`quizzes-tutor_commit_mixed.json` is also in the reference set but maps to no
+known representation type, so nothing reads it.
+
+## Which files each strategy needs
+
+A strategy uploads its whole representation *group* in one request — a second
+upload of a type the codebase already holds is rejected with "Re-sending
+representations is not allowed."
+
+| Strategy | Group | Files |
+|---|---|---|
+| Accesses | `Accesses Based` | IDToEntity, accesses |
+| Repository | `Repository Based` | IDToEntity, accesses, author, commit |
+| Class Vectorization | `Code Embeddings Based` | IDToEntity, entityToID, accesses, code_embeddings |
+| Entity Vectorization | `Code Embeddings Based` | same as above |
+| Functionality Vectorization Call Graph | `Code Embeddings Based` | same as above |
+| Functionality Vectorization Sequence Accesses | `Code Embeddings Based` | same as above |
+| Structure | `Structure Based` | entityToID, IDToEntity, accesses, **structure** |
+
+**The code embeddings strategies do not need the code2vec model.** The backend
+never calls `/code2vec/predict` — it reads the pre-computed `codeVector` arrays
+out of the uploaded JSON and does the vectorization in Java. The model is only
+needed upstream, to regenerate that file with the code2vec collector.
+
+## Structure is not covered
+
+`DecompositionE2ETest` describes the Structure strategy but **skips it**, because
+no `<case-name>_structure.json` exists here. The only `quizzes-tutor_structure.json`
+in this repository is a 130-byte git-lfs pointer stub under
+`collectors/codeql-collector/data/`, and `git lfs` is not installed in this
+checkout.
+
+The skip is narrow: it triggers only on the fixture being absent. Drop a real
+`quizzes-tutor_structure.json` into this folder and the case runs — and fails
+loudly, like every other case — with no code change. Its expected shape is
+`{"entities": [{"name": "...", "fields": [...]}]}`, which
+`StructureRepresentation.init` parses; see the real examples under
+`collectors/codeql-collector/test-resources/endToEnd/*/expected-output/structure.json`.
 
 ## Requirements a fixture must meet
 
