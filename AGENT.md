@@ -95,14 +95,23 @@ make build
 
 ## Testing
 
-- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. Two suites:
-  `Mono2microApplicationTests` (context-load smoke test) and `DecompositionE2ETest`,
-  which drives the real pipeline for every case x strategy combination.
-  **`DecompositionE2ETest` needs the stack up** — `docker compose up -d mongo scripts` —
-  and fails, rather than skips, when Mongo or the scripts service is unreachable.
+- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`.
   Packaging still uses `-DskipTests` (see `codebases/` below).
   Run `backend/test-summary.py` after `mvn test` for a per-case pass/skip/fail list with
   reasons; surefire's console output names a parameterized case only by index.
+  Two kinds of suite, which differ in what they need:
+  - **Offline unit tests** — `<pkg>/operation/` (the five decomposition edit operations,
+    their undo/redo and history bookkeeping). No Spring context, no Mongo, no Docker:
+    `mvn test -Dtest='*PartitionsOperationTest,OperationHistoryBookkeepingTest,OperationDtoTest'`.
+    Possible because a hand-built `PartitionsDecomposition` has an empty
+    `representationInformations` list, which keeps `AccessesInformation`'s
+    `ContextManager` lookup out of reach; `History` is faked for the same reason. See
+    `DecompositionFixture` and `InMemoryHistory` in the test tree, and **Gap 7** in
+    `../implementation/docs/gap-analysis.md` for the findings they pin.
+  - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test) and
+    `DecompositionE2ETest`, which drives the real pipeline for every case x strategy
+    combination. **Needs the stack up** — `docker compose up -d mongo scripts` — and
+    fails, rather than skips, when Mongo or the scripts service is unreachable.
 - **Fixtures** are committed under `backend/src/test/resources/representations/`, one
   folder per case. No case holds every fixture, so combinations whose files are absent
   **skip** and are listed after the run; a fixture that is present but broken fails.
