@@ -8,7 +8,20 @@ on:
   pull_request:
   schedule:
     - cron: '0 3 * * *'
+  # A manual run starts the whole workflow by default. `jobs` narrows it, which is
+  # useful when iterating on the e2e job: its slow part is building the ~8GB scripts
+  # image, and there is no reason to wait on the fast legs too.
+  #   gh workflow run CI --ref <branch> -f jobs=e2e-only
   workflow_dispatch:
+    inputs:
+      jobs:
+        description: Which jobs to run
+        type: choice
+        default: all
+        options:
+          - all
+          - e2e-only
+          - fast-only
 
 # A new push to the same branch makes the previous run obsolete.
 concurrency:
@@ -67,7 +80,11 @@ jobs:
     # the `pull_request` one covers it. Before a PR exists, the push run is the
     # only feedback there is, so it still runs.
     needs: dedup
-    if: needs.dedup.outputs.should-run == 'true'
+    # `inputs.jobs` is empty for every event but workflow_dispatch, so this only
+    # narrows a manual run.
+    if: >-
+      needs.dedup.outputs.should-run == 'true' &&
+      inputs.jobs != 'e2e-only'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -174,7 +191,7 @@ jobs:
   # ---------------------------------------------------------------------------
   e2e:
     name: end-to-end decomposition
-    if: github.event_name != 'push'
+    if: github.event_name != 'push' && inputs.jobs != 'fast-only'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
