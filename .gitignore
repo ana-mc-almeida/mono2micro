@@ -44,6 +44,3 @@ collectors/structure-collector/spooned
 # Agent guidance (local filename; canonical file is AGENT.md)
 CLAUDE.md
 
-# Test fixtures should be downloaded, but not committed (see representations/README.md).
-backend/src/test/resources/representations/*
-!backend/src/test/resources/representations/README.md
