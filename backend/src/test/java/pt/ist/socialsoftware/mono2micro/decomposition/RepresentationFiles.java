@@ -3,6 +3,7 @@ package pt.ist.socialsoftware.mono2micro.decomposition;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,11 +38,7 @@ final class RepresentationFiles {
     static final String ENTITY_TO_ID_SUFFIX = "_entityToID.json";
     static final String CODE_EMBEDDINGS_SUFFIX = "_code_embeddings.json";
 
-    /**
-     * The {@code Structure Based} group. No such fixture exists for the reference case: the
-     * only {@code quizzes-tutor_structure.json} in the repository is a git-lfs pointer stub
-     * under {@code collectors/codeql-collector/data/} and {@code git lfs} is not installed.
-     */
+    /** The {@code Structure Based} group. */
     static final String STRUCTURE_SUFFIX = "_structure.json";
 
     private RepresentationFiles() {}
@@ -65,16 +62,27 @@ final class RepresentationFiles {
     }
 
     /**
-     * Whether a fixture exists, without failing when it does not.
+     * The requested fixtures that are absent, as bare filenames, in the order given.
      *
-     * <p>Used only to decide whether the Structure case can run at all. Every other
+     * <p>Used to decide whether a case/strategy combination can run at all. Every other
      * precondition in this suite fails loudly; this one is deliberately narrow — it answers
-     * "is the file there", never "did the pipeline work".
+     * "are the files there", never "did the pipeline work". A file that exists but cannot be
+     * read is <em>not</em> reported here, so that a broken fixture reaches
+     * {@link #requirePresent} and fails rather than quietly skipping.
      */
+    static List<String> missing(String caseName, List<String> suffixes) {
+        List<String> absent = new ArrayList<>();
+        for (String suffix : suffixes)
+            if (!isPresent(caseName, suffix))
+                absent.add(caseName + suffix);
+        return absent;
+    }
+
+    /** Whether a fixture exists on the classpath, without failing when it does not. */
     static boolean isPresent(String caseName, String suffix) {
         String path = path(caseName, suffix);
         try (InputStream stream = RepresentationFiles.class.getClassLoader().getResourceAsStream(path)) {
-            return stream != null && stream.read() != -1;
+            return stream != null;
         } catch (IOException e) {
             return false;
         }

@@ -63,20 +63,31 @@ never calls `/code2vec/predict` — it reads the pre-computed `codeVector` array
 out of the uploaded JSON and does the vectorization in Java. The model is only
 needed upstream, to regenerate that file with the code2vec collector.
 
-## Structure is not covered
+## A case need not cover every strategy
 
-`DecompositionE2ETest` describes the Structure strategy but **skips it**, because
-no `<case-name>_structure.json` exists here. The only `quizzes-tutor_structure.json`
-in this repository is a 130-byte git-lfs pointer stub under
-`collectors/codeql-collector/data/`, and `git lfs` is not installed in this
-checkout.
+`DecompositionE2ETest` runs every case against all seven strategies, and **skips**
+any combination whose fixtures are absent, naming the missing files. No case
+currently holds all of them:
 
-The skip is narrow: it triggers only on the fixture being absent. Drop a real
-`quizzes-tutor_structure.json` into this folder and the case runs — and fails
-loudly, like every other case — with no code change. Its expected shape is
+| Case | Covers | Missing |
+|---|---|---|
+| `quizzes-tutor` | everything but Structure | `_structure.json` |
+| `quizzes-tutor-structure` | Accesses, Structure | `_author.json`, `_commit.json`, `_code_embeddings.json` |
+| `spring-petclinic` | Accesses, Repository | `_code_embeddings.json`, `_structure.json` |
+
+The skipped combinations are listed on stderr after the run, so a suite that
+covered little is not mistaken for one that passed.
+
+The skip is narrow: it triggers only on a file being **absent**. Drop the file in
+and the case runs — and fails loudly, like every other case — with no code change.
+A file that is present but empty or unreadable still fails rather than skipping.
+
+For structure fixtures, the expected shape is
 `{"entities": [{"name": "...", "fields": [...]}]}`, which
 `StructureRepresentation.init` parses; see the real examples under
 `collectors/codeql-collector/test-resources/endToEnd/*/expected-output/structure.json`.
+Do not use `collectors/codeql-collector/data/quizzes-tutor_structure.json` — it is
+a 130-byte git-lfs pointer stub and `git lfs` is not installed in this checkout.
 
 ## Requirements a fixture must meet
 
@@ -102,10 +113,12 @@ rather than filtered file by file.
 
 ## Consequence for the build
 
-`mvn test` runs `DecompositionE2ETest`, which **fails loudly** when these files
-are missing — it never skips, because a skipped test that reports green is the
-exact failure this suite exists to prevent. The same applies to a plain
-`mvn clean install`.
+`mvn test` runs `DecompositionE2ETest`. With none of these files present every
+case skips and the build is green but vacuous, which is why the skipped
+combinations are printed after the run — read that list before trusting a pass.
+
+Everything else remains a hard failure: Mongo or the scripts service being down
+fails the build, and so does a fixture that is present but empty or unreadable.
 
 Packaging is unaffected: the project `README.md` already uses
 `mvn clean install -DskipTests`.

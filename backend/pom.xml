@@ -156,6 +156,13 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.2</version>
 				<configuration>
+					<!-- Use the phrased display names in the console summary too, not only
+					     in the XML, so a failing or skipped case is named in the terminal. -->
+					<statelessTestsetInfoReporter
+							implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoReporter">
+						<usePhrasedClassNameInRunning>true</usePhrasedClassNameInRunning>
+						<usePhrasedClassNameInTestCaseSummary>true</usePhrasedClassNameInTestCaseSummary>
+					</statelessTestsetInfoReporter>
 					<!-- Report the @ParameterizedTest display names ("structure produces a
 					     decomposition for quizzes-tutor") instead of the method signature.
 					     Without this, DecompositionE2ETest's per-strategy cases are reported

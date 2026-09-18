@@ -89,12 +89,11 @@ final class StrategyCase {
     }
 
     /**
-     * The six cases whose fixtures exist, plus Structure.
+     * Every strategy the tool supports.
      *
-     * <p>Structure is last because it is the one strategy with no fixture: the only
-     * {@code quizzes-tutor_structure.json} in the repository is a git-lfs pointer stub and
-     * {@code git lfs} is not installed here. It is described anyway so that supplying the file
-     * is all it takes to cover it.
+     * <p>All seven are described regardless of which fixtures happen to be on disk: a case
+     * that lacks them skips and says so, so that supplying a file is all it takes to cover the
+     * combination.
      */
     static List<StrategyCase> all() {
         return Arrays.asList(
