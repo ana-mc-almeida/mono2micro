@@ -1,13 +1,13 @@
 # Test fixtures — representation files
 
 `DecompositionE2ETest` drives the real decomposition pipeline, so it needs real
-collector output. Those files are **not committed to this repository**; download
-them and place them here.
+collector output. **These files are committed**, so a fresh clone can run the
+suite with no download step.
 
-## Download
-
-> **TODO:** publish the archive and put the link here, in the style of the
-> "Experimentation Data" section of the project `README.md`.
+They are collector output and carry whatever the collector saw: the two
+`_author.json` files list the commit authors' email addresses, taken from the
+analysed repository's git history. Keep that in mind before adding a case built
+from a private codebase — see "Adding a case" below.
 
 ## Expected layout
 
@@ -104,12 +104,16 @@ a 130-byte git-lfs pointer stub and `git lfs` is not installed in this checkout.
 Do not use the JSON under `collectors/codeql-collector/data/` — those files are
 git-lfs pointers and `git lfs` is not installed in this checkout.
 
-## Why these are not committed
+## Adding a case
 
-Collector output can carry personal data. In the reference set, the author
-representation contains real email addresses; the two files listed above contain
-none. Committing is still under discussion, so the whole folder is gitignored
-rather than filtered file by file.
+Drop a folder named after the codebase into this directory, with the filenames
+above. Nothing else registers it — `DecompositionE2ETest.CASES` lists the case
+names, so add it there too.
+
+Check what the fixtures contain first. `_author.json` holds email addresses from
+the analysed repository's git history, which is fine for a public codebase and
+not fine for a private one. A case that omits `_author.json` and `_commit.json`
+still covers every strategy but Repository, and the run says so.
 
 ## Consequence for the build
 

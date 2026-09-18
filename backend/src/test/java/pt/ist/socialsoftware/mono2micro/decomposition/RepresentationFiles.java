@@ -9,10 +9,11 @@ import java.util.List;
 /**
  * Reads representation fixtures from the test classpath.
  *
- * <p>The files are downloaded rather than committed (see
- * {@code src/test/resources/representations/README.md}), so a fresh clone has an empty
- * fixture folder. Every failure here therefore names the download, because the alternative
- * is a {@code NullPointerException} out of {@code getResourceAsStream} that tells a new
+ * <p>The files are committed (see {@code src/test/resources/representations/README.md}), so a
+ * fresh clone can run the suite. Not every case holds every fixture, though: an absent one
+ * skips that case/strategy combination, while a present-but-unreadable one fails here. Every
+ * failure names the file and the folder, because the alternative is a
+ * {@code NullPointerException} out of {@code getResourceAsStream} that tells a new
  * contributor nothing.
  *
  * <p>Filenames are derived from the case name: a case {@code quizzes-tutor} is expected at
@@ -52,9 +53,9 @@ final class RepresentationFiles {
     }
 
     /**
-     * Fails with the download instructions if any required file is absent. Called from the
-     * test's precondition check so that a missing fixture is reported once, up front, rather
-     * than as a confusing failure partway through the pipeline.
+     * Fails, naming the file, if any required fixture cannot be read. Called from the test's
+     * precondition check so that a broken fixture is reported once, up front, rather than as a
+     * confusing failure partway through the pipeline.
      */
     static void requirePresent(String caseName, List<String> suffixes) {
         for (String suffix : suffixes)
@@ -118,8 +119,7 @@ final class RepresentationFiles {
 
     private static String missingMessage(String path) {
         return "Test fixture not found on the classpath: " + path
-                + "\n\nThese files are not committed. Download them into"
-                + "\n  backend/src/test/resources/" + ROOT + "/"
-                + "\nand see that folder's README.md for the link and the expected layout.";
+                + "\n\nFixtures live in backend/src/test/resources/" + ROOT + "/"
+                + "\nand are committed; see that folder's README.md for the expected layout.";
     }
 }
