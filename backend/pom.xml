@@ -45,6 +45,20 @@
 		<java.version>1.8</java.version>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- Spring Boot 2.1.2 manages JUnit 5 at 5.3.2; this BOM keeps every
+			     jupiter/platform module aligned on a single, newer version. -->
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.10.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -54,6 +68,25 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+				<!-- jsonassert bundles an Android fork of org.json that shadows the real
+				     org.json:json below and lacks put(String, Collection). It breaks only
+				     under test, because the packaged jar has no test-scoped artifacts. -->
+				<exclusion>
+					<groupId>org.skyscreamer</groupId>
+					<artifactId>jsonassert</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -116,12 +149,80 @@
 
 	<build>
 		<plugins>
+			<!-- Boot 2.1.2 manages surefire 2.22.1; 3.2.2 matches the version
+			     already used by collectors/codeql-collector. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<!-- Use the phrased display names in the console summary too, not only
+					     in the XML, so a failing or skipped case is named in the terminal. -->
+					<statelessTestsetInfoReporter
+							implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoReporter">
+						<usePhrasedClassNameInRunning>true</usePhrasedClassNameInRunning>
+						<usePhrasedClassNameInTestCaseSummary>true</usePhrasedClassNameInTestCaseSummary>
+					</statelessTestsetInfoReporter>
+					<!-- Report the @ParameterizedTest display names ("structure produces a
+					     decomposition for quizzes-tutor") instead of the method signature.
+					     Without this, DecompositionE2ETest's per-strategy cases are reported
+					     as [1]..[7] and a failure does not say which strategy broke. -->
+					<statelessTestsetReporter
+							implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+						<usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+					</statelessTestsetReporter>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				 <configuration>
 					<jvmArguments>-Xms2g</jvmArguments>
 					<jvmArguments>-Xmx12g</jvmArguments>
+				</configuration>
+			</plugin>
+			<!-- Coverage as a map, not a score: which registry branches does the E2E
+			     suite actually reach? Boot 2.1.2 does not manage a jacoco version
+			     (only from 2.2+), so it is pinned here. 0.8.15 because the agent
+			     instruments on the local JDK 17 runtime; the 0.7.9 already in ~/.m2
+			     is from 2017 and predates Java 9. The Java 8 -target bytecode this
+			     module emits is read fine by any 0.8.x.
+
+			     Declared after surefire on purpose: executions bound to the same
+			     phase run in POM order, so report must come after the tests run. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.15</version>
+				<executions>
+					<execution>
+						<id>jacoco-prepare-agent</id>
+						<!-- Default phase (initialize) is correct: the agent must be
+						     set up before surefire forks its JVM. -->
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<!-- Bound to test, not the goal's default verify: the suite is
+						     run by hand with `mvn test`, and verify would both skip the
+						     report on that command and drag in spring-boot:repackage. -->
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<!-- CSV is the one that answers the registry question: one row per
+					     class, with METHOD_MISSED/METHOD_COVERED. HTML to browse, XML
+					     because every downstream tool reads it. -->
+					<formats>
+						<format>HTML</format>
+						<format>XML</format>
+						<format>CSV</format>
+					</formats>
 				</configuration>
 			</plugin>
 		</plugins>

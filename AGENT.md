@@ -95,12 +95,50 @@ make build
 
 ## Testing
 
-- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. The
-  committed suite is a single context-load smoke test (`Mono2microApplicationTests`);
-  most builds use `-DskipTests`.
+- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. Two suites:
+  `Mono2microApplicationTests` (context-load smoke test) and `DecompositionE2ETest`,
+  which drives the real pipeline for every case x strategy combination.
+  **`DecompositionE2ETest` needs the stack up** — `docker compose up -d mongo scripts` —
+  and fails, rather than skips, when Mongo or the scripts service is unreachable.
+  Packaging still uses `-DskipTests` (see `codebases/` below).
+  Run `backend/test-summary.py` after `mvn test` for a per-case pass/skip/fail list with
+  reasons; surefire's console output names a parameterized case only by index.
+- **Fixtures** are committed under `backend/src/test/resources/representations/`, one
+  folder per case. No case holds every fixture, so combinations whose files are absent
+  **skip** and are listed after the run; a fixture that is present but broken fails.
+  Read that folder's `README.md` before adding a case — `_author.json` carries commit
+  authors' email addresses.
 - **Go tool:** unit and integration tests are separated by **build tags**
-  (`-tags=unit`, `-tags=integration`), not by file location.
-- **Frontend:** `npm test` (react-scripts, jsdom).
+  (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
+  `_test.go` files, so `make test` passes vacuously.
+- **Frontend:** `npm test` (react-scripts, jsdom). The single CRA default test currently
+  fails: Jest cannot parse `vis-network/standalone` (ESM) because `package.json` sets no
+  `transformIgnorePatterns`.
+
+## CI
+
+`.github/workflows/ci.yml`, two jobs:
+
+- **`fast`** — every push and PR, no Docker. (A push to a branch that already has an
+  open PR skips it, since the `pull_request` run covers the same commit; a small `dedup`
+  job decides.) Backend `mvn -DskipTests clean install`,
+  frontend install/test/build, Go `go build`. The frontend test and `go vet` run
+  **advisory** (`|| true`) because both already fail on pre-existing problems unrelated
+  to any change; fix those, then drop the `|| true`.
+- **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
+  because it builds the ~8GB scripts image. Brings up mongo + scripts via
+  `docker compose`, runs `mvn test`, then `test-summary.py`, and uploads the surefire and
+  JaCoCo reports as artifacts.
+
+Two things CI must do that a local checkout does not need:
+
+1. `cp specific.properties.example specific.properties` — it is gitignored and read at
+   static-init time, so without it every test fails to load the Spring context.
+2. `mkdir -p scripts/models/java-large-release` — `code2vec/controller.py` runs
+   `Config(verify=True)` at import, which raises `"Model load dir ... does not exist"` and
+   crash-loops the scripts container. The directory only has to exist: the model is lazily
+   loaded and the backend reads precomputed `codeVector` arrays from the fixture JSON
+   instead of calling `/code2vec/predict`.
 
 ## Backend layout
 
