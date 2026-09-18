@@ -174,6 +174,50 @@
 					<jvmArguments>-Xmx12g</jvmArguments>
 				</configuration>
 			</plugin>
+			<!-- Coverage as a map, not a score: which registry branches does the E2E
+			     suite actually reach? Boot 2.1.2 does not manage a jacoco version
+			     (only from 2.2+), so it is pinned here. 0.8.15 because the agent
+			     instruments on the local JDK 17 runtime; the 0.7.9 already in ~/.m2
+			     is from 2017 and predates Java 9. The Java 8 -target bytecode this
+			     module emits is read fine by any 0.8.x.
+
+			     Declared after surefire on purpose: executions bound to the same
+			     phase run in POM order, so report must come after the tests run. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.15</version>
+				<executions>
+					<execution>
+						<id>jacoco-prepare-agent</id>
+						<!-- Default phase (initialize) is correct: the agent must be
+						     set up before surefire forks its JVM. -->
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<!-- Bound to test, not the goal's default verify: the suite is
+						     run by hand with `mvn test`, and verify would both skip the
+						     report on that command and drag in spring-boot:repackage. -->
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<!-- CSV is the one that answers the registry question: one row per
+					     class, with METHOD_MISSED/METHOD_COVERED. HTML to browse, XML
+					     because every downstream tool reads it. -->
+					<formats>
+						<format>HTML</format>
+						<format>XML</format>
+						<format>CSV</format>
+					</formats>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
