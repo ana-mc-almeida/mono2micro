@@ -1,7 +1,9 @@
 # `operation/` tests
 
 Offline unit tests for the five decomposition edit operations. No Spring context, no
-Mongo, no Docker — see `AGENT.md`'s Testing section for how to run them alone.
+Mongo, no Docker — a bare `mvn test` runs these and only these, because the
+stack-dependent classes elsewhere are tagged `@Tag("integration")` and excluded by
+default. See `AGENT.md`'s Testing section.
 
 ## Two kinds of file here
 

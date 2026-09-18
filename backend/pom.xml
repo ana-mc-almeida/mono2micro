@@ -43,6 +43,9 @@
 
 	<properties>
 		<java.version>1.8</java.version>
+		<!-- JUnit tags excluded from `mvn test` by default; see the surefire plugin
+		     below. Override with -Dexcluded.groups= (empty) to run everything. -->
+		<excluded.groups>integration</excluded.groups>
 	</properties>
 
 	<dependencyManagement>
@@ -156,6 +159,19 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.2</version>
 				<configuration>
+					<!-- Tests tagged @Tag("integration") need the real stack (Mongo + the
+					     Python scripts service) and FAIL, rather than skip, when it is
+					     absent. Excluding them by default makes a bare `mvn test` offline,
+					     so the unit tests under <pkg>/operation/ can run on every push in
+					     CI's `fast` job, which has no Docker.
+
+					     Overridable, so the e2e job can run everything in one invocation:
+					         mvn test -Dexcluded.groups=
+					     An empty value excludes nothing. Do not use -Dgroups=integration
+					     there: that would run ONLY the tagged tests and drop the unit
+					     suite from the e2e reports, which test-summary.py aggregates by
+					     globbing target/surefire-reports/. -->
+					<excludedGroups>${excluded.groups}</excludedGroups>
 					<!-- Use the phrased display names in the console summary too, not only
 					     in the XML, so a failing or skipped case is named in the terminal. -->
 					<statelessTestsetInfoReporter

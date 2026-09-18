@@ -99,19 +99,30 @@ make build
   Packaging still uses `-DskipTests` (see `codebases/` below).
   Run `backend/test-summary.py` after `mvn test` for a per-case pass/skip/fail list with
   reasons; surefire's console output names a parameterized case only by index.
-  Two kinds of suite, which differ in what they need:
+  Two kinds of suite, split by a **JUnit tag**, not by location:
   - **Offline unit tests** — `<pkg>/operation/` (the five decomposition edit operations,
-    their undo/redo and history bookkeeping). No Spring context, no Mongo, no Docker:
-    `mvn test -Dtest='*PartitionsOperationTest,OperationHistoryBookkeepingTest,OperationDtoTest'`.
-    Possible because a hand-built `PartitionsDecomposition` has an empty
-    `representationInformations` list, which keeps `AccessesInformation`'s
-    `ContextManager` lookup out of reach; `History` is faked for the same reason. See
-    `DecompositionFixture` and `InMemoryHistory` in the test tree, and **Gap 7** in
-    `../implementation/docs/gap-analysis.md` for the findings they pin.
+    their undo/redo and history bookkeeping). No Spring context, no Mongo, no Docker, so
+    a bare **`mvn test` runs these and only these** (~2s). Possible because a hand-built
+    `PartitionsDecomposition` has an empty `representationInformations` list, which keeps
+    `AccessesInformation`'s `ContextManager` lookup out of reach; `History` is faked for
+    the same reason. See that package's `README.md`, plus `DecompositionFixture` and
+    `InMemoryHistory`, and **Gap 7** in `../implementation/docs/gap-analysis.md` for the
+    findings they pin.
   - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test) and
     `DecompositionE2ETest`, which drives the real pipeline for every case x strategy
     combination. **Needs the stack up** — `docker compose up -d mongo scripts` — and
-    fails, rather than skips, when Mongo or the scripts service is unreachable.
+    fails, rather than skips, when Mongo or the scripts service is unreachable. Both are
+    tagged `@Tag("integration")` and excluded by default via surefire's
+    `<excludedGroups>${excluded.groups}</excludedGroups>` in `backend/pom.xml`.
+
+    Run **everything** (needs the stack) with an empty override:
+
+    ```bash
+    mvn test -Dexcluded.groups=
+    ```
+
+    Not `-Dgroups=integration` — that runs *only* the tagged tests and drops the unit
+    suite from the reports `test-summary.py` aggregates.
 - **Fixtures** are committed under `backend/src/test/resources/representations/`, one
   folder per case. No case holds every fixture, so combinations whose files are absent
   **skip** and are listed after the run; a fixture that is present but broken fails.

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -68,6 +69,9 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * smoke test passes with Mongo switched off. The single exception is an absent fixture, which
  * skips and is reported by {@link #reportSkips()}; a present-but-broken one still fails.
  */
+// Excluded from the default `mvn test` by surefire's <excludedGroups>, since the
+// stack requirement above cannot be met offline; the e2e job opts back in with -Dgroups.
+@Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("Decomposition generation, end to end")
 class DecompositionE2ETest {

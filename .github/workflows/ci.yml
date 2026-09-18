@@ -112,13 +112,37 @@ jobs:
         if: matrix.component == 'backend'
         run: cp backend/src/main/resources/specific.properties.example backend/src/main/resources/specific.properties
 
-      # Compile only. Every test needs Mongo -- even contextLoads() -- so testing
-      # belongs in the e2e job. Note: ./mvnw is committed but .mvn/wrapper/ is not,
-      # so the wrapper is broken; use the runner's Maven.
+      # Compile, then run the offline unit tests. The stack-dependent classes are
+      # tagged @Tag("integration") and excluded by surefire's <excludedGroups>
+      # default, so this needs no Docker, no Mongo and no Python -- see pom.xml.
+      # `install -DskipTests` first so the jar is still built even if a test fails.
+      # Note: ./mvnw is committed but .mvn/wrapper/ is not, so the wrapper is
+      # broken; use the runner's Maven.
       - name: Build backend
         if: matrix.component == 'backend'
         working-directory: backend
         run: mvn -B -DskipTests clean install
+
+      - name: Test backend (offline unit tests)
+        if: matrix.component == 'backend'
+        working-directory: backend
+        run: mvn -B test
+
+      # Same per-case summary the e2e job prints. Exits 1 on failure.
+      - name: Test summary
+        if: always() && matrix.component == 'backend'
+        working-directory: backend
+        run: python3 test-summary.py
+
+      # Artifact name differs from the e2e job's: two uploads sharing one name in
+      # the same workflow run collide.
+      - name: Upload backend unit-test reports
+        if: always() && matrix.component == 'backend'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-unit-reports
+          path: backend/target/surefire-reports/
+          if-no-files-found: warn
 
       # -- frontend -----------------------------------------------------------
       # Node 16 matches frontend/Dockerfile. react-scripts 5 hits
@@ -253,13 +277,17 @@ jobs:
         run: cp backend/src/main/resources/specific.properties.example backend/src/main/resources/specific.properties
 
       # JaCoCo is already bound to the test phase in pom.xml, so no extra flags.
+      # -Dexcluded.groups= (empty) clears the default <excludedGroups>integration,
+      # so this runs the tagged stack tests AND the offline unit tests in one
+      # invocation. Not -Dgroups=integration: that would run only the tagged ones
+      # and drop the unit suite from the reports test-summary.py aggregates.
       - name: Run the test suite
         working-directory: backend
         env:
           MONGO_DB: mongodb://localhost:27017
           MONGO_DB_NAME: mono2micro
           SCRIPTS_ADDRESS: http://localhost:5002
-        run: mvn -B test
+        run: mvn -B -Dexcluded.groups= test
 
       # Surefire's console output names a skipped case only by index and hides the
       # reason in the XML. This prints both, so the coverage gap is visible in the
