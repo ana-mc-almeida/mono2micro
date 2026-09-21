@@ -144,9 +144,11 @@ make build
   authors' email addresses.
 - **Coverage** is measured by JaCoCo (bound to the `test` phase) and **gated** by
   `jacoco:check` in the `coverage` profile. Limits are line 50%, instruction 50%,
-  branch 40%, over the whole bundle. The full suite currently sits **below all three**
-  (44.2 / 43.5 / 38.6 as of 2026-09-18), so the gate fails on purpose — the fix is to
-  raise coverage, not to lower the limits. The gate lives in a profile because a plain
+  branch 40%, over the whole bundle. The full suite **passes all three** as of
+  2026-09-21 (line 51.4 / instruction 51.0 / branch 47.1); it sat at 44.2 / 43.5 / 38.6
+  before `PurityTest` and `MoJoCalculatorTest` landed. Keep it that way: if a change
+  drops a counter below its limit, the fix is to raise coverage, not to lower the
+  limits. The gate lives in a profile because a plain
   `mvn test` runs only the offline unit tests and reaches ~5%; measuring that against a
   whole-suite target would fail every push. `backend/coverage-summary.py` prints the
   percentages and the worst packages as Markdown; it reports only and never gates.
@@ -174,12 +176,23 @@ make build
   run without `clean` silently mixes in the previous run's data — which is how a
   unit-only run can report the full suite's numbers.
 
-  **The vendored MoJo code is the single biggest drag on the gate**:
-  `utils.mojoCalculator.src.main.java` is 660 lines at 0%, copied-in third-party code
-  under a nested `src/main/java` path. Excluding it from the bundle moves branch
-  38.6% → 44.9% (**passing**) and leaves line and instruction 0.8 and 0.5 points short
-  — so an exclusion plus a little new coverage clears all three. Measured on CI run
-  35587504552, 2026-09-21.
+  **The vendored MoJo code was the single biggest drag on the gate, and is now tested
+  rather than excluded.** `utils.mojoCalculator.src.main.java` is 660 lines of copied-in
+  2004 third-party code under a nested `src/main/java` path, and was at 0%.
+
+  An earlier note here recommended a JaCoCo `<excludes>` for it. **That cannot work**:
+  exclusion removes uncovered lines from the denominator but adds no covered ones, so it
+  reaches branch 44.9% (passing) but only 49.5 instruction and **49.2 line** — both still
+  short, with nothing left to exclude. `MoJoCalculatorTest` instead took the package to
+  ~66% and cleared all three limits at once. There are no `<excludes>` in `pom.xml`, and
+  adding one is not the route back to a green gate. See **D-008** in
+  `../implementation/docs/decisions.md`.
+
+  Two things to know before touching that package's tests: `Cluster` and `BipartiteGraph`
+  are **package-private**, so tests must sit in
+  `pt.ist.socialsoftware.mono2micro.utils.mojoCalculator.src.main.java`; and
+  `MoJo.showerrormsg()` ends in **`System.exit(0)`** (`MoJo.java:113`), so a malformed
+  argument array would kill the surefire fork. Only well-formed argv is exercised.
 - **Go tool:** unit and integration tests are separated by **build tags**
   (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
   `_test.go` files, so `make test` passes vacuously.
