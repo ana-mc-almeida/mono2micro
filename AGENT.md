@@ -95,19 +95,104 @@ make build
 
 ## Testing
 
-- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. Two suites:
-  `Mono2microApplicationTests` (context-load smoke test) and `DecompositionE2ETest`,
-  which drives the real pipeline for every case x strategy combination.
-  **`DecompositionE2ETest` needs the stack up** — `docker compose up -d mongo scripts` —
-  and fails, rather than skips, when Mongo or the scripts service is unreachable.
+- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`.
   Packaging still uses `-DskipTests` (see `codebases/` below).
   Run `backend/test-summary.py` after `mvn test` for a per-case pass/skip/fail list with
   reasons; surefire's console output names a parameterized case only by index.
+  Two kinds of suite, split by a **JUnit tag**, not by location:
+  - **Offline unit tests** — `<pkg>/operation/` (the five decomposition edit operations,
+    their undo/redo and history bookkeeping). No Spring context, no Mongo, no Docker, so
+    a bare **`mvn test` runs these and only these** (~2s). Possible because a hand-built
+    `PartitionsDecomposition` has an empty `representationInformations` list, which keeps
+    `AccessesInformation`'s `ContextManager` lookup out of reach; `History` is faked for
+    the same reason. See that package's `README.md`, plus `DecompositionFixture` and
+    `InMemoryHistory`, and **Gap 7** in `../implementation/docs/gap-analysis.md` for the
+    findings they pin.
+  - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test) and
+    `DecompositionE2ETest`, which drives the real pipeline for every case x strategy
+    combination. **Needs the stack up** — `docker compose up -d mongo scripts` — and
+    fails, rather than skips, when Mongo or the scripts service is unreachable. Both are
+    tagged `@Tag("integration")` and excluded by default via surefire's
+    `<excludedGroups>${excluded.groups}</excludedGroups>` in `backend/pom.xml`.
+
+    Run **everything** (needs the stack) with an empty override:
+
+    ```bash
+    mvn test -Dexcluded.groups=
+    ```
+
+    Not `-Dgroups=integration` — that runs *only* the tagged tests and drops the unit
+    suite from the reports `test-summary.py` aggregates.
+- **`backend/Makefile`** wraps the long stack commands; `mvn test` is deliberately
+  *not* wrapped, since it already does the right thing offline in ~2s.
+
+  | Target | Runs |
+  |---|---|
+  | `make coverage` | full suite, then the gate — the CI `e2e` + `coverage` jobs |
+  | `make coverage-gate` | the gate alone, on the last run's `jacoco.exec`; no tests |
+  | `make test-all` | full suite, no gate |
+  | `make test-summary` | per-case pass/skip/fail |
+  | `make coverage-summary` | percentages + worst packages |
+  | `make coverage-report` | `coverage`, then both summaries even if the gate fires |
+
+  The env vars default to the values the e2e job sets and are overridable:
+  `make coverage MONGO_DB=mongodb://otherhost:27017`.
 - **Fixtures** are committed under `backend/src/test/resources/representations/`, one
   folder per case. No case holds every fixture, so combinations whose files are absent
   **skip** and are listed after the run; a fixture that is present but broken fails.
   Read that folder's `README.md` before adding a case — `_author.json` carries commit
   authors' email addresses.
+- **Coverage** is measured by JaCoCo (bound to the `test` phase) and **gated** by
+  `jacoco:check` in the `coverage` profile. Limits are line 50%, instruction 50%,
+  branch 40%, over the whole bundle. The full suite **passes all three** as of
+  2026-09-21 (line 51.4 / instruction 51.0 / branch 47.1); it sat at 44.2 / 43.5 / 38.6
+  before `PurityTest` and `MoJoCalculatorTest` landed. Keep it that way: if a change
+  drops a counter below its limit, the fix is to raise coverage, not to lower the
+  limits. The gate lives in a profile because a plain
+  `mvn test` runs only the offline unit tests and reaches ~5%; measuring that against a
+  whole-suite target would fail every push. `backend/coverage-summary.py` prints the
+  percentages and the worst packages as Markdown; it reports only and never gates.
+
+  **Run the suite and the gate as two commands**, so a coverage shortfall cannot be
+  mistaken for a test failure — this is the split CI uses too (`make coverage` does
+  both):
+
+  ```bash
+  mvn -Dexcluded.groups= clean test      # tests only; still writes jacoco.exec + reports
+  mvn -Pcoverage jacoco:check@jacoco-check   # the gate, replayed on that exec file
+  ```
+
+  Two traps in that second command:
+  - **`@jacoco-check` is required.** A bare `mvn jacoco:check` creates a `default-cli`
+    execution that does not inherit `<rules>` from the named execution, and dies with
+    `The parameters 'rules' for goal jacoco:check are missing or invalid`.
+  - **`target/classes/` must exist.** `jacoco:check` replays the exec file against the
+    compiled bytecode; without it JaCoCo logs `Skipping JaCoCo execution due to missing
+    classes directory` and **exits 0** — a green gate that checked nothing. This is why
+    CI's `coverage` job uploads `target/classes/` alongside `jacoco.exec`.
+
+  JaCoCo's `prepare-agent` sets `<append>false</append>`, so each run's report covers
+  only what that run executed. Without it JaCoCo appends to `target/jacoco.exec` and a
+  run without `clean` silently mixes in the previous run's data — which is how a
+  unit-only run can report the full suite's numbers.
+
+  **The vendored MoJo code was the single biggest drag on the gate, and is now tested
+  rather than excluded.** `utils.mojoCalculator.src.main.java` is 660 lines of copied-in
+  2004 third-party code under a nested `src/main/java` path, and was at 0%.
+
+  An earlier note here recommended a JaCoCo `<excludes>` for it. **That cannot work**:
+  exclusion removes uncovered lines from the denominator but adds no covered ones, so it
+  reaches branch 44.9% (passing) but only 49.5 instruction and **49.2 line** — both still
+  short, with nothing left to exclude. `MoJoCalculatorTest` instead took the package to
+  ~66% and cleared all three limits at once. There are no `<excludes>` in `pom.xml`, and
+  adding one is not the route back to a green gate. See **D-008** in
+  `../implementation/docs/decisions.md`.
+
+  Two things to know before touching that package's tests: `Cluster` and `BipartiteGraph`
+  are **package-private**, so tests must sit in
+  `pt.ist.socialsoftware.mono2micro.utils.mojoCalculator.src.main.java`; and
+  `MoJo.showerrormsg()` ends in **`System.exit(0)`** (`MoJo.java:113`), so a malformed
+  argument array would kill the surefire fork. Only well-formed argv is exercised.
 - **Go tool:** unit and integration tests are separated by **build tags**
   (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
   `_test.go` files, so `make test` passes vacuously.
@@ -127,8 +212,19 @@ make build
   to any change; fix those, then drop the `|| true`.
 - **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
   because it builds the ~8GB scripts image. Brings up mongo + scripts via
-  `docker compose`, runs `mvn test`, then `test-summary.py`, and uploads the surefire and
-  JaCoCo reports as artifacts.
+  `docker compose`, runs `mvn -Dexcluded.groups= test` (the whole suite, **no**
+  `-Pcoverage`), then `test-summary.py` and `coverage-summary.py`, and uploads the
+  surefire and JaCoCo reports as artifacts. `coverage-summary.py` writes its table to
+  `$GITHUB_STEP_SUMMARY`, so the percentages are on the run page rather than only inside
+  the artifact. This job is green when the tests pass.
+- **`coverage`** — `needs: e2e`, and skipped unless it succeeded. Downloads the
+  `jacoco.exec` + `target/classes/` the e2e job uploaded and runs
+  `mvn -Pcoverage jacoco:check@jacoco-check` against them. Runs **no** tests and needs
+  no Docker, so it finishes in seconds. **This job is red until coverage reaches the
+  limits above** — deliberately, and it is the only one that goes red for that reason.
+  The split exists because the gate used to run inside the e2e job's `mvn` invocation,
+  which made a coverage shortfall read as "end-to-end decomposition failed" when every
+  decomposition test had passed.
 
 Two things CI must do that a local checkout does not need:
 

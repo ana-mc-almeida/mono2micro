@@ -112,13 +112,37 @@ jobs:
         if: matrix.component == 'backend'
         run: cp backend/src/main/resources/specific.properties.example backend/src/main/resources/specific.properties
 
-      # Compile only. Every test needs Mongo -- even contextLoads() -- so testing
-      # belongs in the e2e job. Note: ./mvnw is committed but .mvn/wrapper/ is not,
-      # so the wrapper is broken; use the runner's Maven.
+      # Compile, then run the offline unit tests. The stack-dependent classes are
+      # tagged @Tag("integration") and excluded by surefire's <excludedGroups>
+      # default, so this needs no Docker, no Mongo and no Python -- see pom.xml.
+      # `install -DskipTests` first so the jar is still built even if a test fails.
+      # Note: ./mvnw is committed but .mvn/wrapper/ is not, so the wrapper is
+      # broken; use the runner's Maven.
       - name: Build backend
         if: matrix.component == 'backend'
         working-directory: backend
         run: mvn -B -DskipTests clean install
+
+      - name: Test backend (offline unit tests)
+        if: matrix.component == 'backend'
+        working-directory: backend
+        run: mvn -B test
+
+      # Same per-case summary the e2e job prints. Exits 1 on failure.
+      - name: Test summary
+        if: always() && matrix.component == 'backend'
+        working-directory: backend
+        run: python3 test-summary.py
+
+      # Artifact name differs from the e2e job's: two uploads sharing one name in
+      # the same workflow run collide.
+      - name: Upload backend unit-test reports
+        if: always() && matrix.component == 'backend'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-unit-reports
+          path: backend/target/surefire-reports/
+          if-no-files-found: warn
 
       # -- frontend -----------------------------------------------------------
       # Node 16 matches frontend/Dockerfile. react-scripts 5 hits
@@ -252,14 +276,24 @@ jobs:
       - name: Create specific.properties
         run: cp backend/src/main/resources/specific.properties.example backend/src/main/resources/specific.properties
 
-      # JaCoCo is already bound to the test phase in pom.xml, so no extra flags.
+      # Deliberately NOT -Pcoverage: that profile binds jacoco:check to the test
+      # phase, so a coverage shortfall would fail THIS step and make the job read
+      # "end-to-end decomposition failed" when the decomposition tests all passed.
+      # The gate is its own `coverage` job, downstream of this one. JaCoCo still
+      # runs here -- prepare-agent and report are in the main build, not the
+      # profile -- so jacoco.exec and the HTML/XML/CSV reports are still written.
+      #
+      # -Dexcluded.groups= (empty) clears the default <excludedGroups>integration,
+      # so this runs the tagged stack tests AND the offline unit tests in one
+      # invocation. Not -Dgroups=integration: that would run only the tagged ones
+      # and drop the unit suite from the reports test-summary.py aggregates.
       - name: Run the test suite
         working-directory: backend
         env:
           MONGO_DB: mongodb://localhost:27017
           MONGO_DB_NAME: mono2micro
           SCRIPTS_ADDRESS: http://localhost:5002
-        run: mvn -B test
+        run: mvn -B -Dexcluded.groups= test
 
       # Surefire's console output names a skipped case only by index and hides the
       # reason in the XML. This prints both, so the coverage gap is visible in the
@@ -268,6 +302,14 @@ jobs:
         if: always()
         working-directory: backend
         run: python3 test-summary.py
+
+      # Reporting only -- the gate is the `coverage` job below. The percentages are
+      # printed here, next to the run that produced them, instead of only inside
+      # the uploaded zip. `tee` writes them to the step log and the job summary.
+      - name: Coverage summary
+        if: always()
+        working-directory: backend
+        run: python3 coverage-summary.py | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test and coverage reports
         if: always()
@@ -279,6 +321,21 @@ jobs:
             backend/target/site/jacoco/
           if-no-files-found: warn
 
+      # What the `coverage` job needs to re-run the gate without re-running the
+      # suite. Both halves are required: jacoco:check replays the exec file
+      # against the compiled bytecode, and with no target/classes/ it logs
+      # "Skipping JaCoCo execution due to missing classes directory" and exits 0
+      # -- a green gate that checked nothing.
+      - name: Upload coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-data
+          path: |
+            backend/target/jacoco.exec
+            backend/target/classes/
+          if-no-files-found: warn
+
       # A failure inside the Python service is invisible from Maven's output.
       - name: Dump service logs
         if: failure()
@@ -287,3 +344,51 @@ jobs:
       - name: Tear down
         if: always()
         run: docker compose down -v
+
+  # ---------------------------------------------------------------------------
+  # The JaCoCo threshold check, on its own so that a coverage shortfall reads as
+  # "coverage gate failed" rather than "end-to-end decomposition failed". It runs
+  # no tests: it replays the exec file the e2e job uploaded. Seconds, no Docker.
+  #
+  # Expected RED until the suite reaches the limits in pom.xml (line 50%,
+  # instruction 50%, branch 40%); the fix is to raise coverage, not to lower them.
+  # ---------------------------------------------------------------------------
+  coverage:
+    name: coverage gate
+    needs: e2e
+    # Only meaningful when the suite actually ran. If e2e failed, its red X is the
+    # real signal and a second one here (on a missing or partial artifact) would
+    # just add noise.
+    if: needs.e2e.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      # Gitignored and read at static-init time; without it Maven cannot even get
+      # as far as resolving the profile.
+      - name: Create specific.properties
+        run: cp backend/src/main/resources/specific.properties.example backend/src/main/resources/specific.properties
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage-data
+          path: backend/target/
+
+      # The @jacoco-check suffix is load-bearing. A bare `mvn jacoco:check` creates
+      # a `default-cli` execution, which does NOT inherit <rules> from the named
+      # execution in the coverage profile, and dies with "The parameters 'rules'
+      # for goal jacoco:check are missing or invalid". Naming the execution id runs
+      # the configured one, with the three BUNDLE limits from pom.xml.
+      - name: Coverage gate
+        working-directory: backend
+        run: mvn -B -Pcoverage jacoco:check@jacoco-check
