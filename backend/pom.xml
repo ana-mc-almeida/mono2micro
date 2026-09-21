@@ -39,10 +39,82 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<!-- Coverage gate. Kept in a profile, not the main build, because the two CI
+		     jobs run very different amounts of the suite: the `fast` job runs only the
+		     offline unit tests (tag `integration` excluded by default) and reaches ~5%,
+		     while the `e2e` job clears the exclusion and reaches ~44%. A gate in the main
+		     build would fire in both and fail every push. Only the e2e job passes
+		     -Pcoverage.
+
+		     Measured 2026-09-18 on the full suite (121 tests): line 44.2%, instruction
+		     43.5%, branch 38.6%. All three limits below are therefore ABOVE the current
+		     numbers on purpose: the build is red until the suite catches up. The fix is
+		     to raise coverage, NOT to lower these limits. -->
+		<profile>
+			<id>coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<!-- Version inherited from the main <build> declaration. -->
+						<executions>
+							<execution>
+								<id>jacoco-check</id>
+								<!-- Bound to test, not the goal's default verify, for the same
+								     reason as jacoco-report in the main build: the suite is run
+								     with `mvn test`, and a check bound to verify would never fire.
+								     Profile executions are appended after the main build's, so the
+								     report this reads is the one written by the same run. -->
+								<phase>test</phase>
+								<goals>
+									<goal>check</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<!-- BUNDLE: one rule over the whole module. A per-class rule
+										     at these levels would fail on hundreds of DTOs. -->
+										<rule>
+											<element>BUNDLE</element>
+											<limits>
+												<limit>
+													<counter>LINE</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>0.50</minimum>
+												</limit>
+												<limit>
+													<counter>INSTRUCTION</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>0.50</minimum>
+												</limit>
+												<!-- Branch is the hardest counter to move, so it gets a
+												     nearer target than the other two: at 38.6% it is 1.4
+												     points away and should go green first. -->
+												<limit>
+													<counter>BRANCH</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>0.40</minimum>
+												</limit>
+											</limits>
+										</rule>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 	<properties>
 		<java.version>1.8</java.version>
+		<!-- Default packaging. Also declared by the `jar` profile, which is
+		     activeByDefault, and Maven switches every activeByDefault profile OFF as
+		     soon as any profile is named explicitly, so `mvn -Pcoverage` would leave
+		     ${packaging.type} unresolved ("Unknown packaging"). Defining it here keeps
+		     the property set whatever profile is active; -Pwar still overrides it. -->
+		<packaging.type>jar</packaging.type>
 		<!-- JUnit tags excluded from `mvn test` by default; see the surefire plugin
 		     below. Override with -Dexcluded.groups= (empty) to run everything. -->
 		<excluded.groups>integration</excluded.groups>

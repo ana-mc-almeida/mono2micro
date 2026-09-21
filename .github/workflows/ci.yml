@@ -276,7 +276,9 @@ jobs:
       - name: Create specific.properties
         run: cp backend/src/main/resources/specific.properties.example backend/src/main/resources/specific.properties
 
-      # JaCoCo is already bound to the test phase in pom.xml, so no extra flags.
+      # JaCoCo is already bound to the test phase in pom.xml. -Pcoverage adds the
+      # jacoco:check gate on top; it lives in a profile so the fast job, which runs
+      # only the offline unit tests, is not measured against a whole-suite target.
       # -Dexcluded.groups= (empty) clears the default <excludedGroups>integration,
       # so this runs the tagged stack tests AND the offline unit tests in one
       # invocation. Not -Dgroups=integration: that would run only the tagged ones
@@ -287,7 +289,7 @@ jobs:
           MONGO_DB: mongodb://localhost:27017
           MONGO_DB_NAME: mono2micro
           SCRIPTS_ADDRESS: http://localhost:5002
-        run: mvn -B -Dexcluded.groups= test
+        run: mvn -B -Pcoverage -Dexcluded.groups= test
 
       # Surefire's console output names a skipped case only by index and hides the
       # reason in the XML. This prints both, so the coverage gap is visible in the
@@ -296,6 +298,15 @@ jobs:
         if: always()
         working-directory: backend
         run: python3 test-summary.py
+
+      # The gate itself is jacoco:check (-Pcoverage), so a coverage failure surfaces
+      # as a failing `mvn test` step above. This puts the percentages behind that
+      # pass or failure on the run page, instead of only inside the uploaded zip.
+      # `tee` writes them to the step log as well as the job summary.
+      - name: Coverage summary
+        if: always()
+        working-directory: backend
+        run: python3 coverage-summary.py | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test and coverage reports
         if: always()

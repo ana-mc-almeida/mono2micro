@@ -128,6 +128,18 @@ make build
   **skip** and are listed after the run; a fixture that is present but broken fails.
   Read that folder's `README.md` before adding a case — `_author.json` carries commit
   authors' email addresses.
+- **Coverage** is measured by JaCoCo (bound to the `test` phase) and **gated** by
+  `jacoco:check` in the `coverage` profile: `mvn -Pcoverage -Dexcluded.groups= test`.
+  Limits are line 50%, instruction 50%, branch 40%, over the whole bundle. The full
+  suite currently sits **below all three** (44.2 / 43.5 / 38.6 as of 2026-09-18), so
+  that command fails on purpose — the fix is to raise coverage, not to lower the
+  limits. The gate lives in a profile because a plain `mvn test` runs only the offline
+  unit tests and reaches ~5%; measuring that against a whole-suite target would fail
+  every push. `backend/coverage-summary.py` prints the percentages and the worst
+  packages as Markdown; it reports only and never gates.
+
+  Measure with **`mvn clean test`**: `target/jacoco.exec` is appended to, not replaced,
+  so a run without `clean` silently mixes in the previous run's data.
 - **Go tool:** unit and integration tests are separated by **build tags**
   (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
   `_test.go` files, so `make test` passes vacuously.
@@ -147,8 +159,11 @@ make build
   to any change; fix those, then drop the `|| true`.
 - **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
   because it builds the ~8GB scripts image. Brings up mongo + scripts via
-  `docker compose`, runs `mvn test`, then `test-summary.py`, and uploads the surefire and
-  JaCoCo reports as artifacts.
+  `docker compose`, runs `mvn -Pcoverage -Dexcluded.groups= test` (the whole suite, with
+  the coverage gate), then `test-summary.py` and `coverage-summary.py`, and uploads the
+  surefire and JaCoCo reports as artifacts. `coverage-summary.py` writes its table to
+  `$GITHUB_STEP_SUMMARY`, so the percentages are on the run page rather than only inside
+  the artifact. **This job is red until coverage reaches the limits above.**
 
 Two things CI must do that a local checkout does not need:
 
