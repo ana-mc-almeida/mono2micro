@@ -21,12 +21,25 @@ STACK_ENV = MONGO_DB=$(MONGO_DB) \
 # suite from the reports test-summary.py aggregates.
 FULL_SUITE = -Dexcluded.groups=
 
-# The full suite plus the jacoco:check gate — what the e2e CI job runs.
+# The full suite, then the gate — the same two steps CI runs as its `e2e` and
+# `coverage` jobs. Split so a coverage shortfall cannot be mistaken for a test
+# failure: if this stops at the second command, the tests passed.
 # Expected to end in BUILD FAILURE until coverage reaches the limits in pom.xml
 # (line 50%, instruction 50%, branch 40%). That is by design; the fix is to
 # raise coverage, not to lower the limits.
 coverage:
-	$(STACK_ENV) mvn -B -Pcoverage $(FULL_SUITE) clean test
+	$(STACK_ENV) mvn -B $(FULL_SUITE) clean test
+	$(MAKE) coverage-gate
+
+# The gate alone, replayed against the exec file the last run left in target/.
+# Runs no tests, so it is instant and needs no stack.
+#
+# The @jacoco-check suffix is load-bearing: a bare `mvn jacoco:check` creates a
+# `default-cli` execution that does NOT inherit <rules> from the named execution
+# in the coverage profile, and fails with "The parameters 'rules' for goal
+# jacoco:check are missing or invalid".
+coverage-gate:
+	mvn -B -Pcoverage jacoco:check@jacoco-check
 
 # The full suite without the gate, for when you want the tests to be the only
 # thing that can fail.

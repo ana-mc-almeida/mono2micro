@@ -128,7 +128,8 @@ make build
 
   | Target | Runs |
   |---|---|
-  | `make coverage` | full suite + the gate — what the e2e CI job runs |
+  | `make coverage` | full suite, then the gate — the CI `e2e` + `coverage` jobs |
+  | `make coverage-gate` | the gate alone, on the last run's `jacoco.exec`; no tests |
   | `make test-all` | full suite, no gate |
   | `make test-summary` | per-case pass/skip/fail |
   | `make coverage-summary` | percentages + worst packages |
@@ -142,14 +143,31 @@ make build
   Read that folder's `README.md` before adding a case — `_author.json` carries commit
   authors' email addresses.
 - **Coverage** is measured by JaCoCo (bound to the `test` phase) and **gated** by
-  `jacoco:check` in the `coverage` profile: `mvn -Pcoverage -Dexcluded.groups= test`.
-  Limits are line 50%, instruction 50%, branch 40%, over the whole bundle. The full
-  suite currently sits **below all three** (44.2 / 43.5 / 38.6 as of 2026-09-18), so
-  that command fails on purpose — the fix is to raise coverage, not to lower the
-  limits. The gate lives in a profile because a plain `mvn test` runs only the offline
-  unit tests and reaches ~5%; measuring that against a whole-suite target would fail
-  every push. `backend/coverage-summary.py` prints the percentages and the worst
-  packages as Markdown; it reports only and never gates.
+  `jacoco:check` in the `coverage` profile. Limits are line 50%, instruction 50%,
+  branch 40%, over the whole bundle. The full suite currently sits **below all three**
+  (44.2 / 43.5 / 38.6 as of 2026-09-18), so the gate fails on purpose — the fix is to
+  raise coverage, not to lower the limits. The gate lives in a profile because a plain
+  `mvn test` runs only the offline unit tests and reaches ~5%; measuring that against a
+  whole-suite target would fail every push. `backend/coverage-summary.py` prints the
+  percentages and the worst packages as Markdown; it reports only and never gates.
+
+  **Run the suite and the gate as two commands**, so a coverage shortfall cannot be
+  mistaken for a test failure — this is the split CI uses too (`make coverage` does
+  both):
+
+  ```bash
+  mvn -Dexcluded.groups= clean test      # tests only; still writes jacoco.exec + reports
+  mvn -Pcoverage jacoco:check@jacoco-check   # the gate, replayed on that exec file
+  ```
+
+  Two traps in that second command:
+  - **`@jacoco-check` is required.** A bare `mvn jacoco:check` creates a `default-cli`
+    execution that does not inherit `<rules>` from the named execution, and dies with
+    `The parameters 'rules' for goal jacoco:check are missing or invalid`.
+  - **`target/classes/` must exist.** `jacoco:check` replays the exec file against the
+    compiled bytecode; without it JaCoCo logs `Skipping JaCoCo execution due to missing
+    classes directory` and **exits 0** — a green gate that checked nothing. This is why
+    CI's `coverage` job uploads `target/classes/` alongside `jacoco.exec`.
 
   JaCoCo's `prepare-agent` sets `<append>false</append>`, so each run's report covers
   only what that run executed. Without it JaCoCo appends to `target/jacoco.exec` and a
@@ -181,11 +199,19 @@ make build
   to any change; fix those, then drop the `|| true`.
 - **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
   because it builds the ~8GB scripts image. Brings up mongo + scripts via
-  `docker compose`, runs `mvn -Pcoverage -Dexcluded.groups= test` (the whole suite, with
-  the coverage gate), then `test-summary.py` and `coverage-summary.py`, and uploads the
+  `docker compose`, runs `mvn -Dexcluded.groups= test` (the whole suite, **no**
+  `-Pcoverage`), then `test-summary.py` and `coverage-summary.py`, and uploads the
   surefire and JaCoCo reports as artifacts. `coverage-summary.py` writes its table to
   `$GITHUB_STEP_SUMMARY`, so the percentages are on the run page rather than only inside
-  the artifact. **This job is red until coverage reaches the limits above.**
+  the artifact. This job is green when the tests pass.
+- **`coverage`** — `needs: e2e`, and skipped unless it succeeded. Downloads the
+  `jacoco.exec` + `target/classes/` the e2e job uploaded and runs
+  `mvn -Pcoverage jacoco:check@jacoco-check` against them. Runs **no** tests and needs
+  no Docker, so it finishes in seconds. **This job is red until coverage reaches the
+  limits above** — deliberately, and it is the only one that goes red for that reason.
+  The split exists because the gate used to run inside the e2e job's `mvn` invocation,
+  which made a coverage shortfall read as "end-to-end decomposition failed" when every
+  decomposition test had passed.
 
 Two things CI must do that a local checkout does not need:
 
