@@ -123,6 +123,19 @@ make build
 
     Not `-Dgroups=integration` — that runs *only* the tagged tests and drops the unit
     suite from the reports `test-summary.py` aggregates.
+- **`backend/Makefile`** wraps the long stack commands; `mvn test` is deliberately
+  *not* wrapped, since it already does the right thing offline in ~2s.
+
+  | Target | Runs |
+  |---|---|
+  | `make coverage` | full suite + the gate — what the e2e CI job runs |
+  | `make test-all` | full suite, no gate |
+  | `make test-summary` | per-case pass/skip/fail |
+  | `make coverage-summary` | percentages + worst packages |
+  | `make coverage-report` | `coverage`, then both summaries even if the gate fires |
+
+  The env vars default to the values the e2e job sets and are overridable:
+  `make coverage MONGO_DB=mongodb://otherhost:27017`.
 - **Fixtures** are committed under `backend/src/test/resources/representations/`, one
   folder per case. No case holds every fixture, so combinations whose files are absent
   **skip** and are listed after the run; a fixture that is present but broken fails.
@@ -138,8 +151,17 @@ make build
   every push. `backend/coverage-summary.py` prints the percentages and the worst
   packages as Markdown; it reports only and never gates.
 
-  Measure with **`mvn clean test`**: `target/jacoco.exec` is appended to, not replaced,
-  so a run without `clean` silently mixes in the previous run's data.
+  JaCoCo's `prepare-agent` sets `<append>false</append>`, so each run's report covers
+  only what that run executed. Without it JaCoCo appends to `target/jacoco.exec` and a
+  run without `clean` silently mixes in the previous run's data — which is how a
+  unit-only run can report the full suite's numbers.
+
+  **The vendored MoJo code is the single biggest drag on the gate**:
+  `utils.mojoCalculator.src.main.java` is 660 lines at 0%, copied-in third-party code
+  under a nested `src/main/java` path. Excluding it from the bundle moves branch
+  38.6% → 44.9% (**passing**) and leaves line and instruction 0.8 and 0.5 points short
+  — so an exclusion plus a little new coverage clears all three. Measured on CI run
+  35587504552, 2026-09-21.
 - **Go tool:** unit and integration tests are separated by **build tags**
   (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
   `_test.go` files, so `make test` passes vacuously.

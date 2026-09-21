@@ -290,6 +290,15 @@
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
+						<configuration>
+							<!-- JaCoCo appends to jacoco.exec by default, so a run without
+							     `clean` silently mixes in the previous run's data: run the
+							     offline unit tests after a full-suite run and the report
+							     still shows the full suite's numbers. Overwriting instead
+							     makes every run report only what it just executed. CI is
+							     unaffected (fresh runner each time); this is for local runs. -->
+							<append>false</append>
+						</configuration>
 					</execution>
 					<execution>
 						<id>jacoco-report</id>
