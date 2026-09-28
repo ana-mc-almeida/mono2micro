@@ -7,16 +7,16 @@ import static pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClusteri
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = SciPyRequestDto.class, name = SCIPY),
+		@JsonSubTypes.Type(value = SciPyRequestDto.class, name = SCIPY),
 })
 public abstract class DecompositionRequest {
-    String similarityName;
+	String similarityName;
 
-    public String getSimilarityName() {
-        return similarityName;
-    }
+	public String getSimilarityName() {
+		return similarityName;
+	}
 
-    public void setSimilarityName(String similarityName) {
-        this.similarityName = similarityName;
-    }
+	public void setSimilarityName(String similarityName) {
+		this.similarityName = similarityName;
+	}
 }

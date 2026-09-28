@@ -9,50 +9,52 @@ import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import java.util.List;
 
 public abstract class Recommendation {
-    @Id
-    String name;
-    @DBRef
-    Strategy strategy;
-    String recommendationResultName;
-    boolean isCompleted; // true when all the decompositions are calculated
+	@Id
+	String name;
+	@DBRef
+	Strategy strategy;
+	String recommendationResultName;
+	boolean isCompleted; // true when all the decompositions are calculated
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public Strategy getStrategy() {
-        return strategy;
-    }
+	public Strategy getStrategy() {
+		return strategy;
+	}
 
-    public void setStrategy(Strategy strategy) {
-        this.strategy = strategy;
-    }
+	public void setStrategy(Strategy strategy) {
+		this.strategy = strategy;
+	}
 
-    public abstract String getType();
+	public abstract String getType();
 
-    public abstract void deleteProperties();
+	public abstract void deleteProperties();
 
-    public abstract boolean equalsDto(RecommendationDto dto);
+	public abstract boolean equalsDto(RecommendationDto dto);
 
-    public String getRecommendationResultName() {
-        return recommendationResultName;
-    }
+	public String getRecommendationResultName() {
+		return recommendationResultName;
+	}
 
-    public void setRecommendationResultName(String recommendationResultName) {
-        this.recommendationResultName = recommendationResultName;
-    }
+	public void setRecommendationResultName(String recommendationResultName) {
+		this.recommendationResultName = recommendationResultName;
+	}
 
-    public boolean isCompleted() {
-        return isCompleted;
-    }
+	public boolean isCompleted() {
+		return isCompleted;
+	}
 
-    public void setCompleted(boolean completed) {
-        isCompleted = completed;
-    }
-    public abstract void generateRecommendation(RecommendationRepository recommendationRepository);
-    public abstract void createDecompositions(List<String> decompositionNames) throws Exception;
+	public void setCompleted(boolean completed) {
+		isCompleted = completed;
+	}
+
+	public abstract void generateRecommendation(RecommendationRepository recommendationRepository);
+
+	public abstract void createDecompositions(List<String> decompositionNames) throws Exception;
 }

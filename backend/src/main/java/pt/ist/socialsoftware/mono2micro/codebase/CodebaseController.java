@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/mono2micro")
 public class CodebaseController {
 
-    private static final Logger logger = LoggerFactory.getLogger(CodebaseController.class);
+	private static final Logger logger = LoggerFactory.getLogger(CodebaseController.class);
 
 	@Autowired
 	CodebaseService codebaseService;
@@ -37,8 +37,7 @@ public class CodebaseController {
 					codebaseService.getCodebases().stream().map(CodebaseDto::new).collect(Collectors.toList()),
 					HttpStatus.OK
 			);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
@@ -126,44 +125,44 @@ public class CodebaseController {
 		}
 	}
 
-    @DeleteMapping(value = "/codebase/{codebaseName}/delete")
+	@DeleteMapping(value = "/codebase/{codebaseName}/delete")
 	public ResponseEntity<HttpStatus> deleteCodebase(@PathVariable String codebaseName) {
 		logger.debug("deleteCodebase");
 
-        try {
+		try {
 			codebaseService.deleteCodebase(codebaseName);
-            return new ResponseEntity<>(HttpStatus.OK);
+			return new ResponseEntity<>(HttpStatus.OK);
 
-        } catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @PostMapping(value = "/codebase/create")
-    public ResponseEntity<HttpStatus> createCodebase(
-        @RequestParam String codebaseName
-    ){
-        logger.debug("createCodebase");
+	@PostMapping(value = "/codebase/create")
+	public ResponseEntity<HttpStatus> createCodebase(
+			@RequestParam String codebaseName
+	) {
+		logger.debug("createCodebase");
 
-        try {
+		try {
 			codebaseService.createCodebase(codebaseName);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+			return new ResponseEntity<>(HttpStatus.CREATED);
 
-        } catch (KeyAlreadyExistsException e) {
-        	e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-        } catch (Exception e) {
+		} catch (KeyAlreadyExistsException e) {
 			e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
 	@GetMapping(value = "/codebase/{codebaseName}/getCodebaseRepresentationGroups")
 	public ResponseEntity<List<String>> getCodebaseRepresentationGroups(
 			@PathVariable String codebaseName
-	){
+	) {
 		logger.debug("getCodebaseRepresentationInfoTypes");
 
 		try {

@@ -9,7 +9,6 @@ import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Document("codebase")
 public class Codebase {
 	@Id
@@ -22,7 +21,7 @@ public class Codebase {
 	public Codebase() {}
 
 	public Codebase(String name) {
-        this.name = name;
+		this.name = name;
 		representations = new ArrayList<>();
 		strategies = new ArrayList<>();
 	}
@@ -38,7 +37,7 @@ public class Codebase {
 	public List<String> getRepresentationGroups() {
 		Set<String> representationTypes = representations.stream()
 				.map(representation -> representation.getType())
-						.collect(Collectors.toSet());
+				.collect(Collectors.toSet());
 
 		return Representation.representationGroupToRepresentations.entrySet().stream()
 				.filter(entry -> representationTypes.containsAll(entry.getValue()))
@@ -63,7 +62,8 @@ public class Codebase {
 	}
 
 	public void removeRepresentation(String representationId) {
-		this.representations = this.representations.stream().filter(representation -> !representation.getName().equals(representationId)).collect(Collectors.toList());
+		this.representations = this.representations.stream().filter(representation -> !representation.getName().equals(representationId))
+				.collect(Collectors.toList());
 	}
 
 	public List<Strategy> getStrategies() {

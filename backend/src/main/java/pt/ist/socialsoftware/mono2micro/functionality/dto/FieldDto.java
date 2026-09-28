@@ -18,9 +18,9 @@ public class FieldDto {
 
 	@JsonCreator
 	public FieldDto(
-		@JsonProperty("name") String name,
-		@JsonProperty("parameter") String type,
-		@JsonProperty("isList") Boolean isList
+			@JsonProperty("name") String name,
+			@JsonProperty("parameter") String type,
+			@JsonProperty("isList") Boolean isList
 	) {
 		this.name = name;
 		this.type = type;
@@ -29,13 +29,16 @@ public class FieldDto {
 
 	@JsonProperty("name")
 	public String getName() { return this.name; }
+
 	public void setName(String name) { this.name = name; }
 
 	@JsonProperty("type")
 	public String getType() { return type; }
+
 	public void setType(String type) { this.type = type; }
 
 	@JsonProperty("isList")
 	public Boolean getIsList() { return isList; }
+
 	public void setIsList(Boolean isList) { this.isList = isList; }
 }

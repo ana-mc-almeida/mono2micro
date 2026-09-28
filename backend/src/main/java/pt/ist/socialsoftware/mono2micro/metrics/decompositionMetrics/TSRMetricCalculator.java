@@ -14,32 +14,32 @@ import java.util.Set;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.REPOSITORY_TYPE;
 
 public class TSRMetricCalculator extends DecompositionMetricCalculator {
-    public static final String TSR = "TSR"; //Team Size Reduction Ratio
+	public static final String TSR = "TSR"; // Team Size Reduction Ratio
 
-    @Override
-    public String getType() {
-        return TSR;
-    }
+	@Override
+	public String getType() {
+		return TSR;
+	}
 
-    @Override
-    public Double calculateMetric(Decomposition decomposition) {
-        RepositoryInformation repositoryInformation = (RepositoryInformation) decomposition.getRepresentationInformationByType(REPOSITORY_TYPE);
-        double authorsPerClusterSum = 0;
-        double cpm;
+	@Override
+	public Double calculateMetric(Decomposition decomposition) {
+		RepositoryInformation repositoryInformation = (RepositoryInformation) decomposition.getRepresentationInformationByType(REPOSITORY_TYPE);
+		double authorsPerClusterSum = 0;
+		double cpm;
 
-        for (Cluster cluster : decomposition.getClusters().values()) {
-            Set<String> contributorsInThisCluster = new HashSet<>();
-            for (Element element : cluster.getElements()) {
-                List<String> authorsFromId = repositoryInformation.getAuthorsFromId(element.getId());
-                if (authorsFromId != null)
-                    contributorsInThisCluster.addAll(authorsFromId);
-            }
-            authorsPerClusterSum += contributorsInThisCluster.size();
-        }
-        cpm = authorsPerClusterSum / decomposition.getClusters().size();
+		for (Cluster cluster : decomposition.getClusters().values()) {
+			Set<String> contributorsInThisCluster = new HashSet<>();
+			for (Element element : cluster.getElements()) {
+				List<String> authorsFromId = repositoryInformation.getAuthorsFromId(element.getId());
+				if (authorsFromId != null)
+					contributorsInThisCluster.addAll(authorsFromId);
+			}
+			authorsPerClusterSum += contributorsInThisCluster.size();
+		}
+		cpm = authorsPerClusterSum / decomposition.getClusters().size();
 
-        return BigDecimal.valueOf(cpm / repositoryInformation.getTotalAuthors())
-                .setScale(3, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
+		return BigDecimal.valueOf(cpm / repositoryInformation.getTotalAuthors())
+				.setScale(3, RoundingMode.HALF_UP)
+				.doubleValue();
+	}
 }

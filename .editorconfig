@@ -1,0 +1,21 @@
+# Scoped to backend Java only; every other file in the repo is left to the
+# editor's defaults. See https://editorconfig.org - supported natively by
+# IntelliJ and most editors, and by the EditorConfig extension in VS Code.
+
+root = true
+
+# Backend Java is formatted by Spotless against backend/eclipse-formatter.xml,
+# which uses tabs at width 4 and wraps at 160 columns. `cd backend && make
+# format-check` enforces it and gates CI. That profile — not this block — is
+# authoritative; the two are kept in step deliberately, since VS Code reads the
+# same profile via "java.format.settings.url".
+#
+# insert_final_newline is left unset on purpose: Spotless does not touch a
+# file's final newline, so setting it would make every VS Code save add one
+# that `make format-apply` never does.
+[backend/**.java]
+charset = utf-8
+end_of_line = lf
+indent_style = tab
+indent_size = 4
+trim_trailing_whitespace = true

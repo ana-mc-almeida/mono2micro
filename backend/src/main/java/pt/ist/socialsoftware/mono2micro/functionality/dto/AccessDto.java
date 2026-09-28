@@ -10,37 +10,39 @@ import java.util.Objects;
 @JsonDeserialize(using = AccessDtoDeserializer.class)
 @JsonSerialize(using = AccessDtoSerializer.class)
 public class AccessDto extends ReducedTraceElementDto {
-    private short entityID;
-    private byte mode; // "R" -> 1, "W" -> 2
+	private short entityID;
+	private byte mode; // "R" -> 1, "W" -> 2
 
-    public AccessDto() {}
+	public AccessDto() {}
 
-    public short getEntityID() { return entityID; }
-    public void setEntityID(short entityID) { this.entityID = entityID; }
+	public short getEntityID() { return entityID; }
 
-    public byte getMode() { return mode; }
-    public void setMode(byte mode) { this.mode = mode; }
+	public void setEntityID(short entityID) { this.entityID = entityID; }
 
-    @Override
+	public byte getMode() { return mode; }
+
+	public void setMode(byte mode) { this.mode = mode; }
+
+	@Override
 	public boolean equals(final Object other) {
-        if (other instanceof AccessDto) {
-            AccessDto that = (AccessDto) other;
-            return this.entityID == that.entityID && this.mode == that.mode;
-        }
-        
-        return false;
-    }
+		if (other instanceof AccessDto) {
+			AccessDto that = (AccessDto) other;
+			return this.entityID == that.entityID && this.mode == that.mode;
+		}
 
-    @Override
-    public String toString() {
-        if (occurrences < 2)
-            return "[" + entityID + ',' + mode + ']';
+		return false;
+	}
 
-        return "[" + entityID + ',' + mode + ',' + occurrences + ']';
-    }
+	@Override
+	public String toString() {
+		if (occurrences < 2)
+			return "[" + entityID + ',' + mode + ']';
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(entityID, mode);
-    }
+		return "[" + entityID + ',' + mode + ',' + occurrences + ']';
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(entityID, mode);
+	}
 }

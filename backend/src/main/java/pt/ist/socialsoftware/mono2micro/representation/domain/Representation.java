@@ -22,42 +22,42 @@ import static pt.ist.socialsoftware.mono2micro.representation.domain.StructureRe
  * Inheritors might contain additional information relevant to the imported file
  */
 public abstract class Representation {
-    public static final String ACCESSES_TYPE = "Accesses Based";
-    public static final String REPOSITORY_TYPE = "Repository Based";
-    public static final String CODE_EMBEDDINGS_TYPE = "Code Embeddings Based";
-    public static final String STRUCTURE_TYPE = "Structure Based";
+	public static final String ACCESSES_TYPE = "Accesses Based";
+	public static final String REPOSITORY_TYPE = "Repository Based";
+	public static final String CODE_EMBEDDINGS_TYPE = "Code Embeddings Based";
+	public static final String STRUCTURE_TYPE = "Structure Based";
 
-    public static final Map<String, List<String>> representationGroupToRepresentations = Stream.of(
-            new AbstractMap.SimpleImmutableEntry<>(ACCESSES_TYPE, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ACCESSES))),
-            new AbstractMap.SimpleImmutableEntry<>(REPOSITORY_TYPE, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ACCESSES, AUTHOR, COMMIT))),
-            new AbstractMap.SimpleImmutableEntry<>(CODE_EMBEDDINGS_TYPE, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ENTITY_TO_ID, ACCESSES, CODE_EMBEDDINGS))),
-            new AbstractMap.SimpleImmutableEntry<>(STRUCTURE_TYPE, new ArrayList<>(Arrays.asList(ENTITY_TO_ID, ID_TO_ENTITY, ACCESSES, STRUCTURE)))
-    ).collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
+	public static final Map<String, List<String>> representationGroupToRepresentations = Stream.of(
+			new AbstractMap.SimpleImmutableEntry<>(ACCESSES_TYPE, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ACCESSES))),
+			new AbstractMap.SimpleImmutableEntry<>(REPOSITORY_TYPE, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ACCESSES, AUTHOR, COMMIT))),
+			new AbstractMap.SimpleImmutableEntry<>(CODE_EMBEDDINGS_TYPE, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ENTITY_TO_ID, ACCESSES, CODE_EMBEDDINGS))),
+			new AbstractMap.SimpleImmutableEntry<>(STRUCTURE_TYPE, new ArrayList<>(Arrays.asList(ENTITY_TO_ID, ID_TO_ENTITY, ACCESSES, STRUCTURE)))
+	).collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
 
-    @Id
-    protected String name;
+	@Id
+	protected String name;
 
-    @DBRef(lazy = true)
-    protected Codebase codebase;
+	@DBRef(lazy = true)
+	protected Codebase codebase;
 
-    public abstract String init(Codebase codebase, byte[] representationFile) throws Exception;
+	public abstract String init(Codebase codebase, byte[] representationFile) throws Exception;
 
-    @JsonIgnore
-    public abstract String getType();
+	@JsonIgnore
+	public abstract String getType();
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public Codebase getCodebase() {
-        return codebase;
-    }
+	public Codebase getCodebase() {
+		return codebase;
+	}
 
-    public void setCodebase(Codebase codebase) {
-        this.codebase = codebase;
-    }
+	public void setCodebase(Codebase codebase) {
+		this.codebase = codebase;
+	}
 }

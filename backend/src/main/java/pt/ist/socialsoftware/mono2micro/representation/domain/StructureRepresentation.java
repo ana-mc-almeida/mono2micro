@@ -10,56 +10,56 @@ import java.util.*;
 
 @Document("representation")
 public class StructureRepresentation extends Representation {
-    public static final String STRUCTURE = "Structure";
-    private Map<String, Set<String>> profiles = new HashMap<>();
+	public static final String STRUCTURE = "Structure";
+	private Map<String, Set<String>> profiles = new HashMap<>();
 
-    public StructureRepresentation() {}
+	public StructureRepresentation() {}
 
-    @Override
-    public String init(Codebase codebase, byte[] representationFile) throws Exception {
-        this.name = codebase.getName() + " & " + getType();
-        this.codebase = codebase;
-        addProfile("Generic", getEntitiesNamesFromRepresentationFile(representationFile));
-        return name;
-    }
+	@Override
+	public String init(Codebase codebase, byte[] representationFile) throws Exception {
+		this.name = codebase.getName() + " & " + getType();
+		this.codebase = codebase;
+		addProfile("Generic", getEntitiesNamesFromRepresentationFile(representationFile));
+		return name;
+	}
 
-    @Override
-    public String getType() {
-        return STRUCTURE;
-    }
+	@Override
+	public String getType() {
+		return STRUCTURE;
+	}
 
-    public Map<String, Set<String>> getProfiles() {
-        return this.profiles;
-    }
+	public Map<String, Set<String>> getProfiles() {
+		return this.profiles;
+	}
 
-    public Set<String> getProfile(String profileName) { return this.profiles.get(profileName); }
+	public Set<String> getProfile(String profileName) { return this.profiles.get(profileName); }
 
-    public void setProfiles(Map<String, Set<String>> profiles) {
-        this.profiles = profiles;
-    }
+	public void setProfiles(Map<String, Set<String>> profiles) {
+		this.profiles = profiles;
+	}
 
-    public void addProfile(String profileName, Set<String> entities) {
-        if (this.profiles.containsKey(profileName))
-            throw new KeyAlreadyExistsException();
+	public void addProfile(String profileName, Set<String> entities) {
+		if (this.profiles.containsKey(profileName))
+			throw new KeyAlreadyExistsException();
 
-        this.profiles.put(profileName, entities);
-    }
+		this.profiles.put(profileName, entities);
+	}
 
-    public void deleteProfile(String profileName) {
-        this.profiles.remove(profileName);
-    }
+	public void deleteProfile(String profileName) {
+		this.profiles.remove(profileName);
+	}
 
-    private Set<String> getEntitiesNamesFromRepresentationFile(byte[] representationFile) throws Exception {
-        JSONObject representationFileJSON = new JSONObject(new String(representationFile));
-        Set<String> entitiesNames = new HashSet<>();
+	private Set<String> getEntitiesNamesFromRepresentationFile(byte[] representationFile) throws Exception {
+		JSONObject representationFileJSON = new JSONObject(new String(representationFile));
+		Set<String> entitiesNames = new HashSet<>();
 
-        JSONArray entitiesArray = representationFileJSON.getJSONArray("entities");
-        for (int i = 0; i < entitiesArray.length(); i++) {
-            JSONObject entityObject = entitiesArray.getJSONObject(i);
-            String entityName = entityObject.getString("name");
-            entitiesNames.add(entityName);
-        }
+		JSONArray entitiesArray = representationFileJSON.getJSONArray("entities");
+		for (int i = 0; i < entitiesArray.length(); i++) {
+			JSONObject entityObject = entitiesArray.getJSONObject(i);
+			String entityName = entityObject.getString("name");
+			entitiesNames.add(entityName);
+		}
 
-        return entitiesNames;
-    }
+		return entitiesNames;
+	}
 }

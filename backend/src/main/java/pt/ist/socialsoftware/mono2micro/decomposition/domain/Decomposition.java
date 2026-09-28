@@ -29,11 +29,12 @@ public abstract class Decomposition {
 	@DBRef
 	Similarity similarity;
 	@DBRef
-    History history;
+	History history;
 
 	List<RepresentationInformation> representationInformations = new ArrayList<>();
 
 	public Decomposition() {}
+
 	public Decomposition(Similarity similarity) {
 		this.similarity = similarity;
 		similarity.addDecomposition(this);
@@ -42,14 +43,23 @@ public abstract class Decomposition {
 	}
 
 	public abstract void setup() throws Exception;
+
 	public abstract void update() throws Exception;
+
 	public abstract void deleteProperties();
+
 	public abstract void calculateMetrics();
+
 	public abstract void renameCluster(RenameOperation operation);
+
 	public abstract void mergeClusters(MergeOperation operation);
+
 	public abstract void splitCluster(SplitOperation operation);
+
 	public abstract void transferEntities(TransferOperation operation);
+
 	public abstract void formCluster(FormClusterOperation operation);
+
 	public abstract Decomposition snapshotDecomposition(String decompositionName) throws Exception;
 
 	public String getName() { return this.name; }

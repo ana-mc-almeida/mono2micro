@@ -21,6 +21,35 @@ STACK_ENV = MONGO_DB=$(MONGO_DB) \
 # suite from the reports test-summary.py aggregates.
 FULL_SUITE = -Dexcluded.groups=
 
+# Formatting. Tabs, 160 columns, per backend/eclipse-formatter.xml — which VS
+# Code reads too (see ../.vscode/settings.json), so format-on-save and these
+# targets cannot disagree.
+#
+# format-check is the CI gate: the `format` job in ci.yml runs it, and both
+# `fast` and `e2e` declare `needs: format`, so unformatted code never reaches a
+# test run. It exits non-zero on any violation — indentation, line width,
+# trailing whitespace, a missing final newline.
+format-check:
+	mvn -B spotless:check
+
+# The fix. Idempotent: a second run is a no-op.
+format-apply:
+	mvn -B spotless:apply
+
+# Import hygiene, reported and never rewritten. Exits 0 even with findings, so
+# it can never block you — read the output. Deliberately not part of
+# format-check: Spotless can only fix, and imports are a judgement call (the
+# *Factory classes' static wildcards are intentional and are not reported).
+#
+# `checkstyle:checkstyle`, NOT `checkstyle:check`. The `check` goal only counts
+# violations at or above <violationSeverity> (error), and checkstyle-imports.xml
+# emits everything at `warning` — so `check` cheerfully prints
+# "You have 0 Checkstyle violations." while the report holds 97. The
+# report-generating goal is the one that tells the truth.
+lint-imports:
+	mvn -B checkstyle:checkstyle
+	@python3 import-summary.py
+
 # The full suite, then the gate — the same two steps CI runs as its `e2e` and
 # `coverage` jobs. Split so a coverage shortfall cannot be mistaken for a test
 # failure: if this stops at the second command, the tests passed.

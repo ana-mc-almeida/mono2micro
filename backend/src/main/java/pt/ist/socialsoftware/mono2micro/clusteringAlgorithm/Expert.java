@@ -17,34 +17,34 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Expert {
-    public static final String EXPERT = "Expert Clustering";
+	public static final String EXPERT = "Expert Clustering";
 
-    public Expert() {}
+	public Expert() {}
 
-    public String getType() {
-        return EXPERT;
-    }
+	public String getType() {
+		return EXPERT;
+	}
 
-    public Decomposition generateClusters(Similarity similarity, String expertName, Optional<MultipartFile> expertFile) throws Exception {
-        Decomposition decomposition = new PartitionsDecomposition(similarity);
-        decomposition.setExpert(true);
+	public Decomposition generateClusters(Similarity similarity, String expertName, Optional<MultipartFile> expertFile) throws Exception {
+		Decomposition decomposition = new PartitionsDecomposition(similarity);
+		decomposition.setExpert(true);
 
-        Map<Short, String> idToEntity;
+		Map<Short, String> idToEntity;
 
-        List<String> decompositionNames = similarity.getDecompositions().stream().map(Decomposition::getName).collect(Collectors.toList());
+		List<String> decompositionNames = similarity.getDecompositions().stream().map(Decomposition::getName).collect(Collectors.toList());
 
-        if (decompositionNames.contains(expertName))
-            throw new KeyAlreadyExistsException();
-        decomposition.setName(similarity.getName() + " " + expertName);
-        decomposition.setExpert(true);
+		if (decompositionNames.contains(expertName))
+			throw new KeyAlreadyExistsException();
+		decomposition.setName(similarity.getName() + " " + expertName);
+		decomposition.setExpert(true);
 
-        idToEntity = similarity.getIDToEntityName();
+		idToEntity = similarity.getIDToEntityName();
 
-        InputStream is = new BufferedInputStream(expertFile.get().getInputStream());
-        JSONObject clustersJSON = new JSONObject(IOUtils.toString(is, StandardCharsets.UTF_8)).getJSONObject("clusters");
-        SciPyClustering.addClustersAndEntities(decomposition, clustersJSON, idToEntity);
-        is.close();
+		InputStream is = new BufferedInputStream(expertFile.get().getInputStream());
+		JSONObject clustersJSON = new JSONObject(IOUtils.toString(is, StandardCharsets.UTF_8)).getJSONObject("clusters");
+		SciPyClustering.addClustersAndEntities(decomposition, clustersJSON, idToEntity);
+		is.close();
 
-        return decomposition;
-    }
+		return decomposition;
+	}
 }

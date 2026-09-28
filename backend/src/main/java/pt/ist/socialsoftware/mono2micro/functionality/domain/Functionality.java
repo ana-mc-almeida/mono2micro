@@ -44,7 +44,7 @@ public class Functionality {
 
 	public Functionality(String decompositionName, String name) {
 		this.id = decompositionName + " & " + name.replace(".", "_");
-        this.name = name;
+		this.name = name;
 	}
 
 	public Functionality(String decompositionName, Functionality functionality) { // Useful when redesigns are not needed
@@ -151,19 +151,19 @@ public class Functionality {
 		this.type = type;
 	}
 
-	public Set<Short> entitiesTouchedInAGivenMode(byte mode){
+	public Set<Short> entitiesTouchedInAGivenMode(byte mode) {
 		Set<Short> entitiesTouchedInAGivenMode = new HashSet<>();
-		for (Map.Entry<Short, Byte> entry: this.entities.entrySet()){
+		for (Map.Entry<Short, Byte> entry : this.entities.entrySet()) {
 			if (entry.getValue() == 3 || entry.getValue() == mode) // 3 -> RW
 				entitiesTouchedInAGivenMode.add(entry.getKey());
 		}
 		return entitiesTouchedInAGivenMode;
 	}
 
-	public Set<String> clustersOfGivenEntities(Set<Short> entities){
+	public Set<String> clustersOfGivenEntities(Set<Short> entities) {
 		Set<String> clustersOfGivenEntities = new HashSet<>();
-		for (Map.Entry<String, Set<Short>> entry : this.entitiesPerCluster.entrySet()){
-			for (Short entityID : entities){
+		for (Map.Entry<String, Set<Short>> entry : this.entitiesPerCluster.entrySet()) {
+			for (Short entityID : entities) {
 				if (entry.getValue().contains(entityID))
 					clustersOfGivenEntities.add(entry.getKey());
 			}
@@ -171,11 +171,11 @@ public class Functionality {
 		return clustersOfGivenEntities;
 	}
 
-	public FunctionalityType defineFunctionalityType(){
+	public FunctionalityType defineFunctionalityType() {
 		if (this.type != null) return this.type;
 
-		if (!this.entities.isEmpty()){
-			for (Map.Entry<Short, Byte> entry : this.entities.entrySet()){
+		if (!this.entities.isEmpty()) {
+			for (Map.Entry<Short, Byte> entry : this.entities.entrySet()) {
 				if (entry.getValue() >= 2) { // 2 -> W , 3 -> RW
 					this.type = FunctionalityType.SAGA;
 					return this.type;
@@ -372,7 +372,8 @@ public class Functionality {
 	}
 
 	public void calculateMetrics(AccessesInformation accessesInformation, Decomposition decomposition) throws Exception {
-		FunctionalityMetricCalculator[] metricObjects = new FunctionalityMetricCalculator[] {new FunctionalityComplexityMetricCalculator(), new FunctionalityPerformanceMetricCalculator()};
+		FunctionalityMetricCalculator[] metricObjects = new FunctionalityMetricCalculator[] { new FunctionalityComplexityMetricCalculator(),
+				new FunctionalityPerformanceMetricCalculator() };
 
 		for (FunctionalityMetricCalculator metric : metricObjects)
 			this.metrics.put(metric.getType(), metric.calculateMetric(accessesInformation, decomposition, this));

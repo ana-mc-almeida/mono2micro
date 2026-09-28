@@ -15,49 +15,49 @@ import java.util.Map;
 import java.util.Set;
 
 public class SystemComplexityMetricCalculator extends FunctionalityRedesignMetricCalculator {
-    public static final String SYSTEM_COMPLEXITY = "System Complexity";
+	public static final String SYSTEM_COMPLEXITY = "System Complexity";
 
-    @Override
-    public String getType() {
-        return SYSTEM_COMPLEXITY;
-    }
+	@Override
+	public String getType() {
+		return SYSTEM_COMPLEXITY;
+	}
 
-    @Override
-    public Integer calculateMetric(
-            Decomposition decomposition,
-            AccessesInformation accessesInformation,
-            Functionality functionality,
-            FunctionalityRedesign functionalityRedesign
-    ){
-        int value = 0;
+	@Override
+	public Integer calculateMetric(
+			Decomposition decomposition,
+			AccessesInformation accessesInformation,
+			Functionality functionality,
+			FunctionalityRedesign functionalityRedesign
+	) {
+		int value = 0;
 
-        if(functionality.getType() != FunctionalityType.SAGA)
-            return value;
+		if (functionality.getType() != FunctionalityType.SAGA)
+			return value;
 
-        Map<String, Set<Cluster>> functionalitiesClusters = Utils.getFunctionalitiesClusters(
-                decomposition.getEntityIDToClusterName(),
-                decomposition.getClusters(),
-                accessesInformation.getFunctionalities().values());
+		Map<String, Set<Cluster>> functionalitiesClusters = Utils.getFunctionalitiesClusters(
+				decomposition.getEntityIDToClusterName(),
+				decomposition.getClusters(),
+				accessesInformation.getFunctionalities().values());
 
-        for (int i = 0; i < functionalityRedesign.getRedesign().size(); i++) {
-            LocalTransaction lt = functionalityRedesign.getRedesign().get(i);
+		for (int i = 0; i < functionalityRedesign.getRedesign().size(); i++) {
+			LocalTransaction lt = functionalityRedesign.getRedesign().get(i);
 
-            if(lt.getId() != 0){
-                for(AccessDto accessDto : lt.getClusterAccesses()) {
-                    short entity = accessDto.getEntityID();
-                    byte mode = accessDto.getMode();
+			if (lt.getId() != 0) {
+				for (AccessDto accessDto : lt.getClusterAccesses()) {
+					short entity = accessDto.getEntityID();
+					byte mode = accessDto.getMode();
 
-                    // Functionality complexity cost of write
-                    if(mode >= 2 && lt.getType() == LocalTransactionTypes.COMPENSATABLE) // 2 -> W, 3 -> RW
-                        for (Functionality otherFunctionality : accessesInformation.getFunctionalities().values())
-                            if (!otherFunctionality.getName().equals(functionality.getName()) &&
-                                    otherFunctionality.containsEntity(entity) &&
-                                    otherFunctionality.getEntities().get(entity) != 2 &&
-                                    functionalitiesClusters.get(otherFunctionality.getName()).size() > 1)
-                                value++;
-                }
-            }
-        }
-        return value;
-    }
+					// Functionality complexity cost of write
+					if (mode >= 2 && lt.getType() == LocalTransactionTypes.COMPENSATABLE) // 2 -> W, 3 -> RW
+						for (Functionality otherFunctionality : accessesInformation.getFunctionalities().values())
+						if (!otherFunctionality.getName().equals(functionality.getName()) &&
+								otherFunctionality.containsEntity(entity) &&
+								otherFunctionality.getEntities().get(entity) != 2 &&
+								functionalitiesClusters.get(otherFunctionality.getName()).size() > 1)
+							value++;
+				}
+			}
+		}
+		return value;
+	}
 }

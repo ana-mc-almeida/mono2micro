@@ -33,77 +33,77 @@ import java.util.TreeSet;
  */
 class RecordingRepresentationInformation extends RepresentationInformation {
 
-    static final String RECORDING = "RECORDING";
+	static final String RECORDING = "RECORDING";
 
-    private final List<Set<Short>> removedEntityIDs = new ArrayList<>();
-    private final List<String> renames = new ArrayList<>();
+	private final List<Set<Short>> removedEntityIDs = new ArrayList<>();
+	private final List<String> renames = new ArrayList<>();
 
-    @Override
-    public void removeFunctionalitiesWithEntityIDs(Decomposition decomposition, Set<Short> elements) {
-        // Sorted and copied: the caller's set is built from live cluster state.
-        removedEntityIDs.add(new TreeSet<>(elements));
-    }
+	@Override
+	public void removeFunctionalitiesWithEntityIDs(Decomposition decomposition, Set<Short> elements) {
+		// Sorted and copied: the caller's set is built from live cluster state.
+		removedEntityIDs.add(new TreeSet<>(elements));
+	}
 
-    @Override
-    public void renameClusterInFunctionalities(String clusterName, String newName) {
-        renames.add(clusterName + " -> " + newName);
-    }
+	@Override
+	public void renameClusterInFunctionalities(String clusterName, String newName) {
+		renames.add(clusterName + " -> " + newName);
+	}
 
-    /** One entry per call, in call order. */
-    List<Set<Short>> removedEntityIDs() {
-        return removedEntityIDs;
-    }
+	/** One entry per call, in call order. */
+	List<Set<Short>> removedEntityIDs() {
+		return removedEntityIDs;
+	}
 
-    /** One {@code "old -> new"} entry per call, in call order. */
-    List<String> renames() {
-        return renames;
-    }
+	/** One {@code "old -> new"} entry per call, in call order. */
+	List<String> renames() {
+		return renames;
+	}
 
-    /** The entity IDs of the single call the operations under test make. */
-    Set<Short> onlyRemovedEntityIDs() {
-        if (removedEntityIDs.size() != 1)
-            throw new AssertionError("Expected exactly one call, got " + removedEntityIDs);
-        return removedEntityIDs.get(0);
-    }
+	/** The entity IDs of the single call the operations under test make. */
+	Set<Short> onlyRemovedEntityIDs() {
+		if (removedEntityIDs.size() != 1)
+			throw new AssertionError("Expected exactly one call, got " + removedEntityIDs);
+		return removedEntityIDs.get(0);
+	}
 
-    @Override
-    public String getType() {
-        return RECORDING;
-    }
+	@Override
+	public String getType() {
+		return RECORDING;
+	}
 
-    @Override
-    public void deleteProperties() {
-    }
+	@Override
+	public void deleteProperties() {
+	}
 
-    @Override
-    public void setup(Decomposition decomposition) {
-    }
+	@Override
+	public void setup(Decomposition decomposition) {
+	}
 
-    @Override
-    public void update(Decomposition decomposition) {
-    }
+	@Override
+	public void update(Decomposition decomposition) {
+	}
 
-    @Override
-    public void snapshot(Decomposition snapshotDecomposition, Decomposition decomposition) {
-    }
+	@Override
+	public void snapshot(Decomposition snapshotDecomposition, Decomposition decomposition) {
+	}
 
-    @Override
-    public List<DecompositionMetricCalculator> getDecompositionMetrics() {
-        return Collections.emptyList();
-    }
+	@Override
+	public List<DecompositionMetricCalculator> getDecompositionMetrics() {
+		return Collections.emptyList();
+	}
 
-    @Override
-    public List<String> getParameters() {
-        return Collections.emptyList();
-    }
+	@Override
+	public List<String> getParameters() {
+		return Collections.emptyList();
+	}
 
-    @Override
-    public String getEdgeWeights(Decomposition decomposition) {
-        return "{}";
-    }
+	@Override
+	public String getEdgeWeights(Decomposition decomposition) {
+		return "{}";
+	}
 
-    @Override
-    public String getSearchItems(Decomposition decomposition) {
-        return "{}";
-    }
+	@Override
+	public String getSearchItems(Decomposition decomposition) {
+		return "{}";
+	}
 }

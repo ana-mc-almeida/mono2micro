@@ -14,63 +14,63 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "/mono2micro")
 public class AccessesController {
-    private static final Logger logger = LoggerFactory.getLogger(AccessesController.class);
+	private static final Logger logger = LoggerFactory.getLogger(AccessesController.class);
 
-    @Autowired
-    AccessesDecompositionService accessesDecompositionService;
+	@Autowired
+	AccessesDecompositionService accessesDecompositionService;
 
-    @GetMapping(value = "/accesses/{decompositionName}/getLocalTransactionsGraphForFunctionality")
-    public ResponseEntity<Utils.GetSerializableLocalTransactionsGraphResult> getLocalTransactionsGraphForFunctionality(
-            @PathVariable String decompositionName,
-            @RequestParam String functionalityName
-    ) {
-        logger.debug("getLocalTransactionsGraphForFunctionality");
+	@GetMapping(value = "/accesses/{decompositionName}/getLocalTransactionsGraphForFunctionality")
+	public ResponseEntity<Utils.GetSerializableLocalTransactionsGraphResult> getLocalTransactionsGraphForFunctionality(
+			@PathVariable String decompositionName,
+			@RequestParam String functionalityName
+	) {
+		logger.debug("getLocalTransactionsGraphForFunctionality");
 
-        try {
-            return new ResponseEntity<>(
-                    accessesDecompositionService.getLocalTransactionGraphForFunctionality(decompositionName, functionalityName),
-                    HttpStatus.OK
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		try {
+			return new ResponseEntity<>(
+					accessesDecompositionService.getLocalTransactionGraphForFunctionality(decompositionName, functionalityName),
+					HttpStatus.OK
+			);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @GetMapping(value = "/accesses/{decompositionName}/getFunctionalitiesAndFunctionalitiesClusters")
-    public ResponseEntity<Map<String, Object>> getFunctionalitiesAndFunctionalitiesClusters(
-            @PathVariable String decompositionName
-    ) {
-        logger.debug("getFunctionalitiesAndFunctionalitiesClusters");
+	@GetMapping(value = "/accesses/{decompositionName}/getFunctionalitiesAndFunctionalitiesClusters")
+	public ResponseEntity<Map<String, Object>> getFunctionalitiesAndFunctionalitiesClusters(
+			@PathVariable String decompositionName
+	) {
+		logger.debug("getFunctionalitiesAndFunctionalitiesClusters");
 
-        try {
+		try {
 
-            return new ResponseEntity<>(
-                    accessesDecompositionService.getFunctionalitiesAndFunctionalitiesClusters(decompositionName),
-                    HttpStatus.OK
-            );
+			return new ResponseEntity<>(
+					accessesDecompositionService.getFunctionalitiesAndFunctionalitiesClusters(decompositionName),
+					HttpStatus.OK
+			);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @GetMapping(value = "/accesses/{decompositionName}/getClustersAndClustersFunctionalities")
-    public ResponseEntity<Map<String, Object>> getClustersAndClustersFunctionalities(
-            @PathVariable String decompositionName
-    ) {
-        logger.debug("getClustersAndClustersFunctionalities");
+	@GetMapping(value = "/accesses/{decompositionName}/getClustersAndClustersFunctionalities")
+	public ResponseEntity<Map<String, Object>> getClustersAndClustersFunctionalities(
+			@PathVariable String decompositionName
+	) {
+		logger.debug("getClustersAndClustersFunctionalities");
 
-        try {
-            return new ResponseEntity<>(
-                    accessesDecompositionService.getClustersAndClustersFunctionalities(decompositionName),
-                    HttpStatus.OK
-            );
+		try {
+			return new ResponseEntity<>(
+					accessesDecompositionService.getClustersAndClustersFunctionalities(decompositionName),
+					HttpStatus.OK
+			);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

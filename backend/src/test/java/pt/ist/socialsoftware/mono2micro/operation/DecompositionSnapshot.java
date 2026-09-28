@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
  * the two things the operations actually change:
  *
  * <ul>
- *   <li>cluster name → the entity IDs it holds
- *   <li>cluster name → (the cluster it reaches → the entity IDs it reaches there)
+ * <li>cluster name → the entity IDs it holds
+ * <li>cluster name → (the cluster it reaches → the entity IDs it reaches there)
  * </ul>
  *
  * <p>Sorted collections throughout, for two reasons: AssertJ's failure message on a mismatched
@@ -36,44 +36,44 @@ import java.util.stream.Collectors;
  */
 final class DecompositionSnapshot {
 
-    private final Map<String, Set<Short>> clusters;
-    private final Map<String, Map<String, Set<Short>>> dependencies;
+	private final Map<String, Set<Short>> clusters;
+	private final Map<String, Map<String, Set<Short>>> dependencies;
 
-    private DecompositionSnapshot(Map<String, Set<Short>> clusters,
-                                  Map<String, Map<String, Set<Short>>> dependencies) {
-        this.clusters = clusters;
-        this.dependencies = dependencies;
-    }
+	private DecompositionSnapshot(Map<String, Set<Short>> clusters,
+			Map<String, Map<String, Set<Short>>> dependencies) {
+		this.clusters = clusters;
+		this.dependencies = dependencies;
+	}
 
-    static DecompositionSnapshot of(Decomposition decomposition) {
-        Map<String, Set<Short>> clusters = new TreeMap<>();
-        Map<String, Map<String, Set<Short>>> dependencies = new TreeMap<>();
+	static DecompositionSnapshot of(Decomposition decomposition) {
+		Map<String, Set<Short>> clusters = new TreeMap<>();
+		Map<String, Map<String, Set<Short>>> dependencies = new TreeMap<>();
 
-        for (Map.Entry<String, Cluster> entry : decomposition.getClusters().entrySet()) {
-            Cluster cluster = entry.getValue();
+		for (Map.Entry<String, Cluster> entry : decomposition.getClusters().entrySet()) {
+			Cluster cluster = entry.getValue();
 
-            clusters.put(entry.getKey(), cluster.getElements().stream()
-                    .map(Element::getId)
-                    .collect(Collectors.toCollection(TreeSet::new)));
+			clusters.put(entry.getKey(), cluster.getElements().stream()
+					.map(Element::getId)
+					.collect(Collectors.toCollection(TreeSet::new)));
 
-            // Deep-copied: the maps and sets below are live in the decomposition, and an
-            // operation run after the snapshot would otherwise mutate it retroactively.
-            Map<String, Set<Short>> copied = new TreeMap<>();
-            ((Partition) cluster).getCouplingDependencies()
-                    .forEach((toCluster, entityIDs) -> copied.put(toCluster, new TreeSet<>(entityIDs)));
-            dependencies.put(entry.getKey(), copied);
-        }
+			// Deep-copied: the maps and sets below are live in the decomposition, and an
+			// operation run after the snapshot would otherwise mutate it retroactively.
+			Map<String, Set<Short>> copied = new TreeMap<>();
+			((Partition) cluster).getCouplingDependencies()
+					.forEach((toCluster, entityIDs) -> copied.put(toCluster, new TreeSet<>(entityIDs)));
+			dependencies.put(entry.getKey(), copied);
+		}
 
-        return new DecompositionSnapshot(clusters, dependencies);
-    }
+		return new DecompositionSnapshot(clusters, dependencies);
+	}
 
-    /** Cluster name → the entity IDs it holds. */
-    Map<String, Set<Short>> clusters() {
-        return clusters;
-    }
+	/** Cluster name → the entity IDs it holds. */
+	Map<String, Set<Short>> clusters() {
+		return clusters;
+	}
 
-    /** Cluster name → (reached cluster → the entity IDs reached there). */
-    Map<String, Map<String, Set<Short>>> dependencies() {
-        return dependencies;
-    }
+	/** Cluster name → (reached cluster → the entity IDs reached there). */
+	Map<String, Map<String, Set<Short>>> dependencies() {
+		return dependencies;
+	}
 }

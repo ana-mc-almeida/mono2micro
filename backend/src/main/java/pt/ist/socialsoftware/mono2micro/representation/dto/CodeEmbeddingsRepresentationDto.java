@@ -4,7 +4,7 @@ import pt.ist.socialsoftware.mono2micro.representation.domain.CodeEmbeddingsRepr
 
 public class CodeEmbeddingsRepresentationDto extends RepresentationDto {
 
-    public CodeEmbeddingsRepresentationDto(CodeEmbeddingsRepresentation representation) {
-        super(representation);
-    }
+	public CodeEmbeddingsRepresentationDto(CodeEmbeddingsRepresentation representation) {
+		super(representation);
+	}
 }

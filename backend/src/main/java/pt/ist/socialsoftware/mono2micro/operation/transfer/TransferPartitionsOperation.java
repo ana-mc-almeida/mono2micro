@@ -10,55 +10,55 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TransferPartitionsOperation extends TransferOperation {
-    public TransferPartitionsOperation() {}
-    public TransferPartitionsOperation(TransferOperation operation) {
-        super(operation);
-    }
+	public TransferPartitionsOperation() {}
 
-    public TransferPartitionsOperation(String fromCluster, String toCluster, String entities) {
-        this.fromCluster = fromCluster;
-        this.toCluster = toCluster;
-        this.entities = entities;
-    }
+	public TransferPartitionsOperation(TransferOperation operation) {
+		super(operation);
+	}
 
-    @Override
-    public void execute(Decomposition decomposition) {
-        executeOperation(decomposition);
-        super.execute(decomposition);
-    }
+	public TransferPartitionsOperation(String fromCluster, String toCluster, String entities) {
+		this.fromCluster = fromCluster;
+		this.toCluster = toCluster;
+		this.entities = entities;
+	}
 
-    @Override
-    public void executeOperation(Decomposition decomposition) {
-        transfer(decomposition);
-        decomposition.getRepresentationInformations().forEach(representationInformation ->
-                representationInformation.removeFunctionalitiesWithEntityIDs(
-                        decomposition,
-                        Arrays.stream(getEntities().split(",")).map(Short::valueOf).collect(Collectors.toSet())
-                )
-        );
-    }
+	@Override
+	public void execute(Decomposition decomposition) {
+		executeOperation(decomposition);
+		super.execute(decomposition);
+	}
 
-    @Override
-    public void undo(Decomposition decomposition) {
-        new TransferPartitionsOperation(getToCluster(), getFromCluster(), getEntities()).executeOperation(decomposition);
-    }
+	@Override
+	public void executeOperation(Decomposition decomposition) {
+		transfer(decomposition);
+		decomposition.getRepresentationInformations().forEach(representationInformation -> representationInformation.removeFunctionalitiesWithEntityIDs(
+				decomposition,
+				Arrays.stream(getEntities().split(",")).map(Short::valueOf).collect(Collectors.toSet())
+		)
+		);
+	}
 
-    protected void transfer(Decomposition decomposition) {
-        Cluster from = decomposition.getCluster(fromCluster);
-        Cluster to = decomposition.getCluster(toCluster);
-        Set<Short> entitiesList = Arrays.stream(entities.split(",")).map(Short::valueOf).collect(Collectors.toSet());
+	@Override
+	public void undo(Decomposition decomposition) {
+		new TransferPartitionsOperation(getToCluster(), getFromCluster(), getEntities()).executeOperation(decomposition);
+	}
 
-        for (Short entityID : entitiesList) {
-            Element entity = from.getElementByID(entityID);
-            if (entity != null) {
-                to.addElement(entity);
-                from.removeElement(entity);
-            }
-        }
+	protected void transfer(Decomposition decomposition) {
+		Cluster from = decomposition.getCluster(fromCluster);
+		Cluster to = decomposition.getCluster(toCluster);
+		Set<Short> entitiesList = Arrays.stream(entities.split(",")).map(Short::valueOf).collect(Collectors.toSet());
 
-        for (Cluster cluster : decomposition.getClusters().values()) {
-            Partition partition = (Partition) cluster;
-            partition.transferCouplingDependencies(entitiesList, fromCluster, toCluster);
-        }
-    }
+		for (Short entityID : entitiesList) {
+			Element entity = from.getElementByID(entityID);
+			if (entity != null) {
+				to.addElement(entity);
+				from.removeElement(entity);
+			}
+		}
+
+		for (Cluster cluster : decomposition.getClusters().values()) {
+			Partition partition = (Partition) cluster;
+			partition.transferCouplingDependencies(entitiesList, fromCluster, toCluster);
+		}
+	}
 }

@@ -19,46 +19,45 @@ import java.util.List;
 
 @Service
 public class RecommendationService {
-    @Autowired
-    StrategyRepository strategyRepository;
+	@Autowired
+	StrategyRepository strategyRepository;
 
-    @Autowired
-    RecommendationRepository recommendationRepository;
+	@Autowired
+	RecommendationRepository recommendationRepository;
 
-    @Autowired
-    GridFsService gridFsService;
+	@Autowired
+	GridFsService gridFsService;
 
-    public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
-        Strategy strategy = strategyRepository.findByName(recommendationDto.getStrategyName());
-        RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategy.getRecommendations().stream()
-                .filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
+	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
+		Strategy strategy = strategyRepository.findByName(recommendationDto.getStrategyName());
+		RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategy.getRecommendations().stream()
+				.filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
 
-        Recommendation recommendation;
-        // Create from scratch
-        if (existingRecommendation == null) {
-            recommendation = RecommendationFactory.getRecommendation(strategy, recommendationDto);
-            recommendationRepository.save(recommendation);
-            strategyRepository.save(strategy);
-        }
-        else return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
+		Recommendation recommendation;
+		// Create from scratch
+		if (existingRecommendation == null) {
+			recommendation = RecommendationFactory.getRecommendation(strategy, recommendationDto);
+			recommendationRepository.save(recommendation);
+			strategyRepository.save(strategy);
+		} else return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
 
-        recommendation.generateRecommendation(recommendationRepository);
-        return RecommendationDtoFactory.getRecommendationDto(recommendation);
-    }
+		recommendation.generateRecommendation(recommendationRepository);
+		return RecommendationDtoFactory.getRecommendationDto(recommendation);
+	}
 
-    public void createDecompositions(String recommendationName, List<String> decompositionNames) throws Exception {
-        Recommendation recommendation = recommendationRepository.findByName(recommendationName);
-        recommendation.createDecompositions(decompositionNames);
-    }
+	public void createDecompositions(String recommendationName, List<String> decompositionNames) throws Exception {
+		Recommendation recommendation = recommendationRepository.findByName(recommendationName);
+		recommendation.createDecompositions(decompositionNames);
+	}
 
-    public void deleteRecommendation(Recommendation recommendation) {
-        recommendation.deleteProperties();
-        gridFsService.deleteFile(recommendation.getRecommendationResultName());
-        recommendationRepository.delete(recommendation);
-    }
+	public void deleteRecommendation(Recommendation recommendation) {
+		recommendation.deleteProperties();
+		gridFsService.deleteFile(recommendation.getRecommendationResultName());
+		recommendationRepository.delete(recommendation);
+	}
 
-    public String getRecommendationResultFromName(String recommendationName) throws IOException {
-        Recommendation recommendation = recommendationRepository.getRecommendationResultName(recommendationName);
-        return IOUtils.toString(gridFsService.getFile(recommendation.getRecommendationResultName()), StandardCharsets.UTF_8);
-    }
+	public String getRecommendationResultFromName(String recommendationName) throws IOException {
+		Recommendation recommendation = recommendationRepository.getRecommendationResultName(recommendationName);
+		return IOUtils.toString(gridFsService.getFile(recommendation.getRecommendationResultName()), StandardCharsets.UTF_8);
+	}
 }

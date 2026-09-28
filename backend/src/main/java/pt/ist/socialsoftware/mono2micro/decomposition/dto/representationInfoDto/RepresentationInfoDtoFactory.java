@@ -8,25 +8,25 @@ import java.util.List;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.*;
 
 public class RepresentationInfoDtoFactory {
-    public static List<RepresentationInfoDto> getRepresentationInfoDtos(List<RepresentationInformation> representationInformations) {
-        List<RepresentationInfoDto> representationInfoDtos = new ArrayList<>();
-        for (RepresentationInformation representationInformation : representationInformations)
-            representationInfoDtos.add(getRepresentationInfoDto(representationInformation));
-        return representationInfoDtos;
-    }
+	public static List<RepresentationInfoDto> getRepresentationInfoDtos(List<RepresentationInformation> representationInformations) {
+		List<RepresentationInfoDto> representationInfoDtos = new ArrayList<>();
+		for (RepresentationInformation representationInformation : representationInformations)
+			representationInfoDtos.add(getRepresentationInfoDto(representationInformation));
+		return representationInfoDtos;
+	}
 
-    public  static RepresentationInfoDto getRepresentationInfoDto(RepresentationInformation representationInformation) {
-        switch (representationInformation.getType()) {
-            case ACCESSES_TYPE:
-                return new AccessesInfoDto(representationInformation);
-            case REPOSITORY_TYPE:
-                return new RepositoryInfoDto(representationInformation);
-            case CODE_EMBEDDINGS_TYPE:
-                return new CodeEmbeddingsInfoDto(representationInformation);
-            case STRUCTURE_TYPE:
-                return new StructureInfoDto(representationInformation);
-            default:
-                throw new RuntimeException("No known representation type: " + representationInformation.getType());
-        }
-    }
+	public static RepresentationInfoDto getRepresentationInfoDto(RepresentationInformation representationInformation) {
+		switch (representationInformation.getType()) {
+		case ACCESSES_TYPE:
+			return new AccessesInfoDto(representationInformation);
+		case REPOSITORY_TYPE:
+			return new RepositoryInfoDto(representationInformation);
+		case CODE_EMBEDDINGS_TYPE:
+			return new CodeEmbeddingsInfoDto(representationInformation);
+		case STRUCTURE_TYPE:
+			return new StructureInfoDto(representationInformation);
+		default:
+			throw new RuntimeException("No known representation type: " + representationInformation.getType());
+		}
+	}
 }
