@@ -29,14 +29,14 @@ resulting decision in `../implementation/docs/decisions.md`.
 
 Defined in `docker-compose.yml`:
 
-| Service | Port | Stack | Role |
-|---|---|---|---|
-| `mongo` | 27017 | MongoDB | All persisted state; GridFS for large artifacts |
-| `mongo-express` | 8081 | — | Database admin UI |
-| `backend` | 8080 | Spring Boot 2.1.2, Java 8 | Orchestration, metrics, operations. Context path `/mono2micro`. **Does not cluster.** |
-| `scripts` | 5002 | FastAPI / Python | The actual clustering (SciPy) + code2vec |
-| `functionality_refactor` | 5001 | Go 1.14 | Heuristic functionality refactoring |
-| `frontend` | 3000 | React 17 + TypeScript | UI |
+| Service                  | Port  | Stack                     | Role                                                                                  |
+| ------------------------ | ----- | ------------------------- | ------------------------------------------------------------------------------------- |
+| `mongo`                  | 27017 | MongoDB                   | All persisted state; GridFS for large artifacts                                       |
+| `mongo-express`          | 8081  | —                         | Database admin UI                                                                     |
+| `backend`                | 8080  | Spring Boot 2.1.2, Java 8 | Orchestration, metrics, operations. Context path `/mono2micro`. **Does not cluster.** |
+| `scripts`                | 5002  | FastAPI / Python          | The actual clustering (SciPy) + code2vec                                              |
+| `functionality_refactor` | 5001  | Go 1.14                   | Heuristic functionality refactoring                                                   |
+| `frontend`               | 3000  | React 17 + TypeScript     | UI                                                                                    |
 
 The **8 collectors are not services** — run-once programs that emit JSON, uploaded
 through the frontend.
@@ -95,14 +95,153 @@ make build
 
 ## Testing
 
-- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. JUnit 4,
+- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`.
+  Packaging still uses `-DskipTests` (see `codebases/` below). JUnit 4,
   AssertJ, and Mockito come from `spring-boot-starter-test`; no other test dependency
   is needed. `Mono2microApplicationTests` is a `@SpringBootTest` context-load smoke
   test and **needs a running MongoDB** (`docker-compose up mongo`) — it is the only
   test that does.
+  Run `backend/test-summary.py` after `mvn test` for a per-case pass/skip/fail list with
+  reasons; surefire's console output names a parameterized case only by index.
+  Two kinds of suite, split by a **JUnit tag**, not by location:
+  - **Offline unit tests** — `<pkg>/operation/` (the five decomposition edit operations,
+    their undo/redo and history bookkeeping). No Spring context, no Mongo, no Docker, so
+    a bare **`mvn test` runs these and only these** (~2s). Possible because a hand-built
+    `PartitionsDecomposition` has an empty `representationInformations` list, which keeps
+    `AccessesInformation`'s `ContextManager` lookup out of reach; `History` is faked for
+    the same reason. See that package's `README.md`, plus `DecompositionFixture` and
+    `InMemoryHistory`, and **Gap 7** in `../implementation/docs/gap-analysis.md` for the
+    findings they pin.
+  - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test) and
+    `DecompositionE2ETest`, which drives the real pipeline for every case x strategy
+    combination. **Needs the stack up** — `docker compose up -d mongo scripts` — and
+    fails, rather than skips, when Mongo or the scripts service is unreachable. Both are
+    tagged `@Tag("integration")` and excluded by default via surefire's
+    `<excludedGroups>${excluded.groups}</excludedGroups>` in `backend/pom.xml`.
+
+    Run **everything** (needs the stack) with an empty override:
+
+    ```bash
+    mvn test -Dexcluded.groups=
+    ```
+
+    Not `-Dgroups=integration` — that runs _only_ the tagged tests and drops the unit
+    suite from the reports `test-summary.py` aggregates.
+
+- **`backend/Makefile`** wraps the long stack commands; `mvn test` is deliberately
+  _not_ wrapped, since it already does the right thing offline in ~2s.
+
+  | Target                  | Runs                                                       |
+  | ----------------------- | ---------------------------------------------------------- |
+  | `make coverage`         | full suite, then the gate — the CI `e2e` + `coverage` jobs |
+  | `make coverage-gate`    | the gate alone, on the last run's `jacoco.exec`; no tests  |
+  | `make test-all`         | full suite, no gate                                        |
+  | `make test-summary`     | per-case pass/skip/fail                                    |
+  | `make coverage-summary` | percentages + worst packages                               |
+  | `make coverage-report`  | `coverage`, then both summaries even if the gate fires     |
+
+  The env vars default to the values the e2e job sets and are overridable:
+  `make coverage MONGO_DB=mongodb://otherhost:27017`.
+
+- **Fixtures** are committed under `backend/src/test/resources/representations/`, one
+  folder per case. No case holds every fixture, so combinations whose files are absent
+  **skip** and are listed after the run; a fixture that is present but broken fails.
+  Read that folder's `README.md` before adding a case — `_author.json` carries commit
+  authors' email addresses.
+- **Coverage** is measured by JaCoCo (bound to the `test` phase) and **gated** by
+  `jacoco:check` in the `coverage` profile. Limits are line 50%, instruction 50%,
+  branch 40%, over the whole bundle. The full suite **passes all three** as of
+  2026-09-21 (line 51.4 / instruction 51.0 / branch 47.1); it sat at 44.2 / 43.5 / 38.6
+  before `PurityTest` and `MoJoCalculatorTest` landed. Keep it that way: if a change
+  drops a counter below its limit, the fix is to raise coverage, not to lower the
+  limits. The gate lives in a profile because a plain
+  `mvn test` runs only the offline unit tests and reaches ~5%; measuring that against a
+  whole-suite target would fail every push. `backend/coverage-summary.py` prints the
+  percentages and the worst packages as Markdown; it reports only and never gates.
+
+  **Run the suite and the gate as two commands**, so a coverage shortfall cannot be
+  mistaken for a test failure — this is the split CI uses too (`make coverage` does
+  both):
+
+  ```bash
+  mvn -Dexcluded.groups= clean test      # tests only; still writes jacoco.exec + reports
+  mvn -Pcoverage jacoco:check@jacoco-check   # the gate, replayed on that exec file
+  ```
+
+  Two traps in that second command:
+  - **`@jacoco-check` is required.** A bare `mvn jacoco:check` creates a `default-cli`
+    execution that does not inherit `<rules>` from the named execution, and dies with
+    `The parameters 'rules' for goal jacoco:check are missing or invalid`.
+  - **`target/classes/` must exist.** `jacoco:check` replays the exec file against the
+    compiled bytecode; without it JaCoCo logs `Skipping JaCoCo execution due to missing
+classes directory` and **exits 0** — a green gate that checked nothing. This is why
+    CI's `coverage` job uploads `target/classes/` alongside `jacoco.exec`.
+
+  JaCoCo's `prepare-agent` sets `<append>false</append>`, so each run's report covers
+  only what that run executed. Without it JaCoCo appends to `target/jacoco.exec` and a
+  run without `clean` silently mixes in the previous run's data — which is how a
+  unit-only run can report the full suite's numbers.
+
+  **The vendored MoJo code was the single biggest drag on the gate, and is now tested
+  rather than excluded.** `utils.mojoCalculator.src.main.java` is 660 lines of copied-in
+  2004 third-party code under a nested `src/main/java` path, and was at 0%.
+
+  An earlier note here recommended a JaCoCo `<excludes>` for it. **That cannot work**:
+  exclusion removes uncovered lines from the denominator but adds no covered ones, so it
+  reaches branch 44.9% (passing) but only 49.5 instruction and **49.2 line** — both still
+  short, with nothing left to exclude. `MoJoCalculatorTest` instead took the package to
+  ~66% and cleared all three limits at once. There are no `<excludes>` in `pom.xml`, and
+  adding one is not the route back to a green gate. See **D-008** in
+  `../implementation/docs/decisions.md`.
+
+  Two things to know before touching that package's tests: `Cluster` and `BipartiteGraph`
+  are **package-private**, so tests must sit in
+  `pt.ist.socialsoftware.mono2micro.utils.mojoCalculator.src.main.java`; and
+  `MoJo.showerrormsg()` ends in **`System.exit(0)`** (`MoJo.java:113`), so a malformed
+  argument array would kill the surefire fork. Only well-formed argv is exercised.
+
 - **Go tool:** unit and integration tests are separated by **build tags**
-  (`-tags=unit`, `-tags=integration`), not by file location.
-- **Frontend:** `npm test` (react-scripts, jsdom).
+  (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
+  `_test.go` files, so `make test` passes vacuously.
+- **Frontend:** `npm test` (react-scripts, jsdom). The single CRA default test currently
+  fails: Jest cannot parse `vis-network/standalone` (ESM) because `package.json` sets no
+  `transformIgnorePatterns`.
+
+## CI
+
+`.github/workflows/ci.yml`, two jobs:
+
+- **`fast`** — every push and PR, no Docker. (A push to a branch that already has an
+  open PR skips it, since the `pull_request` run covers the same commit; a small `dedup`
+  job decides.) Backend `mvn -DskipTests clean install`,
+  frontend install/test/build, Go `go build`. The frontend test and `go vet` run
+  **advisory** (`|| true`) because both already fail on pre-existing problems unrelated
+  to any change; fix those, then drop the `|| true`.
+- **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
+  because it builds the ~8GB scripts image. Brings up mongo + scripts via
+  `docker compose`, runs `mvn -Dexcluded.groups= test` (the whole suite, **no**
+  `-Pcoverage`), then `test-summary.py` and `coverage-summary.py`, and uploads the
+  surefire and JaCoCo reports as artifacts. `coverage-summary.py` writes its table to
+  `$GITHUB_STEP_SUMMARY`, so the percentages are on the run page rather than only inside
+  the artifact. This job is green when the tests pass.
+- **`coverage`** — `needs: e2e`, and skipped unless it succeeded. Downloads the
+  `jacoco.exec` + `target/classes/` the e2e job uploaded and runs
+  `mvn -Pcoverage jacoco:check@jacoco-check` against them. Runs **no** tests and needs
+  no Docker, so it finishes in seconds. **This job is red until coverage reaches the
+  limits above** — deliberately, and it is the only one that goes red for that reason.
+  The split exists because the gate used to run inside the e2e job's `mvn` invocation,
+  which made a coverage shortfall read as "end-to-end decomposition failed" when every
+  decomposition test had passed.
+
+Two things CI must do that a local checkout does not need:
+
+1. `cp specific.properties.example specific.properties` — it is gitignored and read at
+   static-init time, so without it every test fails to load the Spring context.
+2. `mkdir -p scripts/models/java-large-release` — `code2vec/controller.py` runs
+   `Config(verify=True)` at import, which raises `"Model load dir ... does not exist"` and
+   crash-loops the scripts container. The directory only has to exist: the model is lazily
+   loaded and the backend reads precomputed `codeVector` arrays from the fixture JSON
+   instead of calling `/code2vec/predict`.
 
 ### Codebase fixtures
 
@@ -136,7 +275,7 @@ Add a fixture when a new representation group appears;
 **Limit.** Fixtures call constructors directly and skip `init()`, so the collections that
 `AccessesRepresentation` and `StructureRepresentation` parse from their file (functionality
 names, entity names) are empty. Availability never reads them. A test that needs a codebase
-with *real* functionalities or entities should load committed collector output instead —
+with _real_ functionalities or entities should load committed collector output instead —
 sample files live in `../codebases-structure/` (SpringPetclinic is 24K).
 
 ## Backend layout
@@ -175,20 +314,20 @@ Codebase
         └── metrics: Map<String, Object>
 ```
 
-| Concept | Location | Notes |
-|---|---|---|
-| **Codebase** | `<pkg>/codebase/` | Top-level container; id is its name |
-| **Representation** | `<pkg>/representation/domain/` | Abstract + factory; 7 types. Four *groups* at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
-| **Strategy** | `<pkg>/strategy/domain/` | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations |
-| **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves |
-| **Weights** | `<pkg>/similarity/domain/similarityMatrix/weights/` | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100` |
-| **Clustering** | `<pkg>/clusteringAlgorithm/` | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions |
-| **Decomposition** | `<pkg>/decomposition/domain/` | Abstract; one subclass `PartitionsDecomposition`. `metrics` is a `Map<String,Object>` keyed by metric type |
-| **Cluster / Element** | `<pkg>/cluster/`, `<pkg>/element/` | `Partition` adds `couplingDependencies` — the cross-cluster reaches that become distributed transactions. `DomainEntity` is the only `Element` |
-| **RepresentationInformation** | `<pkg>/decomposition/domain/representationInformation/` | Per-group decomposition state **and the metric registry** |
-| **Metrics** | `<pkg>/metrics/` | `decompositionMetrics/` (Cohesion, Complexity, Coupling, Performance, TSR), `functionalityMetrics/`, `functionalityRedesignMetrics/` |
-| **Operation** | `<pkg>/operation/` | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/` |
-| **comparisonTool** | `<pkg>/comparisonTool/` | MoJo (`<pkg>/utils/mojoCalculator/`) and Purity |
+| Concept                       | Location                                                | Notes                                                                                                                                                       |
+| ----------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Codebase**                  | `<pkg>/codebase/`                                       | Top-level container; id is its name                                                                                                                         |
+| **Representation**            | `<pkg>/representation/domain/`                          | Abstract + factory; 7 types. Four _groups_ at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
+| **Strategy**                  | `<pkg>/strategy/domain/`                                | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations           |
+| **Similarity**                | `<pkg>/similarity/domain/`                              | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves                                                                                                    |
+| **Weights**                   | `<pkg>/similarity/domain/similarityMatrix/weights/`     | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100`                           |
+| **Clustering**                | `<pkg>/clusteringAlgorithm/`                            | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions                                                |
+| **Decomposition**             | `<pkg>/decomposition/domain/`                           | Abstract; one subclass `PartitionsDecomposition`. `metrics` is a `Map<String,Object>` keyed by metric type                                                  |
+| **Cluster / Element**         | `<pkg>/cluster/`, `<pkg>/element/`                      | `Partition` adds `couplingDependencies` — the cross-cluster reaches that become distributed transactions. `DomainEntity` is the only `Element`              |
+| **RepresentationInformation** | `<pkg>/decomposition/domain/representationInformation/` | Per-group decomposition state **and the metric registry**                                                                                                   |
+| **Metrics**                   | `<pkg>/metrics/`                                        | `decompositionMetrics/` (Cohesion, Complexity, Coupling, Performance, TSR), `functionalityMetrics/`, `functionalityRedesignMetrics/`                        |
+| **Operation**                 | `<pkg>/operation/`                                      | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/`                                                                                 |
+| **comparisonTool**            | `<pkg>/comparisonTool/`                                 | MoJo (`<pkg>/utils/mojoCalculator/`) and Purity                                                                                                             |
 
 ## Extension points
 
@@ -280,13 +419,13 @@ export const REFACTORIZATION_TOOL_URL = "http://localhost:5001/api/v1/";
 Eight independent projects under `collectors/`, each with its own build — no shared
 build system. Read the collector's own README before building it.
 
-| Collector | Build |
-|---|---|
+| Collector                                                                          | Build                                              |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------- |
 | `spoon-callgraph`, `structure-collector`, `code2vec-callgraph`, `codeql-collector` | Maven (`mvn compile exec:java`, GUI/prompt driven) |
-| `commit-collection` | Python (poetry + requirements.txt) |
-| `dynamic-collection` | AspectJ |
-| `java-callgraph` | Python scripts (ECSA2019 artifact) |
-| `eclipse-plugin-callgraph` | Eclipse plugin |
+| `commit-collection`                                                                | Python (poetry + requirements.txt)                 |
+| `dynamic-collection`                                                               | AspectJ                                            |
+| `java-callgraph`                                                                   | Python scripts (ECSA2019 artifact)                 |
+| `eclipse-plugin-callgraph`                                                         | Eclipse plugin                                     |
 
 `codeql-collector` is the newest and most active — Django, Rails, SpringDataJPA,
 FenixFramework.

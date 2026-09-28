@@ -12,18 +12,18 @@ public class RuleDto extends ReducedTraceElementDto {
 	@Override
 	public boolean equals(final Object other) {
 		if (other instanceof RuleDto) {
-            RuleDto that = (RuleDto) other;
+			RuleDto that = (RuleDto) other;
 			return count == that.count && occurrences == that.occurrences;
 		}
 
 		return false;
 	}
-	
+
 	@Override
 	public String toString() {
-        if (occurrences < 2)
-            return "[" + count + "]";
+		if (occurrences < 2)
+			return "[" + count + "]";
 
-        return "[" + count + ',' + occurrences + ']';
-    }
+		return "[" + count + ',' + occurrences + ']';
+	}
 }

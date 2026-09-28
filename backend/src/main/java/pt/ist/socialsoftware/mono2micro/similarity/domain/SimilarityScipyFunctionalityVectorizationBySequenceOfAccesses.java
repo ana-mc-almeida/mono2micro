@@ -32,366 +32,370 @@ import static pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatri
 
 public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses extends SimilarityScipy {
 
-    public static final String SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES = "SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES";
-    private static final int INTERVAL = 100;
-    private static final int STEP = 10;
+	public static final String SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES = "SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES";
+	private static final int INTERVAL = 100;
+	private static final int STEP = 10;
 
-    public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses() {}
+	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses() {}
 
-    public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(Strategy strategy, String name, SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto) {
-        super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
-    }
+	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(Strategy strategy, String name,
+			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto) {
+		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
+	}
 
-    public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(RecommendMatrixSciPy recommendation) {
-        super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
-    }
+	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(RecommendMatrixSciPy recommendation) {
+		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+	}
 
-    @Override
-    public String getType() {
-        return SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
-    }
+	@Override
+	public String getType() {
+		return SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
+	}
 
-    @Override
-    public boolean equalsDto(SimilarityDto dto) {
-        if (!(dto instanceof SimilarityScipyAccessesAndRepositoryDto))
-            return false;
+	@Override
+	public boolean equalsDto(SimilarityDto dto) {
+		if (!(dto instanceof SimilarityScipyAccessesAndRepositoryDto))
+			return false;
 
-        SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-        return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
-                similarityDto.getLinkageType().equals(this.linkageType) &&
-                equalWeights(similarityDto.getWeightsList());
-    }
+		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
+		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+				similarityDto.getLinkageType().equals(this.linkageType) &&
+				equalWeights(similarityDto.getWeightsList());
+	}
 
-    private boolean equalWeights(List<Weights> weightsList) {
-        for (int i=0; i < weightsList.size(); i++) {
-            if (!weightsList.get(i).equals(getWeightsList().get(i)) ) {
-                return false;
-            }
-        }
+	private boolean equalWeights(List<Weights> weightsList) {
+		for (int i = 0; i < weightsList.size(); i++) {
+			if (!weightsList.get(i).equals(getWeightsList().get(i))) {
+				return false;
+			}
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    @Override
-    public String getProfile() {
-        return "Generic";
-    }
-    @Override
-    public int getTracesMaxLimit() {
-        return 0;
-    }
-    @Override
-    public Constants.TraceType getTraceType() {
-        return Constants.TraceType.ALL;
-    }
+	@Override
+	public String getProfile() {
+		return "Generic";
+	}
 
-    public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
-        JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
-        JSONObject functionalityTraces = getFunctionalityTraces(similarity.getStrategy());
-        Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getStrategy());
+	@Override
+	public int getTracesMaxLimit() {
+		return 0;
+	}
 
-        HashMap<String, Object> matrix = new HashMap<>();
-        List<HashMap> entitiesVectors = this.computeEntitiesVectors(codeEmbeddings, entityToId);
-        this.computeSequenceOfAccessesFunctionalityVectors(matrix, functionalityTraces, entitiesVectors);
+	@Override
+	public Constants.TraceType getTraceType() {
+		return Constants.TraceType.ALL;
+	}
 
-        IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-        AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-        matrix.put("translationFileName", idToEntity.getName());
-        matrix.put("accessesFileName", accessesInfo.getName());
+	public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
+		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
+		JSONObject functionalityTraces = getFunctionalityTraces(similarity.getStrategy());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getStrategy());
 
-        JSONObject matrixJSON = new JSONObject(matrix);
+		HashMap<String, Object> matrix = new HashMap<>();
+		List<HashMap> entitiesVectors = this.computeEntitiesVectors(codeEmbeddings, entityToId);
+		this.computeSequenceOfAccessesFunctionalityVectors(matrix, functionalityTraces, entitiesVectors);
 
-        gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
-    }
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		matrix.put("translationFileName", idToEntity.getName());
+		matrix.put("accessesFileName", accessesInfo.getName());
 
-    private void computeSequenceOfAccessesFunctionalityVectors(
-            HashMap<String, Object> matrix,
-            JSONObject functionalityTraces,
-            List<HashMap> entitiesVectors
-    ) throws JSONException {
-        List<List<Double>> functionalityVectors = new ArrayList<>();
-        List<String> featuresNames = new ArrayList<>();
+		JSONObject matrixJSON = new JSONObject(matrix);
 
-        FunctionalityVectorizationSequenceOfAccessesWeights weights = (FunctionalityVectorizationSequenceOfAccessesWeights)
-                getWeightsByType(FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS);
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+	}
 
-        Iterator<String> keys = functionalityTraces.keys();
+	private void computeSequenceOfAccessesFunctionalityVectors(
+			HashMap<String, Object> matrix,
+			JSONObject functionalityTraces,
+			List<HashMap> entitiesVectors
+	) throws JSONException {
+		List<List<Double>> functionalityVectors = new ArrayList<>();
+		List<String> featuresNames = new ArrayList<>();
 
-        while (keys.hasNext()) {
-            String key = keys.next();
-            if (functionalityTraces.get(key) instanceof JSONObject) {
-                JSONObject traces = (JSONObject) functionalityTraces.get(key);
-                JSONArray trace = traces.getJSONArray("t");
-                JSONObject trace_obj  = trace.getJSONObject(0);
-                JSONArray accesses = trace_obj.getJSONArray("a");
+		FunctionalityVectorizationSequenceOfAccessesWeights weights = (FunctionalityVectorizationSequenceOfAccessesWeights) getWeightsByType(
+				FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS);
 
-                float count = 0;
-                ArrayList<Double> vector = new ArrayList<Double>();
-                for (int idx = 0; idx < 384; idx++) {
-                    vector.add(0.0);
-                }
+		Iterator<String> keys = functionalityTraces.keys();
 
-                for (int i = 0; i < accesses.length(); i++) {
-                    JSONArray access = accesses.getJSONArray(i);
-                    String accessType = access.getString(0);
-                    Integer entityId = access.getInt(1);
-                    float weight = 0;
+		while (keys.hasNext()) {
+			String key = keys.next();
+			if (functionalityTraces.get(key) instanceof JSONObject) {
+				JSONObject traces = (JSONObject) functionalityTraces.get(key);
+				JSONArray trace = traces.getJSONArray("t");
+				JSONObject trace_obj = trace.getJSONObject(0);
+				JSONArray accesses = trace_obj.getJSONArray("a");
 
-                    if (accessType.equals("R")) {
-                        weight = weights.getReadMetricWeight();
-                    } else {
-                        weight = weights.getWriteMetricWeight();
-                    }
-                    for (HashMap entity : entitiesVectors) {
-                        short translationID = (short) entity.get("translationID");
-                        if (translationID == entityId) {
-                            ArrayList<Double> code_vector = (ArrayList<Double>) entity.get("codeVector");
-                            for (int idx = 0; idx < 384; idx++) {
-                                vector.set(idx, vector.get(idx) + weight * code_vector.get(idx));
-                            }
+				float count = 0;
+				ArrayList<Double> vector = new ArrayList<Double>();
+				for (int idx = 0; idx < 384; idx++) {
+					vector.add(0.0);
+				}
 
-                            count += weight;
-                            break;
-                        }
-                    }
-                }
-                if (count > 0) {
-                    vectorDivision(vector, count);
-                    functionalityVectors.add(vector);
-                    featuresNames.add(key);
-                }
-            }
-        }
+				for (int i = 0; i < accesses.length(); i++) {
+					JSONArray access = accesses.getJSONArray(i);
+					String accessType = access.getString(0);
+					Integer entityId = access.getInt(1);
+					float weight = 0;
 
-        matrix.put("elements", featuresNames);
-        matrix.put("labels", featuresNames);
-        matrix.put("matrix", functionalityVectors);
-        matrix.put("clusterPrimitiveType", "Functionality");
-    }
+					if (accessType.equals("R")) {
+						weight = weights.getReadMetricWeight();
+					} else {
+						weight = weights.getWriteMetricWeight();
+					}
+					for (HashMap entity : entitiesVectors) {
+						short translationID = (short) entity.get("translationID");
+						if (translationID == entityId) {
+							ArrayList<Double> code_vector = (ArrayList<Double>) entity.get("codeVector");
+							for (int idx = 0; idx < 384; idx++) {
+								vector.set(idx, vector.get(idx) + weight * code_vector.get(idx));
+							}
 
-    private List<HashMap> computeEntitiesVectors(JSONObject codeEmbeddings, Map<String, Short> entityToId) throws JSONException {
-        List<HashMap> entitiesVectors = new ArrayList<>();
-        JSONArray packages = codeEmbeddings.getJSONArray("packages");
+							count += weight;
+							break;
+						}
+					}
+				}
+				if (count > 0) {
+					vectorDivision(vector, count);
+					functionalityVectors.add(vector);
+					featuresNames.add(key);
+				}
+			}
+		}
 
-        for (int i = 0; i < packages.length(); i++) {
-            JSONObject pack = packages.getJSONObject(i);
-            JSONArray classes = pack.optJSONArray("classes");
+		matrix.put("elements", featuresNames);
+		matrix.put("labels", featuresNames);
+		matrix.put("matrix", functionalityVectors);
+		matrix.put("clusterPrimitiveType", "Functionality");
+	}
 
-            for (int j = 0; j < classes.length(); j++) {
-                JSONObject cls = classes.getJSONObject(j);
-                JSONArray methods = cls.optJSONArray("methods");
-                String classType = cls.getString("type");
-                String className = cls.getString("name");
+	private List<HashMap> computeEntitiesVectors(JSONObject codeEmbeddings, Map<String, Short> entityToId) throws JSONException {
+		List<HashMap> entitiesVectors = new ArrayList<>();
+		JSONArray packages = codeEmbeddings.getJSONArray("packages");
 
-                if (classType.equals("Entity") && !className.endsWith("_Base")) {
+		for (int i = 0; i < packages.length(); i++) {
+			JSONObject pack = packages.getJSONObject(i);
+			JSONArray classes = pack.optJSONArray("classes");
 
-                    Acumulator acumulator = new Acumulator();
-                    getAscendedClassesMethodsCodeVectors(packages, acumulator, cls.getString("superQualifiedName"));
+			for (int j = 0; j < classes.length(); j++) {
+				JSONObject cls = classes.getJSONObject(j);
+				JSONArray methods = cls.optJSONArray("methods");
+				String classType = cls.getString("type");
+				String className = cls.getString("name");
 
-                    for (int k = 0; k < methods.length(); k++) {
-                        JSONObject method = methods.getJSONObject(k);
-                        JSONArray code_vector = method.getJSONArray("codeVector");
-                        acumulator.addVector(code_vector);
-                    }
+				if (classType.equals("Entity") && !className.endsWith("_Base")) {
 
-                    HashMap<String, Object> entityEmbeddings = new HashMap<String, Object>();
-                    entityEmbeddings.put("package", pack.getString("name"));
-                    entityEmbeddings.put("name", className);
-                    entityEmbeddings.put("translationID", entityToId.get(className));
-                    entityEmbeddings.put("codeVector", acumulator.getMeanVector());
-                    entitiesVectors.add(entityEmbeddings);
+					Acumulator acumulator = new Acumulator();
+					getAscendedClassesMethodsCodeVectors(packages, acumulator, cls.getString("superQualifiedName"));
 
-                }
-            }
-        }
-        return entitiesVectors;
-    }
+					for (int k = 0; k < methods.length(); k++) {
+						JSONObject method = methods.getJSONObject(k);
+						JSONArray code_vector = method.getJSONArray("codeVector");
+						acumulator.addVector(code_vector);
+					}
 
-    private Acumulator getAscendedClassesMethodsCodeVectors(
-            JSONArray packages,
-            Acumulator acumulator,
-            String qualifiedName
-    )
-            throws JSONException
-    {
-        if (qualifiedName.isEmpty()) return acumulator;
+					HashMap<String, Object> entityEmbeddings = new HashMap<String, Object>();
+					entityEmbeddings.put("package", pack.getString("name"));
+					entityEmbeddings.put("name", className);
+					entityEmbeddings.put("translationID", entityToId.get(className));
+					entityEmbeddings.put("codeVector", acumulator.getMeanVector());
+					entitiesVectors.add(entityEmbeddings);
 
-        String[] splittedStr = qualifiedName.split("[.]");
-        StringBuilder packageName = new StringBuilder(splittedStr[0]);
-        for (int i = 1; i < splittedStr.length-1; i++) {
-            packageName.append(".").append(splittedStr[i]);
-        }
-        String className = splittedStr[splittedStr.length - 1];
+				}
+			}
+		}
+		return entitiesVectors;
+	}
 
-        JSONObject cls = getClassMethodsCodeVectors(acumulator, packages, packageName.toString(), className);
-        if (cls == null) return acumulator;
+	private Acumulator getAscendedClassesMethodsCodeVectors(
+			JSONArray packages,
+			Acumulator acumulator,
+			String qualifiedName
+	)
+			throws JSONException {
+		if (qualifiedName.isEmpty()) return acumulator;
 
-        return getAscendedClassesMethodsCodeVectors(packages, acumulator, cls.getString("superQualifiedName"));
-    }
+		String[] splittedStr = qualifiedName.split("[.]");
+		StringBuilder packageName = new StringBuilder(splittedStr[0]);
+		for (int i = 1; i < splittedStr.length - 1; i++) {
+			packageName.append(".").append(splittedStr[i]);
+		}
+		String className = splittedStr[splittedStr.length - 1];
 
-    public JSONObject getClassMethodsCodeVectors(
-            Acumulator acumulator,
-            JSONArray packages,
-            String packageName,
-            String className
-    )
-            throws JSONException
-    {
-        for (int i = 0; i < packages.length(); i++) {
-            JSONObject pack = packages.getJSONObject(i);
+		JSONObject cls = getClassMethodsCodeVectors(acumulator, packages, packageName.toString(), className);
+		if (cls == null) return acumulator;
 
-            if (pack.getString("name").equals(packageName)) {
-                JSONArray classes = pack.optJSONArray("classes");
+		return getAscendedClassesMethodsCodeVectors(packages, acumulator, cls.getString("superQualifiedName"));
+	}
 
-                for (int j = 0; j < classes.length(); j++) {
-                    JSONObject cls = classes.getJSONObject(j);
+	public JSONObject getClassMethodsCodeVectors(
+			Acumulator acumulator,
+			JSONArray packages,
+			String packageName,
+			String className
+	)
+			throws JSONException {
+		for (int i = 0; i < packages.length(); i++) {
+			JSONObject pack = packages.getJSONObject(i);
 
-                    if (cls.getString("name").equals(className)) {
-                        JSONArray methods = cls.getJSONArray("methods");
+			if (pack.getString("name").equals(packageName)) {
+				JSONArray classes = pack.optJSONArray("classes");
 
-                        for (int k = 0; k < methods.length(); k++) {
-                            JSONObject method = methods.getJSONObject(k);
-                            JSONArray codeVector = method.getJSONArray("codeVector");
-                            acumulator.addVector(codeVector);
-                        }
+				for (int j = 0; j < classes.length(); j++) {
+					JSONObject cls = classes.getJSONObject(j);
 
-                        return cls;
-                    }
-                }
-            }
-        }
-        return null;
-    }
+					if (cls.getString("name").equals(className)) {
+						JSONArray methods = cls.getJSONArray("methods");
 
-    public void vectorDivision(ArrayList<Double> vector, float count) {
-        for (int i = 0; i < vector.size(); i++) {
-            vector.set(i, vector.get(i) / count);
-        }
-    }
+						for (int k = 0; k < methods.length(); k++) {
+							JSONObject method = methods.getJSONObject(k);
+							JSONArray codeVector = method.getJSONArray("codeVector");
+							acumulator.addVector(codeVector);
+						}
 
-    private Weights getWeightsByType(String type) {
-        return getWeightsList().stream().filter(weight -> weight.getType().equals(type)).findFirst().orElse(null);
-    }
+						return cls;
+					}
+				}
+			}
+		}
+		return null;
+	}
 
-    private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
-        GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
+	public void vectorDivision(ArrayList<Double> vector, float count) {
+		for (int i = 0; i < vector.size(); i++) {
+			vector.set(i, vector.get(i) / count);
+		}
+	}
 
-        EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
-        return new ObjectMapper().readValue(
-                gridFsService.getFileAsString(entityToId.getName()),
-                new TypeReference<Map<String, Short>>() {}
-        );
-    }
+	private Weights getWeightsByType(String type) {
+		return getWeightsList().stream().filter(weight -> weight.getType().equals(type)).findFirst().orElse(null);
+	}
 
-    private Map<String, Short> getTranslationIdToEntity(Strategy strategy) throws IOException {
-        GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
+	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
+		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-        IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) strategy.getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-        return new ObjectMapper().readValue(
-                gridFsService.getFileAsString(idToEntity.getName()),
-                new TypeReference<Map<Short, String>>() {}
-        );
-    }
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
+		return new ObjectMapper().readValue(
+				gridFsService.getFileAsString(entityToId.getName()),
+				new TypeReference<Map<String, Short>>() {}
+		);
+	}
 
-    private JSONObject getFunctionalityTraces(Strategy strategy) throws IOException, JSONException {
-        GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
+	private Map<String, Short> getTranslationIdToEntity(Strategy strategy) throws IOException {
+		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-        AccessesRepresentation accessesRepresentation = (AccessesRepresentation) strategy.getCodebase().getRepresentationByFileType(ACCESSES);
-        return new JSONObject(
-                gridFsService.getFileAsString(accessesRepresentation.getName())
-        );
-    }
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) strategy.getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
+		return new ObjectMapper().readValue(
+				gridFsService.getFileAsString(idToEntity.getName()),
+				new TypeReference<Map<Short, String>>() {}
+		);
+	}
 
-    @Override
-    public Set<String> generateMultipleMatrices(
-            GridFsService gridFsService,
-            Recommendation recommendation,
-            Set<Short> elements,
-            int totalNumberOfWeights
-    ) throws Exception {
-        JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-        JSONObject functionalityTraces = getFunctionalityTraces(recommendation.getStrategy());
-        Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
-        IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-        AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+	private JSONObject getFunctionalityTraces(Strategy strategy) throws IOException, JSONException {
+		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-        int[] weights = new int[totalNumberOfWeights];
-        weights[0] = INTERVAL;
-        int[] remainders = new int[totalNumberOfWeights];
-        remainders[0] = INTERVAL;
+		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) strategy.getCodebase().getRepresentationByFileType(ACCESSES);
+		return new JSONObject(
+				gridFsService.getFileAsString(accessesRepresentation.getName())
+		);
+	}
 
-        Set<String> similarityMatrices = new HashSet<>();
-        getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, idToEntity.getName(), accessesInfo.getName(), entityToId, weights, remainders, 0);
-        return similarityMatrices;
-    }
+	@Override
+	public Set<String> generateMultipleMatrices(
+			GridFsService gridFsService,
+			Recommendation recommendation,
+			Set<Short> elements,
+			int totalNumberOfWeights
+	) throws Exception {
+		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
+		JSONObject functionalityTraces = getFunctionalityTraces(recommendation.getStrategy());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
 
-    private void getMatrixCombinations(
-            Set<String> similarityMatrices,
-            JSONObject codeEmbeddings,
-            JSONObject functionalityTraces,
-            String translationFileName,
-            String accessesFileName,
-            Map<String, Short> entityToId,
-            int[] weights,
-            int[] remainders,
-            int i
-    ) throws Exception {
-        if (i + 1 == remainders.length) {
-            createAndWriteSimilarityMatrix(similarityMatrices, codeEmbeddings, functionalityTraces, weights, translationFileName, accessesFileName, entityToId);
-            return;
-        }
-        else {
-            remainders[i + 1] = remainders[i] - weights[i];
-            weights[i + 1] = remainders[i + 1];
-            getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, translationFileName, accessesFileName, entityToId, weights, remainders, i+1);
-        }
+		int[] weights = new int[totalNumberOfWeights];
+		weights[0] = INTERVAL;
+		int[] remainders = new int[totalNumberOfWeights];
+		remainders[0] = INTERVAL;
 
-        weights[i] = weights[i] - STEP;
-        if (weights[i] >= 0)
-            getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, translationFileName, accessesFileName, entityToId, weights, remainders, i);
-    }
+		Set<String> similarityMatrices = new HashSet<>();
+		getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, idToEntity.getName(), accessesInfo.getName(), entityToId, weights,
+				remainders, 0);
+		return similarityMatrices;
+	}
 
-    private void createAndWriteSimilarityMatrix(
-            Set<String> similarityMatrices,
-            JSONObject codeEmbeddings,
-            JSONObject functionalityTraces,
-            int[] weights,
-            String translationFileName,
-            String accessesFileName,
-            Map<String, Short> entityToId
-    ) throws Exception {
-        float[] weightsAsFloats = new float[weights.length];
-        for (int i = 0; i < weights.length; i++)
-            weightsAsFloats[i] = weights[i];
+	private void getMatrixCombinations(
+			Set<String> similarityMatrices,
+			JSONObject codeEmbeddings,
+			JSONObject functionalityTraces,
+			String translationFileName,
+			String accessesFileName,
+			Map<String, Short> entityToId,
+			int[] weights,
+			int[] remainders,
+			int i
+	) throws Exception {
+		if (i + 1 == remainders.length) {
+			createAndWriteSimilarityMatrix(similarityMatrices, codeEmbeddings, functionalityTraces, weights, translationFileName, accessesFileName, entityToId);
+			return;
+		} else {
+			remainders[i + 1] = remainders[i] - weights[i];
+			weights[i + 1] = remainders[i + 1];
+			getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, translationFileName, accessesFileName, entityToId, weights,
+					remainders, i + 1);
+		}
 
-        FunctionalityVectorizationSequenceOfAccessesWeights fvsaWeights = (FunctionalityVectorizationSequenceOfAccessesWeights) getWeightsByType(FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS);
+		weights[i] = weights[i] - STEP;
+		if (weights[i] >= 0)
+			getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, translationFileName, accessesFileName, entityToId, weights,
+					remainders, i);
+	}
 
-        fvsaWeights.setReadMetricWeight(weightsAsFloats[0]);
-        fvsaWeights.setWriteMetricWeight(weightsAsFloats[1]);
+	private void createAndWriteSimilarityMatrix(
+			Set<String> similarityMatrices,
+			JSONObject codeEmbeddings,
+			JSONObject functionalityTraces,
+			int[] weights,
+			String translationFileName,
+			String accessesFileName,
+			Map<String, Short> entityToId
+	) throws Exception {
+		float[] weightsAsFloats = new float[weights.length];
+		for (int i = 0; i < weights.length; i++)
+			weightsAsFloats[i] = weights[i];
 
-        HashMap<String, Object> matrix = new HashMap<>();
-        List<HashMap> entitiesVectors = this.computeEntitiesVectors(codeEmbeddings, entityToId);
-        this.computeSequenceOfAccessesFunctionalityVectors(matrix, functionalityTraces, entitiesVectors);
-        matrix.put("translationFileName", translationFileName);
-        matrix.put("accessesFileName", accessesFileName);
-        JSONObject matrixJSON = new JSONObject(matrix);
+		FunctionalityVectorizationSequenceOfAccessesWeights fvsaWeights = (FunctionalityVectorizationSequenceOfAccessesWeights) getWeightsByType(
+				FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS);
 
-        StringBuilder similarityMatrixName = new StringBuilder(getName());
-        for (float weight : weights)
-            similarityMatrixName.append(",").append(getWeightAsString(weight));
+		fvsaWeights.setReadMetricWeight(weightsAsFloats[0]);
+		fvsaWeights.setWriteMetricWeight(weightsAsFloats[1]);
 
-        similarityMatrices.add(similarityMatrixName.toString());
-        GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-        gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), similarityMatrixName.toString());
-    }
+		HashMap<String, Object> matrix = new HashMap<>();
+		List<HashMap> entitiesVectors = this.computeEntitiesVectors(codeEmbeddings, entityToId);
+		this.computeSequenceOfAccessesFunctionalityVectors(matrix, functionalityTraces, entitiesVectors);
+		matrix.put("translationFileName", translationFileName);
+		matrix.put("accessesFileName", accessesFileName);
+		JSONObject matrixJSON = new JSONObject(matrix);
 
-    public String getWeightAsString(float weight) {
-        return Float.toString(weight).replaceAll("\\.?0*$", "");
-    }
+		StringBuilder similarityMatrixName = new StringBuilder(getName());
+		for (float weight : weights)
+			similarityMatrixName.append(",").append(getWeightAsString(weight));
 
-    @Override
-    public String toString() {
-        return "SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
-    }
+		similarityMatrices.add(similarityMatrixName.toString());
+		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), similarityMatrixName.toString());
+	}
+
+	public String getWeightAsString(float weight) {
+		return Float.toString(weight).replaceAll("\\.?0*$", "");
+	}
+
+	@Override
+	public String toString() {
+		return "SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
+	}
 
 }

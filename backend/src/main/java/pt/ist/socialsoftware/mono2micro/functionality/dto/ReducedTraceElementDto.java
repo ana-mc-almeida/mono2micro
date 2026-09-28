@@ -5,8 +5,9 @@ import pt.ist.socialsoftware.mono2micro.functionality.deserializer.ReducedTraceE
 
 @JsonDeserialize(using = ReducedTraceElementDtoDeserializer.class)
 public abstract class ReducedTraceElementDto {
-    protected int occurrences;
+	protected int occurrences;
 
-    public int getOccurrences() { return occurrences; }
-    public void setOccurrences(int occurrences) { this.occurrences = occurrences; }
+	public int getOccurrences() { return occurrences; }
+
+	public void setOccurrences(int occurrences) { this.occurrences = occurrences; }
 }

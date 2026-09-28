@@ -14,58 +14,58 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/mono2micro/history/{decompositionName}")
 public class HistoryController {
-    @Autowired
-    HistoryService historyService;
+	@Autowired
+	HistoryService historyService;
 
-    @Autowired
-    DecompositionRepository decompositionRepository;
+	@Autowired
+	DecompositionRepository decompositionRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
+	private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
 
-    @GetMapping(value = "/undoOperation")
-    public ResponseEntity<HttpStatus> undoOperation(
-            @PathVariable String decompositionName
-    ) {
-        logger.debug("undoOperation");
+	@GetMapping(value = "/undoOperation")
+	public ResponseEntity<HttpStatus> undoOperation(
+			@PathVariable String decompositionName
+	) {
+		logger.debug("undoOperation");
 
-        try {
-            historyService.undoOperation(decompositionRepository.findByName(decompositionName));
-            return new ResponseEntity<>(HttpStatus.OK);
+		try {
+			historyService.undoOperation(decompositionRepository.findByName(decompositionName));
+			return new ResponseEntity<>(HttpStatus.OK);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @GetMapping(value = "/redoOperation")
-    public ResponseEntity<HttpStatus> redoOperation(
-            @PathVariable String decompositionName
-    ) {
-        logger.debug("redoOperation");
+	@GetMapping(value = "/redoOperation")
+	public ResponseEntity<HttpStatus> redoOperation(
+			@PathVariable String decompositionName
+	) {
+		logger.debug("redoOperation");
 
-        try {
-            historyService.redoOperation(decompositionRepository.findByName(decompositionName));
-            return new ResponseEntity<>(HttpStatus.OK);
+		try {
+			historyService.redoOperation(decompositionRepository.findByName(decompositionName));
+			return new ResponseEntity<>(HttpStatus.OK);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @GetMapping(value = "/canUndoRedo")
-    public ResponseEntity<Map<String, Boolean>> canUndoRedo(
-            @PathVariable String decompositionName
-    ) {
-        logger.debug("canUndoRedo");
+	@GetMapping(value = "/canUndoRedo")
+	public ResponseEntity<Map<String, Boolean>> canUndoRedo(
+			@PathVariable String decompositionName
+	) {
+		logger.debug("canUndoRedo");
 
-        try {
-            return new ResponseEntity<>(historyService.canUndoRedo(decompositionRepository.findByName(decompositionName)), HttpStatus.OK);
+		try {
+			return new ResponseEntity<>(historyService.canUndoRedo(decompositionRepository.findByName(decompositionName)), HttpStatus.OK);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

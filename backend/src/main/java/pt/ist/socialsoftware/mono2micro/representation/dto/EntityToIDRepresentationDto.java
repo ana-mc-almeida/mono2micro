@@ -4,7 +4,7 @@ import pt.ist.socialsoftware.mono2micro.representation.domain.EntityToIDRepresen
 
 public class EntityToIDRepresentationDto extends RepresentationDto {
 
-    public EntityToIDRepresentationDto(EntityToIDRepresentation representation) {
-        super(representation);
-    }
+	public EntityToIDRepresentationDto(EntityToIDRepresentation representation) {
+		super(representation);
+	}
 }

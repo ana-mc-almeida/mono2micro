@@ -39,11 +39,100 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<!-- Coverage gate. Kept in a profile, not the main build, because the two CI
+		     jobs run very different amounts of the suite: the `fast` job runs only the
+		     offline unit tests (tag `integration` excluded by default) and reaches ~5%,
+		     while the `e2e` job clears the exclusion and reaches ~44%. A gate in the main
+		     build would fire in both and fail every push. Only the e2e job passes
+		     -Pcoverage.
+
+		     Measured 2026-09-18 on the full suite (121 tests): line 44.2%, instruction
+		     43.5%, branch 38.6%. All three limits below are therefore ABOVE the current
+		     numbers on purpose: the build is red until the suite catches up. The fix is
+		     to raise coverage, NOT to lower these limits. -->
+		<profile>
+			<id>coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<!-- Version inherited from the main <build> declaration. -->
+						<executions>
+							<execution>
+								<id>jacoco-check</id>
+								<!-- Bound to test, not the goal's default verify, for the same
+								     reason as jacoco-report in the main build: the suite is run
+								     with `mvn test`, and a check bound to verify would never fire.
+								     Profile executions are appended after the main build's, so the
+								     report this reads is the one written by the same run. -->
+								<phase>test</phase>
+								<goals>
+									<goal>check</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<!-- BUNDLE: one rule over the whole module. A per-class rule
+										     at these levels would fail on hundreds of DTOs. -->
+										<rule>
+											<element>BUNDLE</element>
+											<limits>
+												<limit>
+													<counter>LINE</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>0.50</minimum>
+												</limit>
+												<limit>
+													<counter>INSTRUCTION</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>0.50</minimum>
+												</limit>
+												<!-- Branch is the hardest counter to move, so it gets a
+												     nearer target than the other two: at 38.6% it is 1.4
+												     points away and should go green first. -->
+												<limit>
+													<counter>BRANCH</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>0.40</minimum>
+												</limit>
+											</limits>
+										</rule>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 	<properties>
 		<java.version>1.8</java.version>
+		<!-- Default packaging. Also declared by the `jar` profile, which is
+		     activeByDefault, and Maven switches every activeByDefault profile OFF as
+		     soon as any profile is named explicitly, so `mvn -Pcoverage` would leave
+		     ${packaging.type} unresolved ("Unknown packaging"). Defining it here keeps
+		     the property set whatever profile is active; -Pwar still overrides it. -->
+		<packaging.type>jar</packaging.type>
+		<!-- JUnit tags excluded from `mvn test` by default; see the surefire plugin
+		     below. Override with -Dexcluded.groups= (empty) to run everything. -->
+		<excluded.groups>integration</excluded.groups>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Spring Boot 2.1.2 manages JUnit 5 at 5.3.2; this BOM keeps every
+			     jupiter/platform module aligned on a single, newer version. -->
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.10.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
@@ -54,6 +143,25 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+				<!-- jsonassert bundles an Android fork of org.json that shadows the real
+				     org.json:json below and lacks put(String, Collection). It breaks only
+				     under test, because the packaged jar has no test-scoped artifacts. -->
+				<exclusion>
+					<groupId>org.skyscreamer</groupId>
+					<artifactId>jsonassert</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -116,12 +224,180 @@
 
 	<build>
 		<plugins>
+			<!-- Boot 2.1.2 manages surefire 2.22.1; 3.2.2 matches the version
+			     already used by collectors/codeql-collector. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<!-- Tests tagged @Tag("integration") need the real stack (Mongo + the
+					     Python scripts service) and FAIL, rather than skip, when it is
+					     absent. Excluding them by default makes a bare `mvn test` offline,
+					     so the unit tests under <pkg>/operation/ can run on every push in
+					     CI's `fast` job, which has no Docker.
+
+					     Overridable, so the e2e job can run everything in one invocation:
+					         mvn test -Dexcluded.groups=
+					     An empty value excludes nothing. Do not use -Dgroups=integration
+					     there: that would run ONLY the tagged tests and drop the unit
+					     suite from the e2e reports, which test-summary.py aggregates by
+					     globbing target/surefire-reports/. -->
+					<excludedGroups>${excluded.groups}</excludedGroups>
+					<!-- Use the phrased display names in the console summary too, not only
+					     in the XML, so a failing or skipped case is named in the terminal. -->
+					<statelessTestsetInfoReporter
+							implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoReporter">
+						<usePhrasedClassNameInRunning>true</usePhrasedClassNameInRunning>
+						<usePhrasedClassNameInTestCaseSummary>true</usePhrasedClassNameInTestCaseSummary>
+					</statelessTestsetInfoReporter>
+					<!-- Report the @ParameterizedTest display names ("structure produces a
+					     decomposition for quizzes-tutor") instead of the method signature.
+					     Without this, DecompositionE2ETest's per-strategy cases are reported
+					     as [1]..[7] and a failure does not say which strategy broke. -->
+					<statelessTestsetReporter
+							implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+						<usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+					</statelessTestsetReporter>
+				</configuration>
+			</plugin>
+			<!-- Formatting, and the CI gate. `spotless:check` exits non-zero on any
+			     violation - indentation, line width, trailing whitespace - and the
+			     `format` job in ci.yml is what `fast` and `e2e` both depend on, so
+			     unformatted code never reaches a test run. A file's final newline is
+			     left as found: Eclipse JDT neither adds nor removes it, and
+			     .editorconfig deliberately does not set insert_final_newline.
+
+			     The engine is Eclipse JDT, not google-java-format or
+			     palantir-java-format: those two emit spaces unconditionally and
+			     expose no indent-character setting, and this repo uses tabs.
+			     Choosing Eclipse also means VS Code's Java extension - which IS
+			     Eclipse JDT - can read the very same profile via
+			     "java.format.settings.url", so format-on-save agrees with the build.
+
+			     Imports are deliberately NOT handled here: no <removeUnusedImports>,
+			     no <importOrder>. They are reported as warnings by
+			     checkstyle-imports.xml below, never silently rewritten.
+
+			     Bound to no phase on purpose - `mvn test` must stay the ~2s offline
+			     run it is today. Invoke via `make format-check` / `make format-apply`. -->
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.43.0</version>
+				<configuration>
+					<java>
+						<includes>
+							<include>src/**/*.java</include>
+						</includes>
+						<excludes>
+							<!-- Vendored 2004 third-party MoJo code; AGENT.md says keep it
+							     as-is. It is 4-space indented, so it looks already-clean to
+							     any indentation heuristic, but the formatter WOULD quietly
+							     reflow its block comments and its long lines. Excluded by
+							     path, and scoped to src/main so it does NOT also skip
+							     src/test/.../mojoCalculator/.../MoJoCalculatorTest.java,
+							     which is first-party and only sits in that package to reach
+							     the package-private Cluster and BipartiteGraph. -->
+							<exclude>src/main/java/**/utils/mojoCalculator/**</exclude>
+						</excludes>
+						<eclipse>
+							<file>${project.basedir}/eclipse-formatter.xml</file>
+						</eclipse>
+					</java>
+				</configuration>
+			</plugin>
+			<!-- Import hygiene, as WARNINGS. The counterpart to Spotless above, and
+			     the reason both exist: Spotless can only fix, so anything that should
+			     be reported rather than rewritten has to live here.
+
+			     <failOnViolation>false</failOnViolation> plus severity=warning in
+			     checkstyle-imports.xml means this can never fail a build, locally or
+			     in CI. Do not "tighten" that - the split is intentional. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.3.1</version>
+				<dependencies>
+					<!-- Boot 2.1.2 manages an ancient checkstyle; 10.12.7 is the last
+					     line that still runs on a JDK 11+ runtime without pulling in
+					     Java 21-only APIs. -->
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>10.12.7</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<configLocation>${project.basedir}/checkstyle-imports.xml</configLocation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<failOnViolation>false</failOnViolation>
+					<failsOnError>false</failsOnError>
+					<violationSeverity>error</violationSeverity>
+					<logViolationsToConsole>true</logViolationsToConsole>
+					<!-- Same vendored code Spotless skips. -->
+					<excludes>**/utils/mojoCalculator/**</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				 <configuration>
 					<jvmArguments>-Xms2g</jvmArguments>
 					<jvmArguments>-Xmx12g</jvmArguments>
+				</configuration>
+			</plugin>
+			<!-- Coverage as a map, not a score: which registry branches does the E2E
+			     suite actually reach? Boot 2.1.2 does not manage a jacoco version
+			     (only from 2.2+), so it is pinned here. 0.8.15 because the agent
+			     instruments on the local JDK 17 runtime; the 0.7.9 already in ~/.m2
+			     is from 2017 and predates Java 9. The Java 8 -target bytecode this
+			     module emits is read fine by any 0.8.x.
+
+			     Declared after surefire on purpose: executions bound to the same
+			     phase run in POM order, so report must come after the tests run. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.15</version>
+				<executions>
+					<execution>
+						<id>jacoco-prepare-agent</id>
+						<!-- Default phase (initialize) is correct: the agent must be
+						     set up before surefire forks its JVM. -->
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<!-- JaCoCo appends to jacoco.exec by default, so a run without
+							     `clean` silently mixes in the previous run's data: run the
+							     offline unit tests after a full-suite run and the report
+							     still shows the full suite's numbers. Overwriting instead
+							     makes every run report only what it just executed. CI is
+							     unaffected (fresh runner each time); this is for local runs. -->
+							<append>false</append>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<!-- Bound to test, not the goal's default verify: the suite is
+						     run by hand with `mvn test`, and verify would both skip the
+						     report on that command and drag in spring-boot:repackage. -->
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<!-- CSV is the one that answers the registry question: one row per
+					     class, with METHOD_MISSED/METHOD_COVERED. HTML to browse, XML
+					     because every downstream tool reads it. -->
+					<formats>
+						<format>HTML</format>
+						<format>XML</format>
+						<format>CSV</format>
+					</formats>
 				</configuration>
 			</plugin>
 		</plugins>

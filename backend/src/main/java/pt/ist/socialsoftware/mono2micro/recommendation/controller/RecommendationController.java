@@ -17,7 +17,7 @@ import java.util.*;
 @RequestMapping(value = "/mono2micro")
 public class RecommendationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(RecommendationController.class);
+	private static final Logger logger = LoggerFactory.getLogger(RecommendationController.class);
 
 	@Autowired
 	RecommendationService recommendationService;

@@ -7,8 +7,9 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import java.util.List;
 
 public abstract class Clustering {
-    public abstract Decomposition generateDecomposition(Similarity similarity, DecompositionRequest request) throws Exception;
-    public abstract String getType();
+	public abstract Decomposition generateDecomposition(Similarity similarity, DecompositionRequest request) throws Exception;
 
-    public abstract List<String> getAlgorithmSupportedStrategyTypes();
+	public abstract String getType();
+
+	public abstract List<String> getAlgorithmSupportedStrategyTypes();
 }

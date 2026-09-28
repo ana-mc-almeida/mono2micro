@@ -13,29 +13,30 @@ import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure.SIMILARITY_SCIPY_STRUCTURE;
 
 public class SimilarityDtoFactory {
-    public static SimilarityDto getSimilarityDto(Similarity similarity) {
-        switch (similarity.getType()) {
-            case SIMILARITY_SCIPY_ACCESSES_REPOSITORY:
-                return new SimilarityScipyAccessesAndRepositoryDto((SimilarityScipyAccessesAndRepository) similarity);
-            case SIMILARITY_SCIPY_ENTITY_VECTORIZATION:
-                return new SimilarityScipyEntityVectorizationDto((SimilarityScipyEntityVectorization) similarity);
-            case SIMILARITY_SCIPY_CLASS_VECTORIZATION:
-                return new SimilarityScipyClassVectorizationDto((SimilarityScipyClassVectorization) similarity);
-            case SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH:
-                return new SimilarityScipyFunctionalityVectorizationByCallGraphDto((SimilarityScipyFunctionalityVectorizationByCallGraph) similarity);
-            case SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES:
-                return new SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto((SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses) similarity);
-            case SIMILARITY_SCIPY_STRUCTURE:
-                return new SimilarityScipyStructureDto((SimilarityScipyStructure) similarity);
-                default:
-                throw new RuntimeException("The type \"" + similarity.getType() + "\" is not a valid similarity type.");
-        }
-    }
+	public static SimilarityDto getSimilarityDto(Similarity similarity) {
+		switch (similarity.getType()) {
+		case SIMILARITY_SCIPY_ACCESSES_REPOSITORY:
+			return new SimilarityScipyAccessesAndRepositoryDto((SimilarityScipyAccessesAndRepository) similarity);
+		case SIMILARITY_SCIPY_ENTITY_VECTORIZATION:
+			return new SimilarityScipyEntityVectorizationDto((SimilarityScipyEntityVectorization) similarity);
+		case SIMILARITY_SCIPY_CLASS_VECTORIZATION:
+			return new SimilarityScipyClassVectorizationDto((SimilarityScipyClassVectorization) similarity);
+		case SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH:
+			return new SimilarityScipyFunctionalityVectorizationByCallGraphDto((SimilarityScipyFunctionalityVectorizationByCallGraph) similarity);
+		case SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES:
+			return new SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(
+					(SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses) similarity);
+		case SIMILARITY_SCIPY_STRUCTURE:
+			return new SimilarityScipyStructureDto((SimilarityScipyStructure) similarity);
+		default:
+			throw new RuntimeException("The type \"" + similarity.getType() + "\" is not a valid similarity type.");
+		}
+	}
 
-    public static List<SimilarityDto> getSimilarityDtos(List<Similarity> similarities) {
-        List<SimilarityDto> similarityDtos = new ArrayList<>();
-        for (Similarity similarity : similarities)
-            similarityDtos.add(getSimilarityDto(similarity));
-        return similarityDtos;
-    }
+	public static List<SimilarityDto> getSimilarityDtos(List<Similarity> similarities) {
+		List<SimilarityDto> similarityDtos = new ArrayList<>();
+		for (Similarity similarity : similarities)
+			similarityDtos.add(getSimilarityDto(similarity));
+		return similarityDtos;
+	}
 }

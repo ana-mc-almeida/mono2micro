@@ -16,9 +16,9 @@ public class TraceDto {
 
 	@JsonCreator
 	public TraceDto(
-		@JsonProperty("id") int id,
-		@JsonProperty("f") int frequency,
-		@JsonProperty("a") List<ReducedTraceElementDto> elements
+			@JsonProperty("id") int id,
+			@JsonProperty("f") int frequency,
+			@JsonProperty("a") List<ReducedTraceElementDto> elements
 	) {
 		this.id = id;
 		this.frequency = frequency;
@@ -27,14 +27,17 @@ public class TraceDto {
 
 	@JsonProperty("id")
 	public int getId() { return this.id; }
+
 	public void setId(int id) { this.id = id; }
 
 	@JsonProperty("f")
 	public int getFrequency() { return this.frequency; }
+
 	public void setFrequency(int frequency) { this.frequency = frequency; }
 
 	@JsonProperty("a")
 	public List<ReducedTraceElementDto> getElements() { return elements; }
+
 	public void setElements(List<ReducedTraceElementDto> elements) { this.elements = elements; }
 
 	@JsonIgnore
@@ -78,10 +81,10 @@ public class TraceDto {
 	}
 
 	private List<ReducedTraceElementDto> expand(
-		List<ReducedTraceElementDto> elements,
-		int from,
-		int to,
-		int maxOccurrences
+			List<ReducedTraceElementDto> elements,
+			int from,
+			int to,
+			int maxOccurrences
 	) {
 		List<ReducedTraceElementDto> accesses = new ArrayList<>();
 
@@ -98,12 +101,12 @@ public class TraceDto {
 				RuleDto r = (RuleDto) element;
 
 				expandedElements.addAll(
-					expand(
-						elements,
-						i + 1,
-						i + 1 + r.getCount(),
-						maxOccurrences
-					)
+						expand(
+								elements,
+								i + 1,
+								i + 1 + r.getCount(),
+								maxOccurrences
+						)
 				);
 
 				i += 1 + r.getCount();
@@ -132,11 +135,10 @@ public class TraceDto {
 	@JsonIgnore
 	public List<AccessDto> expand(int maxOccurrences) {
 		return (List<AccessDto>) ((List<?>) this.expand(
-			elements,
-			0,
-			elements == null ? 0 : elements.size(),
-			maxOccurrences)
-		);
+				elements,
+				0,
+				elements == null ? 0 : elements.size(),
+				maxOccurrences));
 	}
 
 	@JsonIgnore
@@ -163,9 +165,9 @@ public class TraceDto {
 					AccessDto a = (AccessDto) e;
 
 					String accessString = String.join(
-						"-",
-						String.valueOf(a.getEntityID()),
-						String.valueOf(a.getMode())
+							"-",
+							String.valueOf(a.getEntityID()),
+							String.valueOf(a.getMode())
 					);
 
 					accessesSet.add(accessString);

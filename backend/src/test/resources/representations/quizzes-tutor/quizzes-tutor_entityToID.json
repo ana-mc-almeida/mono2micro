@@ -1,0 +1,15 @@
+{
+  "Course": 1,
+  "Question": 2,
+  "Option": 3,
+  "QuizQuestion": 4,
+  "QuestionAnswer": 5,
+  "Image": 6,
+  "Quiz": 7,
+  "Topic": 8,
+  "Assessment": 9,
+  "CourseExecution": 10,
+  "TopicConjunction": 11,
+  "User": 12,
+  "QuizAnswer": 13
+}
