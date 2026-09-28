@@ -74,17 +74,18 @@ jobs:
   # `e2e` both declare `needs: format`, so a formatting violation stops the run
   # before anything is compiled or tested. Seconds, no Docker, no database.
   #
-  # Deliberately NOT `needs: dedup`, unlike `fast`. GitHub skips a job whose
-  # `needs` was skipped, so inheriting the dedup skip here would cascade into
-  # skipping `e2e` too — and `e2e` runs on PRs and nightly regardless of dedup.
-  # This job is cheap enough that deduplicating it would not pay for that risk.
+  # Deduplicated like `fast`: a push to a branch with an open PR would otherwise
+  # run this twice and post a duplicate status check. Skipping it cascades into
+  # `e2e`, but harmlessly: `should-run` is only false on a push, and `e2e` never
+  # runs on a push anyway.
   #
-  # No `if:` guard either: `e2e` needs this job, so gating it on
-  # `inputs.jobs != 'e2e-only'` would skip `format` on a manual e2e-only
-  # dispatch and take `e2e` down with it.
+  # Not gated on `inputs.jobs`, though: `e2e` needs this job, so skipping
+  # `format` on a manual e2e-only dispatch would take `e2e` down with it.
   # ---------------------------------------------------------------------------
   format:
     name: format check
+    needs: dedup
+    if: needs.dedup.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
