@@ -1,6 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.fixtures;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 

@@ -1,11 +1,10 @@
 package pt.ist.socialsoftware.mono2micro.codebase;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 import pt.ist.socialsoftware.mono2micro.codebase.repository.CodebaseRepository;
 import pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
@@ -27,7 +26,6 @@ import static pt.ist.socialsoftware.mono2micro.representation.domain.Representat
  * answer, never which map was read or which method was called, because those internals are
  * exactly what the Phase 1 refactor is meant to be free to change.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class CodebaseServiceAvailabilityTest {
 
 	@Mock
@@ -36,15 +34,16 @@ public class CodebaseServiceAvailabilityTest {
 	@InjectMocks
 	private CodebaseService codebaseService;
 
-	@Before
-    public void givenTheFixtureCodebasesExist() {
-        when(codebaseRepository.findByName(EMPTY_NAME))
-                .thenReturn(CodebaseFixtures.empty());
-        when(codebaseRepository.findByName(ACCESSES_BASED_NAME))
-                .thenReturn(CodebaseFixtures.accessesBased());
-        when(codebaseRepository.findByName(REPOSITORY_BASED_NAME))
-                .thenReturn(CodebaseFixtures.repositoryBased());
-    }
+	@BeforeEach
+	public void givenTheFixtureCodebasesExist() {
+		MockitoAnnotations.initMocks(this);
+		when(codebaseRepository.findByName(EMPTY_NAME))
+				.thenReturn(CodebaseFixtures.empty());
+		when(codebaseRepository.findByName(ACCESSES_BASED_NAME))
+				.thenReturn(CodebaseFixtures.accessesBased());
+		when(codebaseRepository.findByName(REPOSITORY_BASED_NAME))
+				.thenReturn(CodebaseFixtures.repositoryBased());
+	}
 
 	@Test
 	public void uploadsCarryingAuthorshipDataMakeTheRepositoryStrategyAvailable() {
