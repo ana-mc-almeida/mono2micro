@@ -96,11 +96,8 @@ make build
 ## Testing
 
 - **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`.
-  Packaging still uses `-DskipTests` (see `codebases/` below). JUnit 4,
-  AssertJ, and Mockito come from `spring-boot-starter-test`; no other test dependency
-  is needed. `Mono2microApplicationTests` is a `@SpringBootTest` context-load smoke
-  test and **needs a running MongoDB** (`docker-compose up mongo`) — it is the only
-  test that does.
+  Packaging still uses `-DskipTests` (see `codebases/` below). Tests are JUnit 5
+  (`junit-jupiter`), with AssertJ and Mockito from `spring-boot-starter-test`.
   Run `backend/test-summary.py` after `mvn test` for a per-case pass/skip/fail list with
   reasons; surefire's console output names a parameterized case only by index.
   Two kinds of suite, split by a **JUnit tag**, not by location:
@@ -174,7 +171,7 @@ make build
     `The parameters 'rules' for goal jacoco:check are missing or invalid`.
   - **`target/classes/` must exist.** `jacoco:check` replays the exec file against the
     compiled bytecode; without it JaCoCo logs `Skipping JaCoCo execution due to missing
-classes directory` and **exits 0** — a green gate that checked nothing. This is why
+    classes directory` and **exits 0** — a green gate that checked nothing. This is why
     CI's `coverage` job uploads `target/classes/` alongside `jacoco.exec`.
 
   JaCoCo's `prepare-agent` sets `<append>false</append>`, so each run's report covers
@@ -207,10 +204,30 @@ classes directory` and **exits 0** — a green gate that checked nothing. This i
   fails: Jest cannot parse `vis-network/standalone` (ESM) because `package.json` sets no
   `transformIgnorePatterns`.
 
+## Formatting (backend)
+
+Java is formatted by **Spotless** with `backend/eclipse-formatter.xml` (tabs, 160
+columns). CI fails on any violation, so run the fix before committing:
+
+```bash
+cd backend
+make format-apply    # mvn spotless:apply — idempotent
+make format-check    # mvn spotless:check — the CI gate
+make lint-imports    # Checkstyle import report; never fails, read the output
+```
+
+`lint-imports` uses `checkstyle:checkstyle`, **not** `checkstyle:check`: every rule in
+`checkstyle-imports.xml` is a `warning`, and `check` counts only errors, so it reports
+"0 violations" while the report lists them all. The static wildcard imports in the
+`*Factory` classes are intentional and are not reported.
+
 ## CI
 
-`.github/workflows/ci.yml`, two jobs:
+`.github/workflows/ci.yml`. Jobs:
 
+- **`format`** — runs `mvn -B spotless:check` in `backend/` and **gates every test
+  job**: `fast` and `e2e` both declare `needs: format`, so unformatted Java never
+  reaches a test run. Also prints the Checkstyle import report, advisory only.
 - **`fast`** — every push and PR, no Docker. (A push to a branch that already has an
   open PR skips it, since the `pull_request` run covers the same commit; a small `dedup`
   job decides.) Backend `mvn -DskipTests clean install`,
@@ -328,6 +345,7 @@ Codebase
 | **Metrics**                   | `<pkg>/metrics/`                                        | `decompositionMetrics/` (Cohesion, Complexity, Coupling, Performance, TSR), `functionalityMetrics/`, `functionalityRedesignMetrics/`                        |
 | **Operation**                 | `<pkg>/operation/`                                      | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/`                                                                                 |
 | **comparisonTool**            | `<pkg>/comparisonTool/`                                 | MoJo (`<pkg>/utils/mojoCalculator/`) and Purity                                                                                                             |
+| **VariableFeature**           | `<pkg>/feature/`                                        | Interface mapping a variant to the feature model (`requiresRepresentations`, `requiresFeatures`, `excludes`). Expand-only: nothing implements it yet; the `Strategy` static maps stay authoritative |
 
 ## Extension points
 
