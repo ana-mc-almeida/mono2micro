@@ -7,9 +7,9 @@ import pt.ist.socialsoftware.mono2micro.functionality.domain.FunctionalityRedesi
 import pt.ist.socialsoftware.mono2micro.metrics.MetricCalculator;
 
 public abstract class FunctionalityRedesignMetricCalculator extends MetricCalculator {
-    public abstract Object calculateMetric(
-            Decomposition decomposition,
-            AccessesInformation info,
-            Functionality functionality,
-            FunctionalityRedesign functionalityRedesign) throws Exception;
+	public abstract Object calculateMetric(
+			Decomposition decomposition,
+			AccessesInformation info,
+			Functionality functionality,
+			FunctionalityRedesign functionalityRedesign) throws Exception;
 }

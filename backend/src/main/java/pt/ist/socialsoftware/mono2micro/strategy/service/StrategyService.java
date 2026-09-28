@@ -17,78 +17,78 @@ import java.util.List;
 
 @Service
 public class StrategyService {
-    @Autowired
-    CodebaseRepository codebaseRepository;
+	@Autowired
+	CodebaseRepository codebaseRepository;
 
-    @Autowired
-    StrategyRepository strategyRepository;
+	@Autowired
+	StrategyRepository strategyRepository;
 
-    @Autowired
-    DecompositionService decompositionService;
+	@Autowired
+	DecompositionService decompositionService;
 
-    @Autowired
-    SimilarityService similarityService;
+	@Autowired
+	SimilarityService similarityService;
 
-    @Autowired
-    RecommendationService recommendationService;
+	@Autowired
+	RecommendationService recommendationService;
 
-    public void createStrategy(String codebaseName, String algorithmType, List<String> strategyTypes) {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        for (Strategy strategy : codebase.getStrategies())
-            if (strategy.getAlgorithmType().equals(algorithmType) &&
-                    strategy.getStrategyTypes().size() == strategyTypes.size() &&
-                    strategy.getStrategyTypes().containsAll(strategyTypes)) // strategy already exists
-                return;
-        Strategy strategy = new Strategy(codebase, algorithmType, strategyTypes);
-        strategy.setCodebase(codebase);
-        codebase.addStrategy(strategy);
-        strategyRepository.save(strategy);
-        codebaseRepository.save(codebase);
-    }
+	public void createStrategy(String codebaseName, String algorithmType, List<String> strategyTypes) {
+		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		for (Strategy strategy : codebase.getStrategies())
+			if (strategy.getAlgorithmType().equals(algorithmType) &&
+					strategy.getStrategyTypes().size() == strategyTypes.size() &&
+					strategy.getStrategyTypes().containsAll(strategyTypes)) // strategy already exists
+				return;
+		Strategy strategy = new Strategy(codebase, algorithmType, strategyTypes);
+		strategy.setCodebase(codebase);
+		codebase.addStrategy(strategy);
+		strategyRepository.save(strategy);
+		codebaseRepository.save(codebase);
+	}
 
-    public void removeSpecificStrategyProperties(Strategy strategy) {
-        deleteStrategySimilarities(strategy);
-        deleteStrategyRecommendations(strategy);
-    }
+	public void removeSpecificStrategyProperties(Strategy strategy) {
+		deleteStrategySimilarities(strategy);
+		deleteStrategyRecommendations(strategy);
+	}
 
-    public List<Similarity> getStrategySimilarities(String strategyName) {
-        Strategy strategy = strategyRepository.findByName(strategyName);
-        return strategy.getSimilarities();
-    }
+	public List<Similarity> getStrategySimilarities(String strategyName) {
+		Strategy strategy = strategyRepository.findByName(strategyName);
+		return strategy.getSimilarities();
+	}
 
-    public void deleteSingleStrategy(String strategyName) {
-        Strategy strategy = strategyRepository.findByName(strategyName);
-        strategy.getCodebase().removeStrategy(strategyName);
-        for (Decomposition decomposition: strategy.getDecompositions())
-            decompositionService.deleteDecomposition(decomposition);
-        removeSpecificStrategyProperties(strategy);
-        strategyRepository.delete(strategy);
-        codebaseRepository.save(strategy.getCodebase());
-    }
+	public void deleteSingleStrategy(String strategyName) {
+		Strategy strategy = strategyRepository.findByName(strategyName);
+		strategy.getCodebase().removeStrategy(strategyName);
+		for (Decomposition decomposition : strategy.getDecompositions())
+			decompositionService.deleteDecomposition(decomposition);
+		removeSpecificStrategyProperties(strategy);
+		strategyRepository.delete(strategy);
+		codebaseRepository.save(strategy.getCodebase());
+	}
 
-    public void deleteStrategy(Strategy strategy) {
-        for (Decomposition decomposition: strategy.getDecompositions())
-            decompositionService.deleteDecomposition(decomposition);
-        removeSpecificStrategyProperties(strategy);
-        strategyRepository.delete(strategy);
-    }
+	public void deleteStrategy(Strategy strategy) {
+		for (Decomposition decomposition : strategy.getDecompositions())
+			decompositionService.deleteDecomposition(decomposition);
+		removeSpecificStrategyProperties(strategy);
+		strategyRepository.delete(strategy);
+	}
 
-    public Strategy getStrategy(String strategyName) {
-        return strategyRepository.findByName(strategyName);
-    }
+	public Strategy getStrategy(String strategyName) {
+		return strategyRepository.findByName(strategyName);
+	}
 
-    public List<Decomposition> getStrategyDecompositions(String strategyName) {
-        Strategy strategy = strategyRepository.findByName(strategyName);
-        return strategy.getDecompositions();
-    }
+	public List<Decomposition> getStrategyDecompositions(String strategyName) {
+		Strategy strategy = strategyRepository.findByName(strategyName);
+		return strategy.getDecompositions();
+	}
 
-    private void deleteStrategySimilarities(Strategy strategy) {
-        for (Similarity similarity : strategy.getSimilarities())
-            similarityService.deleteSimilarity(similarity);
-    }
+	private void deleteStrategySimilarities(Strategy strategy) {
+		for (Similarity similarity : strategy.getSimilarities())
+			similarityService.deleteSimilarity(similarity);
+	}
 
-    private void deleteStrategyRecommendations(Strategy strategy) {
-        for (Recommendation recommendation: strategy.getRecommendations())
-            recommendationService.deleteRecommendation(recommendation);
-    }
+	private void deleteStrategyRecommendations(Strategy strategy) {
+		for (Recommendation recommendation : strategy.getRecommendations())
+			recommendationService.deleteRecommendation(recommendation);
+	}
 }

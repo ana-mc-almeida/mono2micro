@@ -78,14 +78,14 @@ public class DecompositionController {
 
 	@GetMapping(value = "/decomposition/{decompositionName}")
 	public ResponseEntity<DecompositionDto> getDecomposition(
-		@PathVariable String decompositionName
+			@PathVariable String decompositionName
 	) {
 		logger.debug("getDecomposition");
 
 		try {
 			return new ResponseEntity<>(
-				DecompositionDtoFactory.getDecompositionDto(decompositionService.getDecomposition(decompositionName)),
-				HttpStatus.OK
+					DecompositionDtoFactory.getDecompositionDto(decompositionService.getDecomposition(decompositionName)),
+					HttpStatus.OK
 			);
 
 		} catch (Exception e) {
@@ -134,7 +134,7 @@ public class DecompositionController {
 
 	@DeleteMapping(value = "/decomposition/{decompositionName}/delete")
 	public ResponseEntity<HttpStatus> deleteDecomposition(
-		@PathVariable String decompositionName
+			@PathVariable String decompositionName
 	) {
 		logger.debug("deleteDecomposition");
 
@@ -147,7 +147,6 @@ public class DecompositionController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
-
 
 	@PostMapping(value = "/decomposition/{decompositionName}/merge")
 	public ResponseEntity<Map<String, Cluster>> mergeClusters(
@@ -221,7 +220,6 @@ public class DecompositionController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
-
 
 	@PostMapping(value = "/decomposition/{decompositionName}/formCluster")
 	public ResponseEntity<Map<String, Cluster>> formCluster(

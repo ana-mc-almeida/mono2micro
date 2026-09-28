@@ -16,7 +16,7 @@ public class PropertiesManager {
 	@Value("${scripts.address}")
 	private String scriptsAddress;
 
-	@Bean(name="scriptsAddress")
+	@Bean(name = "scriptsAddress")
 	public String getScriptsAddress() {
 		return scriptsAddress;
 	}

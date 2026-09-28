@@ -8,50 +8,53 @@ import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Set;
 
 public class RenamePartitionsOperation extends RenameOperation {
-    public RenamePartitionsOperation() {}
+	public RenamePartitionsOperation() {}
 
-    public RenamePartitionsOperation(RenameOperation operation) {
-        super(operation);
-    }
+	public RenamePartitionsOperation(RenameOperation operation) {
+		super(operation);
+	}
 
-    public RenamePartitionsOperation(String clusterName, String newClusterName) {
-        this.clusterName = clusterName;
-        this.newClusterName = newClusterName;
-    }
+	public RenamePartitionsOperation(String clusterName, String newClusterName) {
+		this.clusterName = clusterName;
+		this.newClusterName = newClusterName;
+	}
 
-    @Override
-    public void execute(Decomposition decomposition) {
-        executeOperation(decomposition);
-        super.execute(decomposition);
-    }
+	@Override
+	public void execute(Decomposition decomposition) {
+		executeOperation(decomposition);
+		super.execute(decomposition);
+	}
 
-    @Override
-    public void executeOperation(Decomposition decomposition) {
-        rename(decomposition);
-        decomposition.getRepresentationInformations().forEach(representationInformation ->
-                representationInformation.renameClusterInFunctionalities(getClusterName(), getNewClusterName())
-        );
-    }
+	@Override
+	public void executeOperation(Decomposition decomposition) {
+		rename(decomposition);
+		decomposition.getRepresentationInformations()
+				.forEach(representationInformation -> representationInformation.renameClusterInFunctionalities(getClusterName(), getNewClusterName())
+				);
+	}
 
-    @Override
-    public void undo(Decomposition decomposition) {
-        new RenamePartitionsOperation(getNewClusterName(), getClusterName()).executeOperation(decomposition);
-    }
+	@Override
+	public void undo(Decomposition decomposition) {
+		new RenamePartitionsOperation(getNewClusterName(), getClusterName()).executeOperation(decomposition);
+	}
 
-    protected void rename(Decomposition decomposition) {
-        if (decomposition.clusterNameExists(newClusterName) && !clusterName.equals(newClusterName))
-            throw new KeyAlreadyExistsException("Cluster with name: " + newClusterName + " already exists");
+	protected void rename(Decomposition decomposition) {
+		if (decomposition.clusterNameExists(newClusterName) && !clusterName.equals(newClusterName))
+			throw new KeyAlreadyExistsException("Cluster with name: " + newClusterName + " already exists");
 
-        Cluster oldCluster = decomposition.removeCluster(clusterName);
-        oldCluster.setName(newClusterName);
-        decomposition.addCluster(oldCluster);
+		Cluster oldCluster = decomposition.removeCluster(clusterName);
+		oldCluster.setName(newClusterName);
+		decomposition.addCluster(oldCluster);
 
-        // Change coupling dependencies
-        decomposition.getClusters().forEach((s, cluster) -> {
-            Partition partition = (Partition) cluster;
-            Set<Short> dependencies = partition.getCouplingDependencies().get(clusterName);
-            if (dependencies != null) {partition.getCouplingDependencies().remove(clusterName); partition.addCouplingDependencies(newClusterName, dependencies);}
-        });
-    }
+		// Change coupling dependencies
+		decomposition.getClusters().forEach((s, cluster) -> {
+			Partition partition = (Partition) cluster;
+			Set<Short> dependencies = partition.getCouplingDependencies().get(clusterName);
+			if (dependencies != null) {
+				partition.getCouplingDependencies().remove(clusterName);
+				partition.addCouplingDependencies(newClusterName, dependencies);
+			}
+		});
+	}
 
 }

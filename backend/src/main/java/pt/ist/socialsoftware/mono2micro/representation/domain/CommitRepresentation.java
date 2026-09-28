@@ -5,20 +5,19 @@ import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
 
 @Document("representation")
 public class CommitRepresentation extends Representation {
-    public static final String COMMIT = "File Changes";
+	public static final String COMMIT = "File Changes";
 
-    public CommitRepresentation() {}
+	public CommitRepresentation() {}
 
+	@Override
+	public String init(Codebase codebase, byte[] representationFile) {
+		this.name = codebase.getName() + " & " + getType();
+		this.codebase = codebase;
+		return name;
+	}
 
-    @Override
-    public String init(Codebase codebase, byte[] representationFile) {
-        this.name = codebase.getName() + " & " + getType();
-        this.codebase = codebase;
-        return name;
-    }
-
-    @Override
-    public String getType() {
-        return COMMIT;
-    }
+	@Override
+	public String getType() {
+		return COMMIT;
+	}
 }

@@ -24,99 +24,101 @@ import java.util.*;
 
 @Document("decomposition")
 public class PartitionsDecomposition extends Decomposition {
-    public static final String PARTITIONS_DECOMPOSITION = "Partitions Decomposition";
-    public PartitionsDecomposition() { this.type = PARTITIONS_DECOMPOSITION; }
+	public static final String PARTITIONS_DECOMPOSITION = "Partitions Decomposition";
 
-    public PartitionsDecomposition(Similarity similarity) {
-        super(similarity);
-        this.type = PARTITIONS_DECOMPOSITION;
-    }
+	public PartitionsDecomposition() { this.type = PARTITIONS_DECOMPOSITION; }
 
-    public PartitionsDecomposition(PartitionsDecomposition decomposition, String snapshotName) throws Exception {
-        this.type = PARTITIONS_DECOMPOSITION;
-        this.name = snapshotName;
-        this.strategy = decomposition.getStrategy();
-        decomposition.getStrategy().addDecomposition(this);
-        this.similarity = decomposition.getSimilarity();
-        decomposition.getSimilarity().addDecomposition(this);
-        this.metrics = decomposition.getMetrics();
-        this.outdated = decomposition.isOutdated();
-        this.expert = decomposition.isExpert();
-        this.clusters = decomposition.getClusters();
-        List<RepresentationInformation> representationInformations = RepresentationInformationFactory.getStrategyRepresentationInformations(decomposition.getStrategy());
-        for (RepresentationInformation representationInformation : representationInformations)
-            representationInformation.snapshot(this, decomposition);
-    }
+	public PartitionsDecomposition(Similarity similarity) {
+		super(similarity);
+		this.type = PARTITIONS_DECOMPOSITION;
+	}
 
-    @Override
-    public void calculateMetrics() {
-        this.representationInformations.stream()
-                .map(RepresentationInformation::getDecompositionMetrics)
-                .flatMap(Collection::stream)
-                .forEach(metric -> this.metrics.put(metric.getType(), metric.calculateMetric(this)));
-    }
+	public PartitionsDecomposition(PartitionsDecomposition decomposition, String snapshotName) throws Exception {
+		this.type = PARTITIONS_DECOMPOSITION;
+		this.name = snapshotName;
+		this.strategy = decomposition.getStrategy();
+		decomposition.getStrategy().addDecomposition(this);
+		this.similarity = decomposition.getSimilarity();
+		decomposition.getSimilarity().addDecomposition(this);
+		this.metrics = decomposition.getMetrics();
+		this.outdated = decomposition.isOutdated();
+		this.expert = decomposition.isExpert();
+		this.clusters = decomposition.getClusters();
+		List<RepresentationInformation> representationInformations = RepresentationInformationFactory
+				.getStrategyRepresentationInformations(decomposition.getStrategy());
+		for (RepresentationInformation representationInformation : representationInformations)
+			representationInformation.snapshot(this, decomposition);
+	}
 
-    @Override
-    public void setup() throws Exception {
-        List<RepresentationInformation> representationInformations = RepresentationInformationFactory.getStrategyRepresentationInformations(getStrategy());
-        for (RepresentationInformation representationInformation : representationInformations)
-            representationInformation.setup(this);
-        this.history = new PositionHistory(this);
-    }
+	@Override
+	public void calculateMetrics() {
+		this.representationInformations.stream()
+				.map(RepresentationInformation::getDecompositionMetrics)
+				.flatMap(Collection::stream)
+				.forEach(metric -> this.metrics.put(metric.getType(), metric.calculateMetric(this)));
+	}
 
-    @Override
-    public void update() throws Exception {
-        for (RepresentationInformation representationInformation : representationInformations)
-            representationInformation.update(this);
-    }
+	@Override
+	public void setup() throws Exception {
+		List<RepresentationInformation> representationInformations = RepresentationInformationFactory.getStrategyRepresentationInformations(getStrategy());
+		for (RepresentationInformation representationInformation : representationInformations)
+			representationInformation.setup(this);
+		this.history = new PositionHistory(this);
+	}
 
-    @Override
-    public void renameCluster(RenameOperation operation) {
-        RenamePartitionsOperation partitionsOperation = new RenamePartitionsOperation(operation);
-        partitionsOperation.execute(this);
-    }
+	@Override
+	public void update() throws Exception {
+		for (RepresentationInformation representationInformation : representationInformations)
+			representationInformation.update(this);
+	}
 
-    @Override
-    public void mergeClusters(MergeOperation operation) {
-        MergePartitionsOperation partitionsOperation = new MergePartitionsOperation(operation);
-        partitionsOperation.execute(this);
-    }
+	@Override
+	public void renameCluster(RenameOperation operation) {
+		RenamePartitionsOperation partitionsOperation = new RenamePartitionsOperation(operation);
+		partitionsOperation.execute(this);
+	}
 
-    @Override
-    public void splitCluster(SplitOperation operation) {
-        SplitPartitionsOperation partitionsOperation = new SplitPartitionsOperation(operation);
-        partitionsOperation.execute(this);
-    }
+	@Override
+	public void mergeClusters(MergeOperation operation) {
+		MergePartitionsOperation partitionsOperation = new MergePartitionsOperation(operation);
+		partitionsOperation.execute(this);
+	}
 
-    @Override
-    public void transferEntities(TransferOperation operation) {
-        TransferPartitionsOperation partitionsOperation = new TransferPartitionsOperation(operation);
-        partitionsOperation.execute(this);
-    }
+	@Override
+	public void splitCluster(SplitOperation operation) {
+		SplitPartitionsOperation partitionsOperation = new SplitPartitionsOperation(operation);
+		partitionsOperation.execute(this);
+	}
 
-    @Override
-    public void formCluster(FormClusterOperation operation) {
-        FormClusterPartitionsOperation partitionsOperation = new FormClusterPartitionsOperation(operation);
-        partitionsOperation.execute(this);
-    }
+	@Override
+	public void transferEntities(TransferOperation operation) {
+		TransferPartitionsOperation partitionsOperation = new TransferPartitionsOperation(operation);
+		partitionsOperation.execute(this);
+	}
 
-    @Override
-    public void deleteProperties() {
-        representationInformations.forEach(RepresentationInformation::deleteProperties);
-    }
+	@Override
+	public void formCluster(FormClusterOperation operation) {
+		FormClusterPartitionsOperation partitionsOperation = new FormClusterPartitionsOperation(operation);
+		partitionsOperation.execute(this);
+	}
 
-    @Override
-    public Decomposition snapshotDecomposition(String snapshotName) throws Exception {
-        HistoryService historyService = ContextManager.get().getBean(HistoryService.class);
-        PositionHistoryService positionHistoryService = ContextManager.get().getBean(PositionHistoryService.class);
+	@Override
+	public void deleteProperties() {
+		representationInformations.forEach(RepresentationInformation::deleteProperties);
+	}
 
-        PartitionsDecomposition snapshotDecomposition = new PartitionsDecomposition(this, snapshotName);
+	@Override
+	public Decomposition snapshotDecomposition(String snapshotName) throws Exception {
+		HistoryService historyService = ContextManager.get().getBean(HistoryService.class);
+		PositionHistoryService positionHistoryService = ContextManager.get().getBean(PositionHistoryService.class);
 
-        PositionHistory snapshotHistory = new PositionHistory(snapshotDecomposition);
-        snapshotDecomposition.setHistory(snapshotHistory);
-        historyService.saveHistory(snapshotHistory);
-        positionHistoryService.saveGraphPositions(snapshotDecomposition, positionHistoryService.getGraphPositions(this));
+		PartitionsDecomposition snapshotDecomposition = new PartitionsDecomposition(this, snapshotName);
 
-        return snapshotDecomposition;
-    }
+		PositionHistory snapshotHistory = new PositionHistory(snapshotDecomposition);
+		snapshotDecomposition.setHistory(snapshotHistory);
+		historyService.saveHistory(snapshotHistory);
+		positionHistoryService.saveGraphPositions(snapshotDecomposition, positionHistoryService.getGraphPositions(this));
+
+		return snapshotDecomposition;
+	}
 }

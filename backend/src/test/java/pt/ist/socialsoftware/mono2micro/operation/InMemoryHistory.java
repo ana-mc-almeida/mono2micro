@@ -36,36 +36,36 @@ import java.util.stream.Collectors;
  */
 class InMemoryHistory extends History {
 
-    static final String IN_MEMORY_HISTORY = "IN_MEMORY_HISTORY";
+	static final String IN_MEMORY_HISTORY = "IN_MEMORY_HISTORY";
 
-    /**
-     * Initializes both fields, which {@code History} leaves null.
-     *
-     * <p>Neither has an inline initializer and only {@code PositionHistory(Decomposition)} sets
-     * them, so a bare subclass would NPE twice over: in {@code addOperation} on the null list,
-     * and in {@code incrementCurrentHistoryDepth}, where {@code ++} unboxes a null {@code Long}.
-     */
-    InMemoryHistory() {
-        setName("in-memory-history");
-        setHistoryOperationsList(new ArrayList<>());
-        setCurrentHistoryOperationDepth(0L);
-    }
+	/**
+	 * Initializes both fields, which {@code History} leaves null.
+	 *
+	 * <p>Neither has an inline initializer and only {@code PositionHistory(Decomposition)} sets
+	 * them, so a bare subclass would NPE twice over: in {@code addOperation} on the null list,
+	 * and in {@code incrementCurrentHistoryDepth}, where {@code ++} unboxes a null {@code Long}.
+	 */
+	InMemoryHistory() {
+		setName("in-memory-history");
+		setHistoryOperationsList(new ArrayList<>());
+		setCurrentHistoryOperationDepth(0L);
+	}
 
-    @Override
-    public String getType() {
-        return IN_MEMORY_HISTORY;
-    }
+	@Override
+	public String getType() {
+		return IN_MEMORY_HISTORY;
+	}
 
-    /** No persisted properties to delete, unlike {@code PositionHistory}'s GridFS blobs. */
-    @Override
-    public void deleteProperties() {
-    }
+	/** No persisted properties to delete, unlike {@code PositionHistory}'s GridFS blobs. */
+	@Override
+	public void deleteProperties() {
+	}
 
-    /** The list-filtering half of {@code PositionHistory.removeOverriddenOperations}. */
-    @Override
-    public void removeOverriddenOperations(Long newHistoryOperationDepth) {
-        setHistoryOperationsList(getHistoryOperationList().stream()
-                .filter(operation -> operation.getHistoryDepth() < newHistoryOperationDepth)
-                .collect(Collectors.toList()));
-    }
+	/** The list-filtering half of {@code PositionHistory.removeOverriddenOperations}. */
+	@Override
+	public void removeOverriddenOperations(Long newHistoryOperationDepth) {
+		setHistoryOperationsList(getHistoryOperationList().stream()
+				.filter(operation -> operation.getHistoryDepth() < newHistoryOperationDepth)
+				.collect(Collectors.toList()));
+	}
 }

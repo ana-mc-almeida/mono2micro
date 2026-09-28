@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping(value = "/mono2micro")
 public class SimilarityController {
 
-    private static final Logger logger = LoggerFactory.getLogger(SimilarityController.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimilarityController.class);
 
 	@Autowired
 	SimilarityService similarityService;

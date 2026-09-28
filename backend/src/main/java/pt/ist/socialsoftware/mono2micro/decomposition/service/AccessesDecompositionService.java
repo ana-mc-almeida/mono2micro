@@ -31,65 +31,67 @@ import static pt.ist.socialsoftware.mono2micro.representation.domain.Representat
 
 @Service
 public class AccessesDecompositionService {
-    @Autowired
-    DecompositionService decompositionService;
+	@Autowired
+	DecompositionService decompositionService;
 
-    @Autowired
-    DecompositionRepository decompositionRepository;
+	@Autowired
+	DecompositionRepository decompositionRepository;
 
-    @Autowired
-    FunctionalityService functionalityService;
+	@Autowired
+	FunctionalityService functionalityService;
 
-    @Autowired
-    GridFsService gridFsService;
-    public Map<String, Object> getFunctionalitiesAndFunctionalitiesClusters(String decompositionName) throws Exception {
-        Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
-        AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
+	@Autowired
+	GridFsService gridFsService;
 
-        Map<String, Set<Cluster>> functionalitiesClusters = Utils.getFunctionalitiesClusters(
-                decomposition.getEntityIDToClusterName(),
-                decomposition.getClusters(),
-                accessesInformation.getFunctionalities().values()
-        );
+	public Map<String, Object> getFunctionalitiesAndFunctionalitiesClusters(String decompositionName) throws Exception {
+		Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
+		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Functionality> functionalities = accessesInformation.getFunctionalities();
-        Map<String, List<FunctionalityRedesign>> functionalityRedesignsPerFunctionality = functionalities.values().stream()
-                .collect(Collectors.toMap(Functionality::getName, functionalityService::getFunctionalityRedesigns));
-        Map<String, FunctionalityDto> functionalitiesWithRedesigns = functionalities.values().stream()
-                .map(functionality -> new FunctionalityDto(functionality, functionalityRedesignsPerFunctionality.get(functionality.getName())))
-                .collect(Collectors.toMap(FunctionalityDto::getName, functionalityDto -> functionalityDto));
-        response.put("functionalities", functionalitiesWithRedesigns);
-        response.put("functionalitiesClusters", functionalitiesClusters);
+		Map<String, Set<Cluster>> functionalitiesClusters = Utils.getFunctionalitiesClusters(
+				decomposition.getEntityIDToClusterName(),
+				decomposition.getClusters(),
+				accessesInformation.getFunctionalities().values()
+		);
 
-        return response;
-    }
+		Map<String, Object> response = new HashMap<>();
+		Map<String, Functionality> functionalities = accessesInformation.getFunctionalities();
+		Map<String, List<FunctionalityRedesign>> functionalityRedesignsPerFunctionality = functionalities.values().stream()
+				.collect(Collectors.toMap(Functionality::getName, functionalityService::getFunctionalityRedesigns));
+		Map<String, FunctionalityDto> functionalitiesWithRedesigns = functionalities.values().stream()
+				.map(functionality -> new FunctionalityDto(functionality, functionalityRedesignsPerFunctionality.get(functionality.getName())))
+				.collect(Collectors.toMap(FunctionalityDto::getName, functionalityDto -> functionalityDto));
+		response.put("functionalities", functionalitiesWithRedesigns);
+		response.put("functionalitiesClusters", functionalitiesClusters);
 
-    public Map<String, Object> getClustersAndClustersFunctionalities(String decompositionName) throws Exception {
-        Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
+		return response;
+	}
 
-        Map<String, List<Functionality>> clustersFunctionalities = Utils.getClustersFunctionalities(decomposition);
+	public Map<String, Object> getClustersAndClustersFunctionalities(String decompositionName) throws Exception {
+		Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("clusters", decomposition.getClusters());
-        response.put("clustersFunctionalities", clustersFunctionalities);
+		Map<String, List<Functionality>> clustersFunctionalities = Utils.getClustersFunctionalities(decomposition);
 
-        return response;
-    }
+		Map<String, Object> response = new HashMap<>();
+		response.put("clusters", decomposition.getClusters());
+		response.put("clustersFunctionalities", clustersFunctionalities);
 
-    public Utils.GetSerializableLocalTransactionsGraphResult getLocalTransactionGraphForFunctionality(String decompositionName, String functionalityName) throws JSONException, IOException {
-        Decomposition decomposition = decompositionRepository.findByName(decompositionName);
-        AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
-        SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
-        AccessesRepresentation representation = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		return response;
+	}
 
-        DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)
-                .createLocalTransactionGraphFromScratch(
-                        gridFsService.getFile(representation.getName()),
-                        similarity.getTracesMaxLimit(),
-                        similarity.getTraceType(),
-                        decomposition.getEntityIDToClusterName());
+	public Utils.GetSerializableLocalTransactionsGraphResult getLocalTransactionGraphForFunctionality(String decompositionName, String functionalityName)
+			throws JSONException, IOException {
+		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
+		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
+		AccessesRepresentation representation = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
 
-        return Utils.getSerializableLocalTransactionsGraph(functionalityLocalTransactionsGraph);
-    }
+		DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)
+				.createLocalTransactionGraphFromScratch(
+						gridFsService.getFile(representation.getName()),
+						similarity.getTracesMaxLimit(),
+						similarity.getTraceType(),
+						decomposition.getEntityIDToClusterName());
+
+		return Utils.getSerializableLocalTransactionsGraph(functionalityLocalTransactionsGraph);
+	}
 }

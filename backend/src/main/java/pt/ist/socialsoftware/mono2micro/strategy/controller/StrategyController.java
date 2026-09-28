@@ -21,109 +21,109 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/mono2micro")
 public class StrategyController {
-    private static final Logger logger = LoggerFactory.getLogger(StrategyController.class);
+	private static final Logger logger = LoggerFactory.getLogger(StrategyController.class);
 
-    @Autowired
-    StrategyService strategyService;
+	@Autowired
+	StrategyService strategyService;
 
-    @GetMapping(value = "/strategy/{strategyName}/getStrategy")
-    public ResponseEntity<StrategyDto> getStrategy(
-            @PathVariable String strategyName
-    ) {
-        logger.debug("getStrategy");
-        try {
-            return new ResponseEntity<>(
-                    new StrategyDto(strategyService.getStrategy(strategyName)),
-                    HttpStatus.OK
-            );
+	@GetMapping(value = "/strategy/{strategyName}/getStrategy")
+	public ResponseEntity<StrategyDto> getStrategy(
+			@PathVariable String strategyName
+	) {
+		logger.debug("getStrategy");
+		try {
+			return new ResponseEntity<>(
+					new StrategyDto(strategyService.getStrategy(strategyName)),
+					HttpStatus.OK
+			);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @PostMapping(value = "/codebase/{codebaseName}/createStrategy")
-    public ResponseEntity<HttpStatus> createStrategy(
-            @PathVariable String codebaseName,
-            @Nullable @RequestParam String algorithmType,
-            @Nullable @RequestParam List<String> strategyTypes
-    ){
-        logger.debug("createStrategy");
+	@PostMapping(value = "/codebase/{codebaseName}/createStrategy")
+	public ResponseEntity<HttpStatus> createStrategy(
+			@PathVariable String codebaseName,
+			@Nullable @RequestParam String algorithmType,
+			@Nullable @RequestParam List<String> strategyTypes
+	) {
+		logger.debug("createStrategy");
 
-        try {
-            strategyService.createStrategy(codebaseName, algorithmType, strategyTypes);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+		try {
+			strategyService.createStrategy(codebaseName, algorithmType, strategyTypes);
+			return new ResponseEntity<>(HttpStatus.CREATED);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @GetMapping(value = "/strategy/getAlgorithms")
-    public ResponseEntity<List<String>> getAlgorithms() {
-        logger.debug("getAlgorithms");
-        try {
-            return new ResponseEntity<>(
-                    ClusteringFactory.algorithmTypes,
-                    HttpStatus.OK
-            );
+	@GetMapping(value = "/strategy/getAlgorithms")
+	public ResponseEntity<List<String>> getAlgorithms() {
+		logger.debug("getAlgorithms");
+		try {
+			return new ResponseEntity<>(
+					ClusteringFactory.algorithmTypes,
+					HttpStatus.OK
+			);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @GetMapping(value = "/strategy/{strategyName}/getStrategyDecompositions")
-    public ResponseEntity<List<DecompositionDto>> getStrategyDecompositions(
-            @PathVariable String strategyName
-    ) {
-        logger.debug("getStrategyDecompositions");
-        try {
-            return new ResponseEntity<>(
-                    DecompositionDtoFactory.getDecompositionDtos(strategyService.getStrategyDecompositions(strategyName)),
-                    HttpStatus.OK
-            );
+	@GetMapping(value = "/strategy/{strategyName}/getStrategyDecompositions")
+	public ResponseEntity<List<DecompositionDto>> getStrategyDecompositions(
+			@PathVariable String strategyName
+	) {
+		logger.debug("getStrategyDecompositions");
+		try {
+			return new ResponseEntity<>(
+					DecompositionDtoFactory.getDecompositionDtos(strategyService.getStrategyDecompositions(strategyName)),
+					HttpStatus.OK
+			);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @GetMapping(value = "/strategy/{strategyName}/getStrategySimilarities")
-    public ResponseEntity<List<SimilarityDto>> getStrategySimilarities(
-            @PathVariable String strategyName
-    ) {
-        logger.debug("getStrategySimilarities");
-        try {
-            return new ResponseEntity<>(
-                    SimilarityDtoFactory.getSimilarityDtos(strategyService.getStrategySimilarities(strategyName)),
-                    HttpStatus.OK
-            );
+	@GetMapping(value = "/strategy/{strategyName}/getStrategySimilarities")
+	public ResponseEntity<List<SimilarityDto>> getStrategySimilarities(
+			@PathVariable String strategyName
+	) {
+		logger.debug("getStrategySimilarities");
+		try {
+			return new ResponseEntity<>(
+					SimilarityDtoFactory.getSimilarityDtos(strategyService.getStrategySimilarities(strategyName)),
+					HttpStatus.OK
+			);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    @DeleteMapping(value = "/strategy/{strategyName}/delete")
-    public ResponseEntity<HttpStatus> deleteStrategy(
-            @PathVariable String strategyName
-    ) {
-        logger.debug("Delete Strategy");
+	@DeleteMapping(value = "/strategy/{strategyName}/delete")
+	public ResponseEntity<HttpStatus> deleteStrategy(
+			@PathVariable String strategyName
+	) {
+		logger.debug("Delete Strategy");
 
-        try {
-            strategyService.deleteSingleStrategy(strategyName);
+		try {
+			strategyService.deleteSingleStrategy(strategyName);
 
-            return new ResponseEntity<>(HttpStatus.OK);
+			return new ResponseEntity<>(HttpStatus.OK);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

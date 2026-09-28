@@ -7,28 +7,28 @@ import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFact
 import java.util.List;
 
 public class CodebaseDto {
-    private String name;
+	private String name;
 
-    private List<RepresentationDto> representations;
+	private List<RepresentationDto> representations;
 
-    public CodebaseDto(Codebase codebase) {
-        this.name = codebase.getName();
-        this.representations = RepresentationDtoFactory.getFactory().getRepresentationDtos(codebase.getRepresentations());
-    }
+	public CodebaseDto(Codebase codebase) {
+		this.name = codebase.getName();
+		this.representations = RepresentationDtoFactory.getFactory().getRepresentationDtos(codebase.getRepresentations());
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public List<RepresentationDto> getRepresentations() {
-        return representations;
-    }
+	public List<RepresentationDto> getRepresentations() {
+		return representations;
+	}
 
-    public void setRepresentations(List<RepresentationDto> representations) {
-        this.representations = representations;
-    }
+	public void setRepresentations(List<RepresentationDto> representations) {
+		this.representations = representations;
+	}
 }

@@ -10,27 +10,27 @@ import java.math.RoundingMode;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.ACCESSES_TYPE;
 
 public class PerformanceMetricCalculator extends DecompositionMetricCalculator { // the average of the number of hops between clusters for all traces
-    public static final String PERFORMANCE = "Performance";
+	public static final String PERFORMANCE = "Performance";
 
-    @Override
-    public String getType() {
-        return PERFORMANCE;
-    }
+	@Override
+	public String getType() {
+		return PERFORMANCE;
+	}
 
-    @Override
-    public Double calculateMetric(Decomposition decomposition) {
-        AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
-        double performance = 0;
+	@Override
+	public Double calculateMetric(Decomposition decomposition) {
+		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
+		double performance = 0;
 
-        for (Functionality functionality : accessesInformation.getFunctionalities().values()) {
-            Double performanceMetric = (Double) functionality.getMetric(PERFORMANCE);
-            performance += performanceMetric;
-        }
+		for (Functionality functionality : accessesInformation.getFunctionalities().values()) {
+			Double performanceMetric = (Double) functionality.getMetric(PERFORMANCE);
+			performance += performanceMetric;
+		}
 
-        int graphFunctionalitiesAmount = accessesInformation.getFunctionalities().size();
+		int graphFunctionalitiesAmount = accessesInformation.getFunctionalities().size();
 
-        return BigDecimal.valueOf(performance / graphFunctionalitiesAmount)
-                .setScale(3, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
+		return BigDecimal.valueOf(performance / graphFunctionalitiesAmount)
+				.setScale(3, RoundingMode.HALF_UP)
+				.doubleValue();
+	}
 }

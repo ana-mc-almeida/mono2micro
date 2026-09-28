@@ -4,7 +4,7 @@ import pt.ist.socialsoftware.mono2micro.representation.domain.AuthorRepresentati
 
 public class AuthorRepresentationDto extends RepresentationDto {
 
-    public AuthorRepresentationDto(AuthorRepresentation representation) {
-        super(representation);
-    }
+	public AuthorRepresentationDto(AuthorRepresentation representation) {
+		super(representation);
+	}
 }

@@ -14,57 +14,57 @@ import java.util.Map;
 @Service
 public class HistoryService {
 
-    @Autowired
-    DecompositionRepository decompositionRepository;
+	@Autowired
+	DecompositionRepository decompositionRepository;
 
-    @Autowired
-    HistoryRepository historyRepository;
+	@Autowired
+	HistoryRepository historyRepository;
 
-    public void saveHistory(History operations) {
-        historyRepository.save(operations);
-    }
+	public void saveHistory(History operations) {
+		historyRepository.save(operations);
+	}
 
-    public void deleteHistory(History history) {
-        history.deleteProperties();
-        historyRepository.deleteByName(history.getName());
-    }
+	public void deleteHistory(History history) {
+		history.deleteProperties();
+		historyRepository.deleteByName(history.getName());
+	}
 
-    public void undoOperation(Decomposition decomposition) {
-        History history = decomposition.getHistory();
-        if (history.getCurrentHistoryOperationDepth() == 0)
-            throw new RuntimeException("No more operations to undo");
+	public void undoOperation(Decomposition decomposition) {
+		History history = decomposition.getHistory();
+		if (history.getCurrentHistoryOperationDepth() == 0)
+			throw new RuntimeException("No more operations to undo");
 
-        Operation operation = history.getCurrentHistoryOperation();
-        operation.undo(decomposition);
+		Operation operation = history.getCurrentHistoryOperation();
+		operation.undo(decomposition);
 
-        history.decrementCurrentHistoryDepth();
+		history.decrementCurrentHistoryDepth();
 
-        historyRepository.save(history);
-        decompositionRepository.save(decomposition);
-    }
+		historyRepository.save(history);
+		decompositionRepository.save(decomposition);
+	}
 
-    public void redoOperation(Decomposition decomposition) {
-        History history = decomposition.getHistory();
-        if (history.getCurrentHistoryOperationDepth() == history.getMaxHistoryDepth())
-            throw new RuntimeException("No more operations to redo");
-        history.incrementCurrentHistoryDepth();
+	public void redoOperation(Decomposition decomposition) {
+		History history = decomposition.getHistory();
+		if (history.getCurrentHistoryOperationDepth() == history.getMaxHistoryDepth())
+			throw new RuntimeException("No more operations to redo");
+		history.incrementCurrentHistoryDepth();
 
-        Operation operation = history.getCurrentHistoryOperation();
-        operation.redo(decomposition);
+		Operation operation = history.getCurrentHistoryOperation();
+		operation.redo(decomposition);
 
-        historyRepository.save(history);
-        decompositionRepository.save(decomposition);
-    }
+		historyRepository.save(history);
+		decompositionRepository.save(decomposition);
+	}
 
-    public Map<String, Boolean> canUndoRedo(Decomposition decomposition) {
-        History history = decomposition.getHistory();
-        Map<String, Boolean> canUndoRedo = new HashMap<>();
-        if (history.getMaxHistoryDepth() == history.getCurrentHistoryOperationDepth())
-            canUndoRedo.put("redo", false);
-        else canUndoRedo.put("redo", true);
-        if (history.getCurrentHistoryOperationDepth() == 0)
-            canUndoRedo.put("undo", false);
-        else canUndoRedo.put("undo", true);
-        return canUndoRedo;
-    }
+	public Map<String, Boolean> canUndoRedo(Decomposition decomposition) {
+		History history = decomposition.getHistory();
+		Map<String, Boolean> canUndoRedo = new HashMap<>();
+		if (history.getMaxHistoryDepth() == history.getCurrentHistoryOperationDepth())
+			canUndoRedo.put("redo", false);
+		else canUndoRedo.put("redo", true);
+		if (history.getCurrentHistoryOperationDepth() == 0)
+			canUndoRedo.put("undo", false);
+		else canUndoRedo.put("undo", true);
+		return canUndoRedo;
+	}
 }

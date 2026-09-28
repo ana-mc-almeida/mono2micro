@@ -18,73 +18,74 @@ import java.util.List;
 @RequestMapping(value = "/mono2micro")
 public class RepresentationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(RepresentationController.class);
+	private static final Logger logger = LoggerFactory.getLogger(RepresentationController.class);
 
-    @Autowired
-    RepresentationService representationService;
+	@Autowired
+	RepresentationService representationService;
 
-    @GetMapping(value = "/codebase/{codebaseName}/representation/{representationType}/getCodebaseRepresentation")
-    public ResponseEntity<RepresentationDto> getCodebaseRepresentation(
-            @PathVariable String codebaseName,
-            @PathVariable String representationType
-    ) {
-        logger.debug("getCodebaseRepresentation");
+	@GetMapping(value = "/codebase/{codebaseName}/representation/{representationType}/getCodebaseRepresentation")
+	public ResponseEntity<RepresentationDto> getCodebaseRepresentation(
+			@PathVariable String codebaseName,
+			@PathVariable String representationType
+	) {
+		logger.debug("getCodebaseRepresentation");
 
-        try {
-            return new ResponseEntity<>(
-                    RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getCodebaseRepresentation(codebaseName, representationType)),
-                    HttpStatus.OK
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		try {
+			return new ResponseEntity<>(
+					RepresentationDtoFactory.getFactory()
+							.getRepresentationDto(representationService.getCodebaseRepresentation(codebaseName, representationType)),
+					HttpStatus.OK
+			);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
+	@DeleteMapping(value = "/representation/{representationName}/delete")
+	public ResponseEntity<HttpStatus> deleteRepresentation(@PathVariable String representationName) {
+		logger.debug("deleteCodebase");
 
-    @DeleteMapping(value = "/representation/{representationName}/delete")
-    public ResponseEntity<HttpStatus> deleteRepresentation(@PathVariable String representationName) {
-        logger.debug("deleteCodebase");
+		try {
+			representationService.deleteSingleRepresentation(representationName);
+			return new ResponseEntity<>(HttpStatus.OK);
 
-        try {
-            representationService.deleteSingleRepresentation(representationName);
-            return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+	@GetMapping(value = "/representation/{representationName}/getRepresentation")
+	public ResponseEntity<RepresentationDto> getRepresentation(@PathVariable String representationName) {
+		logger.debug("getRepresentation");
 
-    @GetMapping(value = "/representation/{representationName}/getRepresentation")
-    public ResponseEntity<RepresentationDto> getRepresentation(@PathVariable String representationName) {
-        logger.debug("getRepresentation");
+		try {
+			return new ResponseEntity<>(RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentation(representationName)),
+					HttpStatus.OK);
 
-        try {
-            return new ResponseEntity<>(RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentation(representationName)), HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+	@PostMapping(value = "/codebase/{codebaseName}/addRepresentations/{representationInfoType}")
+	public ResponseEntity<HttpStatus> createStrategy(
+			@PathVariable String codebaseName,
+			@PathVariable String representationInfoType,
+			@Nullable @RequestParam List<String> representationTypes,
+			@Nullable @RequestParam List<Object> representations
+	) {
+		logger.debug("createStrategy");
 
-    @PostMapping(value = "/codebase/{codebaseName}/addRepresentations/{representationInfoType}")
-    public ResponseEntity<HttpStatus> createStrategy(
-            @PathVariable String codebaseName,
-            @PathVariable String representationInfoType,
-            @Nullable @RequestParam List<String> representationTypes,
-            @Nullable @RequestParam List<Object> representations
-    ){
-        logger.debug("createStrategy");
+		try {
+			representationService.addRepresentations(codebaseName, representationInfoType, representationTypes, representations);
+			return new ResponseEntity<>(HttpStatus.CREATED);
 
-        try {
-            representationService.addRepresentations(codebaseName, representationInfoType, representationTypes, representations);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

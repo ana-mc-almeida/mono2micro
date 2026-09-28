@@ -19,12 +19,12 @@ public class AccessDtoSerializer extends StdSerializer<AccessDto> {
 
 	@Override
 	public void serialize(
-		AccessDto access,
-		JsonGenerator jsonGenerator,
-		SerializerProvider serializerProvider
+			AccessDto access,
+			JsonGenerator jsonGenerator,
+			SerializerProvider serializerProvider
 	) throws IOException {
 		jsonGenerator.writeStartArray();
-		if(access.getMode() == 1)
+		if (access.getMode() == 1)
 			jsonGenerator.writeString("R");
 		else if (access.getMode() == 2)
 			jsonGenerator.writeString("W");

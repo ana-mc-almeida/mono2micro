@@ -9,24 +9,24 @@ import static pt.ist.socialsoftware.mono2micro.representation.domain.IDToEntityR
 import static pt.ist.socialsoftware.mono2micro.representation.domain.StructureRepresentation.STRUCTURE;
 
 public class RepresentationFactory {
-    public static Representation getRepresentation(String representationType) {
-        switch (representationType) {
-            case ACCESSES:
-                return new AccessesRepresentation();
-            case ID_TO_ENTITY:
-                return new IDToEntityRepresentation();
-            case AUTHOR:
-                return new AuthorRepresentation();
-            case COMMIT:
-                return new CommitRepresentation();
-            case ENTITY_TO_ID:
-                return new EntityToIDRepresentation();
-            case CODE_EMBEDDINGS:
-                return new CodeEmbeddingsRepresentation();
-            case STRUCTURE:
-                return new StructureRepresentation();
-            default:
-                throw new RuntimeException("The type \"" + representationType + "\" is not a valid representation type.");
-        }
-    }
+	public static Representation getRepresentation(String representationType) {
+		switch (representationType) {
+		case ACCESSES:
+			return new AccessesRepresentation();
+		case ID_TO_ENTITY:
+			return new IDToEntityRepresentation();
+		case AUTHOR:
+			return new AuthorRepresentation();
+		case COMMIT:
+			return new CommitRepresentation();
+		case ENTITY_TO_ID:
+			return new EntityToIDRepresentation();
+		case CODE_EMBEDDINGS:
+			return new CodeEmbeddingsRepresentation();
+		case STRUCTURE:
+			return new StructureRepresentation();
+		default:
+			throw new RuntimeException("The type \"" + representationType + "\" is not a valid representation type.");
+		}
+	}
 }

@@ -7,48 +7,48 @@ import static pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendat
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_SCIPY_STRUCTURE),
-        @JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_SCIPY),
-        @JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_CLASS_VECTORIZATION),
-        @JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_ENTITY_VECTORIZATION),
-        @JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_CALLGRAPH),
-        @JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES)
+		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_SCIPY_STRUCTURE),
+		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_SCIPY),
+		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_CLASS_VECTORIZATION),
+		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_ENTITY_VECTORIZATION),
+		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_CALLGRAPH),
+		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES)
 })
 public abstract class RecommendationDto {
-    String type;
-    String strategyName;
-    String name;
-    boolean isCompleted;
+	String type;
+	String strategyName;
+	String name;
+	boolean isCompleted;
 
-    public String getType() {
-        return type;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public String getStrategyName() {
-        return strategyName;
-    }
+	public String getStrategyName() {
+		return strategyName;
+	}
 
-    public void setStrategyName(String strategyName) {
-        this.strategyName = strategyName;
-    }
+	public void setStrategyName(String strategyName) {
+		this.strategyName = strategyName;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public boolean isCompleted() {
-        return isCompleted;
-    }
+	public boolean isCompleted() {
+		return isCompleted;
+	}
 
-    public void setCompleted(boolean completed) {
-        isCompleted = completed;
-    }
+	public void setCompleted(boolean completed) {
+		isCompleted = completed;
+	}
 }

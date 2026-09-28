@@ -20,322 +20,334 @@ import java.util.*;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.AccessesRepresentation.ACCESSES;
 
 public class AccessesWeights extends Weights {
-    public static final String ACCESSES_WEIGHTS = "ACCESSES_WEIGHTS";
-    private float accessMetricWeight;
-    private float writeMetricWeight;
-    private float readMetricWeight;
-    private float sequenceMetricWeight;
+	public static final String ACCESSES_WEIGHTS = "ACCESSES_WEIGHTS";
+	private float accessMetricWeight;
+	private float writeMetricWeight;
+	private float readMetricWeight;
+	private float sequenceMetricWeight;
 
-    public AccessesWeights() {}
+	public AccessesWeights() {}
 
-    public AccessesWeights(float accessMetricWeight, float writeMetricWeight, float readMetricWeight, float sequenceMetricWeight) {
-        this.accessMetricWeight = accessMetricWeight;
-        this.writeMetricWeight = writeMetricWeight;
-        this.readMetricWeight = readMetricWeight;
-        this.sequenceMetricWeight = sequenceMetricWeight;
-    }
+	public AccessesWeights(float accessMetricWeight, float writeMetricWeight, float readMetricWeight, float sequenceMetricWeight) {
+		this.accessMetricWeight = accessMetricWeight;
+		this.writeMetricWeight = writeMetricWeight;
+		this.readMetricWeight = readMetricWeight;
+		this.sequenceMetricWeight = sequenceMetricWeight;
+	}
 
-    @Override
-    public String getType() {
-        return ACCESSES_WEIGHTS;
-    }
+	@Override
+	public String getType() {
+		return ACCESSES_WEIGHTS;
+	}
 
-    @Override
-    public int getNumberOfWeights() {
-        return 4;
-    }
+	@Override
+	public int getNumberOfWeights() {
+		return 4;
+	}
 
-    @Override
-    public float[] getWeights() {
-        return new float[]{accessMetricWeight, writeMetricWeight, readMetricWeight, sequenceMetricWeight};
-    }
+	@Override
+	public float[] getWeights() {
+		return new float[] { accessMetricWeight, writeMetricWeight, readMetricWeight, sequenceMetricWeight };
+	}
 
-    @Override
-    public List<String> getWeightsNames() {
-        return new ArrayList<>(Arrays.asList("accessMetricWeight", "writeMetricWeight", "readMetricWeight", "sequenceMetricWeight"));
-    }
+	@Override
+	public List<String> getWeightsNames() {
+		return new ArrayList<>(Arrays.asList("accessMetricWeight", "writeMetricWeight", "readMetricWeight", "sequenceMetricWeight"));
+	}
 
-    @Override
-    public String getName() {
-        StringBuilder result = new StringBuilder("ws(");
-        result.append("Ac")
-                .append(Math.round(getWeights()[0]))
-                .append(",")
-                .append("Wr")
-                .append(Math.round(getWeights()[1]))
-                .append(",")
-                .append("Re")
-                .append(Math.round(getWeights()[2]))
-                .append(",")
-                .append("Se")
-                .append(Math.round(getWeights()[3]))
-                .append(")");
-        return result.toString();
-    }
+	@Override
+	public String getName() {
+		StringBuilder result = new StringBuilder("ws(");
+		result.append("Ac")
+				.append(Math.round(getWeights()[0]))
+				.append(",")
+				.append("Wr")
+				.append(Math.round(getWeights()[1]))
+				.append(",")
+				.append("Re")
+				.append(Math.round(getWeights()[2]))
+				.append(",")
+				.append("Se")
+				.append(Math.round(getWeights()[3]))
+				.append(")");
+		return result.toString();
+	}
 
-    @Override
-    public void setWeightsFromArray(float[] weightsArray) {
-        this.accessMetricWeight = weightsArray[0];
-        this.writeMetricWeight = weightsArray[1];
-        this.readMetricWeight = weightsArray[2];
-        this.sequenceMetricWeight = weightsArray[3];
-    }
+	@Override
+	public void setWeightsFromArray(float[] weightsArray) {
+		this.accessMetricWeight = weightsArray[0];
+		this.writeMetricWeight = weightsArray[1];
+		this.readMetricWeight = weightsArray[2];
+		this.sequenceMetricWeight = weightsArray[3];
+	}
 
-    public float getAccessMetricWeight() {
-        return accessMetricWeight;
-    }
-    public void setAccessMetricWeight(float accessMetricWeight) {
-        this.accessMetricWeight = accessMetricWeight;
-    }
-    public float getWriteMetricWeight() {
-        return writeMetricWeight;
-    }
-    public void setWriteMetricWeight(float writeMetricWeight) {
-        this.writeMetricWeight = writeMetricWeight;
-    }
-    public float getReadMetricWeight() {
-        return readMetricWeight;
-    }
-    public void setReadMetricWeight(float readMetricWeight) {
-        this.readMetricWeight = readMetricWeight;
-    }
-    public float getSequenceMetricWeight() {
-        return sequenceMetricWeight;
-    }
-    public void setSequenceMetricWeight(float sequenceMetricWeight) {
-        this.sequenceMetricWeight = sequenceMetricWeight;
-    }
+	public float getAccessMetricWeight() {
+		return accessMetricWeight;
+	}
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof AccessesWeights))
-            return false;
-        AccessesWeights accessesWeights = (AccessesWeights) object;
-        return this.accessMetricWeight == accessesWeights.getAccessMetricWeight() &&
-                this.writeMetricWeight == accessesWeights.getWriteMetricWeight() &&
-                this.readMetricWeight == accessesWeights.getReadMetricWeight() &&
-                this.sequenceMetricWeight == accessesWeights.getSequenceMetricWeight();
-    }
+	public void setAccessMetricWeight(float accessMetricWeight) {
+		this.accessMetricWeight = accessMetricWeight;
+	}
 
-    @Override
-    public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex) throws IOException, JSONException {
-        SimilarityScipyAccessesAndRepository s = (SimilarityScipyAccessesAndRepository) similarity;
-        AccessesRepresentation accesses = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-        fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(s.getProfile()), s.getTraceType(), s.getTracesMaxLimit());
-    }
+	public float getWriteMetricWeight() {
+		return writeMetricWeight;
+	}
 
-    @Override
-    public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex) throws IOException, JSONException {
-        RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-        AccessesRepresentation accesses = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-        fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(r.getProfile()), r.getTraceType(), r.getTracesMaxLimit());
-    }
+	public void setWriteMetricWeight(float writeMetricWeight) {
+		this.writeMetricWeight = writeMetricWeight;
+	}
 
-    public static void fillRawMatrixFromAccesses(
-            float[][][] rawMatrix,
-            int fillFromIndex,
-            InputStream accessesFile,
-            Set<String> profileFunctionalities,
-            Constants.TraceType traceType,
-            int tracesMaxLimit
-    ) throws JSONException, IOException {
-        Set<Short> entities = new TreeSet<>();
-        Map<String, Integer> e1e2PairCount = new HashMap<>();
-        Map<Short, List<Pair<String, Byte>>> entityFunctionalities = new HashMap<>(); // Map<entityID, List<Pair<functionalityName, accessMode>>>
-        fillDataStructures(entities, e1e2PairCount, entityFunctionalities, new FunctionalityTracesIterator(accessesFile, tracesMaxLimit), profileFunctionalities, traceType);
-        fillRawMatrix(rawMatrix, entities, e1e2PairCount, entityFunctionalities, fillFromIndex);
-    }
+	public float getReadMetricWeight() {
+		return readMetricWeight;
+	}
 
-    public static void fillDataStructures(
-            Set<Short> entities,
-            Map<String, Integer> e1e2PairCount,
-            Map<Short, List<Pair<String, Byte>>> entityFunctionalities,
-            FunctionalityTracesIterator iter,
-            Set<String> profileFunctionalities,
-            Constants.TraceType traceType
-    )
-            throws JSONException {
-        System.out.println("Creating similarity matrix...");
+	public void setReadMetricWeight(float readMetricWeight) {
+		this.readMetricWeight = readMetricWeight;
+	}
 
-        TraceDto t;
+	public float getSequenceMetricWeight() {
+		return sequenceMetricWeight;
+	}
 
-        for (String functionalityName : profileFunctionalities) {
-            iter.getFunctionalityWithName(functionalityName);
+	public void setSequenceMetricWeight(float sequenceMetricWeight) {
+		this.sequenceMetricWeight = sequenceMetricWeight;
+	}
 
-            switch (traceType) {
-                case LONGEST:
-                    t = iter.getLongestTrace();
+	@Override
+	public boolean equals(Object object) {
+		if (!(object instanceof AccessesWeights))
+			return false;
+		AccessesWeights accessesWeights = (AccessesWeights) object;
+		return this.accessMetricWeight == accessesWeights.getAccessMetricWeight() &&
+				this.writeMetricWeight == accessesWeights.getWriteMetricWeight() &&
+				this.readMetricWeight == accessesWeights.getReadMetricWeight() &&
+				this.sequenceMetricWeight == accessesWeights.getSequenceMetricWeight();
+	}
 
-                    if (t != null)
-                        fillEntityDataStructures(e1e2PairCount, entityFunctionalities, t.expand(2), functionalityName);
+	@Override
+	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
+			throws IOException, JSONException {
+		SimilarityScipyAccessesAndRepository s = (SimilarityScipyAccessesAndRepository) similarity;
+		AccessesRepresentation accesses = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(s.getProfile()), s.getTraceType(),
+				s.getTracesMaxLimit());
+	}
 
-                    break;
-                case WITH_MORE_DIFFERENT_ACCESSES:
-                    t = iter.getTraceWithMoreDifferentAccesses();
+	@Override
+	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
+			throws IOException, JSONException {
+		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
+		AccessesRepresentation accesses = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(r.getProfile()), r.getTraceType(),
+				r.getTracesMaxLimit());
+	}
 
-                    if (t != null)
-                        fillEntityDataStructures(e1e2PairCount, entityFunctionalities, t.expand(2), functionalityName);
+	public static void fillRawMatrixFromAccesses(
+			float[][][] rawMatrix,
+			int fillFromIndex,
+			InputStream accessesFile,
+			Set<String> profileFunctionalities,
+			Constants.TraceType traceType,
+			int tracesMaxLimit
+	) throws JSONException, IOException {
+		Set<Short> entities = new TreeSet<>();
+		Map<String, Integer> e1e2PairCount = new HashMap<>();
+		Map<Short, List<Pair<String, Byte>>> entityFunctionalities = new HashMap<>(); // Map<entityID, List<Pair<functionalityName, accessMode>>>
+		fillDataStructures(entities, e1e2PairCount, entityFunctionalities, new FunctionalityTracesIterator(accessesFile, tracesMaxLimit),
+				profileFunctionalities, traceType);
+		fillRawMatrix(rawMatrix, entities, e1e2PairCount, entityFunctionalities, fillFromIndex);
+	}
 
-                    break;
-                default:
-                    List<TraceDto> traceDtos = iter.getAllTraces();
-                    for (TraceDto traceDto : traceDtos)
-                        fillEntityDataStructures(e1e2PairCount, entityFunctionalities, traceDto.expand(2), functionalityName);
-            }
-        }
+	public static void fillDataStructures(
+			Set<Short> entities,
+			Map<String, Integer> e1e2PairCount,
+			Map<Short, List<Pair<String, Byte>>> entityFunctionalities,
+			FunctionalityTracesIterator iter,
+			Set<String> profileFunctionalities,
+			Constants.TraceType traceType
+	)
+			throws JSONException {
+		System.out.println("Creating similarity matrix...");
 
-        entities.addAll(entityFunctionalities.keySet());
-    }
+		TraceDto t;
 
-    private static void fillEntityDataStructures(
-            Map<String, Integer> e1e2PairCount,
-            Map<Short, List<Pair<String, Byte>>> entityFunctionalities,
-            List<AccessDto> accessesList,
-            String functionalityName
-    ) {
+		for (String functionalityName : profileFunctionalities) {
+			iter.getFunctionalityWithName(functionalityName);
 
-        for (int i = 0; i < accessesList.size(); i++) {
-            AccessDto access = accessesList.get(i);
-            short entityID = access.getEntityID();
-            byte mode = access.getMode();
+			switch (traceType) {
+			case LONGEST:
+				t = iter.getLongestTrace();
 
-            if (entityFunctionalities.containsKey(entityID)) {
-                boolean containsFunctionality = false;
+				if (t != null)
+					fillEntityDataStructures(e1e2PairCount, entityFunctionalities, t.expand(2), functionalityName);
 
-                for (Pair<String, Byte> functionalityPair : entityFunctionalities.get(entityID)) {
-                    if (functionalityPair.getFirst().equals(functionalityName)) {
-                        containsFunctionality = true;
+				break;
+			case WITH_MORE_DIFFERENT_ACCESSES:
+				t = iter.getTraceWithMoreDifferentAccesses();
 
-                        if (functionalityPair.getSecond() != 3 && functionalityPair.getSecond() != mode)
-                            functionalityPair.setSecond((byte) 3); // "RW" -> 3
+				if (t != null)
+					fillEntityDataStructures(e1e2PairCount, entityFunctionalities, t.expand(2), functionalityName);
 
-                        break;
-                    }
-                }
+				break;
+			default:
+				List<TraceDto> traceDtos = iter.getAllTraces();
+				for (TraceDto traceDto : traceDtos)
+					fillEntityDataStructures(e1e2PairCount, entityFunctionalities, traceDto.expand(2), functionalityName);
+			}
+		}
 
-                if (!containsFunctionality) {
-                    entityFunctionalities.get(entityID).add(new Pair<>(functionalityName, mode));
-                }
+		entities.addAll(entityFunctionalities.keySet());
+	}
 
-            } else {
-                List<Pair<String, Byte>> functionalitiesPairs = new ArrayList<>();
-                functionalitiesPairs.add(new Pair<>(functionalityName, mode));
+	private static void fillEntityDataStructures(
+			Map<String, Integer> e1e2PairCount,
+			Map<Short, List<Pair<String, Byte>>> entityFunctionalities,
+			List<AccessDto> accessesList,
+			String functionalityName
+	) {
 
-                entityFunctionalities.put(entityID, functionalitiesPairs);
-            }
+		for (int i = 0; i < accessesList.size(); i++) {
+			AccessDto access = accessesList.get(i);
+			short entityID = access.getEntityID();
+			byte mode = access.getMode();
 
-            if (i < accessesList.size() - 1) {
-                AccessDto nextAccess = accessesList.get(i + 1);
-                short nextEntityID = nextAccess.getEntityID();
+			if (entityFunctionalities.containsKey(entityID)) {
+				boolean containsFunctionality = false;
 
-                if (entityID != nextEntityID) {
-                    String e1e2 = entityID + "->" + nextEntityID;
-                    String e2e1 = nextEntityID + "->" + entityID;
+				for (Pair<String, Byte> functionalityPair : entityFunctionalities.get(entityID)) {
+					if (functionalityPair.getFirst().equals(functionalityName)) {
+						containsFunctionality = true;
 
-                    int count = e1e2PairCount.getOrDefault(e1e2, 0);
-                    e1e2PairCount.put(e1e2, count + 1);
+						if (functionalityPair.getSecond() != 3 && functionalityPair.getSecond() != mode)
+							functionalityPair.setSecond((byte) 3); // "RW" -> 3
 
-                    count = e1e2PairCount.getOrDefault(e2e1, 0);
-                    e1e2PairCount.put(e2e1, count + 1);
-                }
-            }
-        }
-    }
+						break;
+					}
+				}
 
-    public static void fillRawMatrix(
-            float[][][] rawMatrix,
-            Set<Short> entities,
-            Map<String, Integer> e1e2PairCount,
-            Map<Short, List<Pair<String, Byte>>> entityFunctionalities,
-            int fillFromIndex
-    ) {
-        int maxNumberOfPairs = getMaxNumberOfPairs(e1e2PairCount);
+				if (!containsFunctionality) {
+					entityFunctionalities.get(entityID).add(new Pair<>(functionalityName, mode));
+				}
 
-        int i = 0;
-        for (short e1ID : entities) {
-            int j = 0;
+			} else {
+				List<Pair<String, Byte>> functionalitiesPairs = new ArrayList<>();
+				functionalitiesPairs.add(new Pair<>(functionalityName, mode));
 
-            for (short e2ID : entities) {
-                if (e1ID == e2ID) {
-                    for (int k = fillFromIndex; k < fillFromIndex + 4; k++)
-                        rawMatrix[i][j][k] = 1;
-                    j++;
-                    continue;
-                }
+				entityFunctionalities.put(entityID, functionalitiesPairs);
+			}
 
-                float[] weights = calculateSimilarityMatrixWeights(e1ID, e2ID, maxNumberOfPairs, e1e2PairCount, entityFunctionalities);
+			if (i < accessesList.size() - 1) {
+				AccessDto nextAccess = accessesList.get(i + 1);
+				short nextEntityID = nextAccess.getEntityID();
 
-                for (int k = fillFromIndex, l = 0; k < fillFromIndex + 4; k++, l++)
-                    rawMatrix[i][j][k] = weights[l];
-                j++;
-            }
-            i++;
-        }
-    }
+				if (entityID != nextEntityID) {
+					String e1e2 = entityID + "->" + nextEntityID;
+					String e2e1 = nextEntityID + "->" + entityID;
 
-    private static int getMaxNumberOfPairs(Map<String,Integer> e1e2PairCount) {
-        if (!e1e2PairCount.values().isEmpty())
-            return Collections.max(e1e2PairCount.values());
-        else
-            return 0;
-    }
+					int count = e1e2PairCount.getOrDefault(e1e2, 0);
+					e1e2PairCount.put(e1e2, count + 1);
 
-    private static float[] calculateSimilarityMatrixWeights(
-            short e1ID,
-            short e2ID,
-            int maxNumberOfPairs,
-            Map<String, Integer> e1e2PairCount,
-            Map<Short, List<Pair<String, Byte>>> entityFunctionalities
-    ) {
+					count = e1e2PairCount.getOrDefault(e2e1, 0);
+					e1e2PairCount.put(e2e1, count + 1);
+				}
+			}
+		}
+	}
 
-        float inCommon = 0;
-        float inCommonW = 0;
-        float inCommonR = 0;
-        float e1FunctionalitiesW = 0;
-        float e1FunctionalitiesR = 0;
+	public static void fillRawMatrix(
+			float[][][] rawMatrix,
+			Set<Short> entities,
+			Map<String, Integer> e1e2PairCount,
+			Map<Short, List<Pair<String, Byte>>> entityFunctionalities,
+			int fillFromIndex
+	) {
+		int maxNumberOfPairs = getMaxNumberOfPairs(e1e2PairCount);
 
-        for (Pair<String, Byte> e1Functionalities : entityFunctionalities.get(e1ID)) {
-            for (Pair<String, Byte> e2Functionalities : entityFunctionalities.get(e2ID)) {
-                if (e1Functionalities.getFirst().equals(e2Functionalities.getFirst())) {
-                    inCommon++;
-                    // != 1 == contains("W") -> "W" or "RW"
-                    if (e1Functionalities.getSecond() != 1 && e2Functionalities.getSecond() != 1)
-                        inCommonW++;
+		int i = 0;
+		for (short e1ID : entities) {
+			int j = 0;
 
-                    // != 2 == contains("R") -> "R" or "RW"
-                    if (e1Functionalities.getSecond() != 2 && e2Functionalities.getSecond() != 2)
-                        inCommonR++;
-                }
-            }
+			for (short e2ID : entities) {
+				if (e1ID == e2ID) {
+					for (int k = fillFromIndex; k < fillFromIndex + 4; k++)
+						rawMatrix[i][j][k] = 1;
+					j++;
+					continue;
+				}
 
-            // != 1 == contains("W") -> "W" or "RW"
-            if (e1Functionalities.getSecond() != 1)
-                e1FunctionalitiesW++;
+				float[] weights = calculateSimilarityMatrixWeights(e1ID, e2ID, maxNumberOfPairs, e1e2PairCount, entityFunctionalities);
 
-            // != 2 == contains("R") -> "R" or "RW"
-            if (e1Functionalities.getSecond() != 2)
-                e1FunctionalitiesR++;
-        }
+				for (int k = fillFromIndex, l = 0; k < fillFromIndex + 4; k++, l++)
+					rawMatrix[i][j][k] = weights[l];
+				j++;
+			}
+			i++;
+		}
+	}
 
-        float accessWeight = inCommon / entityFunctionalities.get(e1ID).size();
-        float writeWeight = e1FunctionalitiesW == 0 ? 0 : inCommonW / e1FunctionalitiesW;
-        float readWeight = e1FunctionalitiesR == 0 ? 0 : inCommonR / e1FunctionalitiesR;
+	private static int getMaxNumberOfPairs(Map<String, Integer> e1e2PairCount) {
+		if (!e1e2PairCount.values().isEmpty())
+			return Collections.max(e1e2PairCount.values());
+		else
+			return 0;
+	}
 
-        String e1e2 = e1ID + "->" + e2ID;
-        float e1e2Count = e1e2PairCount.getOrDefault(e1e2, 0);
+	private static float[] calculateSimilarityMatrixWeights(
+			short e1ID,
+			short e2ID,
+			int maxNumberOfPairs,
+			Map<String, Integer> e1e2PairCount,
+			Map<Short, List<Pair<String, Byte>>> entityFunctionalities
+	) {
 
-        float sequenceWeight;
+		float inCommon = 0;
+		float inCommonW = 0;
+		float inCommonR = 0;
+		float e1FunctionalitiesW = 0;
+		float e1FunctionalitiesR = 0;
 
-        if (maxNumberOfPairs != 0)
-            sequenceWeight = e1e2Count / maxNumberOfPairs;
-        else // nao ha controladores a aceder a mais do que uma entidade
-            sequenceWeight = 0;
+		for (Pair<String, Byte> e1Functionalities : entityFunctionalities.get(e1ID)) {
+			for (Pair<String, Byte> e2Functionalities : entityFunctionalities.get(e2ID)) {
+				if (e1Functionalities.getFirst().equals(e2Functionalities.getFirst())) {
+					inCommon++;
+					// != 1 == contains("W") -> "W" or "RW"
+					if (e1Functionalities.getSecond() != 1 && e2Functionalities.getSecond() != 1)
+						inCommonW++;
 
-        return new float[] {
-                accessWeight,
-                writeWeight,
-                readWeight,
-                sequenceWeight
-        };
-    }
+					// != 2 == contains("R") -> "R" or "RW"
+					if (e1Functionalities.getSecond() != 2 && e2Functionalities.getSecond() != 2)
+						inCommonR++;
+				}
+			}
+
+			// != 1 == contains("W") -> "W" or "RW"
+			if (e1Functionalities.getSecond() != 1)
+				e1FunctionalitiesW++;
+
+			// != 2 == contains("R") -> "R" or "RW"
+			if (e1Functionalities.getSecond() != 2)
+				e1FunctionalitiesR++;
+		}
+
+		float accessWeight = inCommon / entityFunctionalities.get(e1ID).size();
+		float writeWeight = e1FunctionalitiesW == 0 ? 0 : inCommonW / e1FunctionalitiesW;
+		float readWeight = e1FunctionalitiesR == 0 ? 0 : inCommonR / e1FunctionalitiesR;
+
+		String e1e2 = e1ID + "->" + e2ID;
+		float e1e2Count = e1e2PairCount.getOrDefault(e1e2, 0);
+
+		float sequenceWeight;
+
+		if (maxNumberOfPairs != 0)
+			sequenceWeight = e1e2Count / maxNumberOfPairs;
+		else // nao ha controladores a aceder a mais do que uma entidade
+			sequenceWeight = 0;
+
+		return new float[] {
+				accessWeight,
+				writeWeight,
+				readWeight,
+				sequenceWeight
+		};
+	}
 }

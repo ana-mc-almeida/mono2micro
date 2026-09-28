@@ -19,36 +19,39 @@ import static pt.ist.socialsoftware.mono2micro.representation.domain.IDToEntityR
 @Service
 public class AccessesRepresentationService {
 
-    @Autowired
-    CodebaseRepository codebaseRepository;
+	@Autowired
+	CodebaseRepository codebaseRepository;
 
-    @Autowired
-    RepresentationRepository representationRepository;
+	@Autowired
+	RepresentationRepository representationRepository;
 
-    @Autowired
-    GridFsService gridFsService;
+	@Autowired
+	GridFsService gridFsService;
 
-    public void addAccessesProfile(String representationId, String profile) {
-        AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId).orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
-        representation.addProfile(profile, new HashSet<>());
-        representationRepository.save(representation);
-    }
+	public void addAccessesProfile(String representationId, String profile) {
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+		representation.addProfile(profile, new HashSet<>());
+		representationRepository.save(representation);
+	}
 
-    public void moveAccessesFunctionalities(String representationId, String[] functionalities, String targetProfile) {
-        AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId).orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
-        representation.moveFunctionalities(functionalities, targetProfile);
-        representationRepository.save(representation);
-    }
+	public void moveAccessesFunctionalities(String representationId, String[] functionalities, String targetProfile) {
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+		representation.moveFunctionalities(functionalities, targetProfile);
+		representationRepository.save(representation);
+	}
 
-    public void deleteAccessesProfile(String representationId, String profile) {
-        AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId).orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
-        representation.deleteProfile(profile);
-        representationRepository.save(representation);
-    }
+	public void deleteAccessesProfile(String representationId, String profile) {
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+		representation.deleteProfile(profile);
+		representationRepository.save(representation);
+	}
 
-    public String getIdToEntity(String codebaseName) throws IOException {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        Representation representation = codebase.getRepresentationByFileType(ID_TO_ENTITY);
-        return IOUtils.toString(gridFsService.getFile(representation.getName()), StandardCharsets.UTF_8);
-    }
+	public String getIdToEntity(String codebaseName) throws IOException {
+		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		Representation representation = codebase.getRepresentationByFileType(ID_TO_ENTITY);
+		return IOUtils.toString(gridFsService.getFile(representation.getName()), StandardCharsets.UTF_8);
+	}
 }

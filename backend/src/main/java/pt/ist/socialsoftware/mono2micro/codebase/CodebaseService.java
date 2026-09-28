@@ -21,69 +21,69 @@ import java.util.stream.Collectors;
 @Service
 public class CodebaseService {
 
-    @Autowired
-    RepresentationService representationService;
+	@Autowired
+	RepresentationService representationService;
 
-    @Autowired
-    StrategyService strategyService;
+	@Autowired
+	StrategyService strategyService;
 
-    @Autowired
-    CodebaseRepository codebaseRepository;
+	@Autowired
+	CodebaseRepository codebaseRepository;
 
-    public void createCodebase(String codebaseName) {
-        if (codebaseRepository.existsByName(codebaseName))
-            throw new KeyAlreadyExistsException();
-        codebaseRepository.save(new Codebase(codebaseName));
-    }
+	public void createCodebase(String codebaseName) {
+		if (codebaseRepository.existsByName(codebaseName))
+			throw new KeyAlreadyExistsException();
+		codebaseRepository.save(new Codebase(codebaseName));
+	}
 
-    public Map<String, List<String>> getRepresentationGroups() {
-        return Representation.representationGroupToRepresentations;
-    }
+	public Map<String, List<String>> getRepresentationGroups() {
+		return Representation.representationGroupToRepresentations;
+	}
 
-    public List<String> getCodebaseRepresentationGroups(String codebaseName) {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        return codebase.getRepresentationGroups();
-    }
+	public List<String> getCodebaseRepresentationGroups(String codebaseName) {
+		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		return codebase.getRepresentationGroups();
+	}
 
-    public List<Codebase> getCodebases() {
-        return codebaseRepository.getCodebases();
-    }
+	public List<Codebase> getCodebases() {
+		return codebaseRepository.getCodebases();
+	}
 
-    public Codebase getCodebase(String codebaseName) {
-        return codebaseRepository.findByName(codebaseName);
-    }
+	public Codebase getCodebase(String codebaseName) {
+		return codebaseRepository.findByName(codebaseName);
+	}
 
-    public List<RepresentationDto> getRepresentationTypes(String codebaseName) {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        return RepresentationDtoFactory.getFactory().getRepresentationDtos(codebase.getRepresentations());
-    }
+	public List<RepresentationDto> getRepresentationTypes(String codebaseName) {
+		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		return RepresentationDtoFactory.getFactory().getRepresentationDtos(codebase.getRepresentations());
+	}
 
-    public List<Strategy> getCodebaseStrategies(String codebaseName) {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        return codebase.getStrategies();
-    }
+	public List<Strategy> getCodebaseStrategies(String codebaseName) {
+		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		return codebase.getStrategies();
+	}
 
-    public List<String> getAllowableCodebaseStrategyTypes(String codebaseName) {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        Set<String> representationTypes = codebase.getRepresentations().stream().map(Representation::getType).collect(Collectors.toSet());
+	public List<String> getAllowableCodebaseStrategyTypes(String codebaseName) {
+		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		Set<String> representationTypes = codebase.getRepresentations().stream().map(Representation::getType).collect(Collectors.toSet());
 
-        List<String> result = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry: Strategy.strategiesToRepresentations.entrySet()) {
-            if (representationTypes.containsAll(entry.getValue())) {
-                result.add(entry.getKey());
-            }
-        }
+		List<String> result = new ArrayList<>();
+		for (Map.Entry<String, List<String>> entry : Strategy.strategiesToRepresentations.entrySet()) {
+			if (representationTypes.containsAll(entry.getValue())) {
+				result.add(entry.getKey());
+			}
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    public void deleteCodebase(String codebaseName) {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        for (Strategy strategy: codebase.getStrategies())
-            strategyService.deleteStrategy(strategy);
-        for (Representation representation : codebase.getRepresentations())
-            representationService.deleteRepresentation(representation.getName());
-        codebaseRepository.deleteById(codebaseName);
-    }
+	public void deleteCodebase(String codebaseName) {
+		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		for (Strategy strategy : codebase.getStrategies())
+			strategyService.deleteStrategy(strategy);
+		for (Representation representation : codebase.getRepresentations())
+			representationService.deleteRepresentation(representation.getName());
+		codebaseRepository.deleteById(codebaseName);
+	}
 
 }

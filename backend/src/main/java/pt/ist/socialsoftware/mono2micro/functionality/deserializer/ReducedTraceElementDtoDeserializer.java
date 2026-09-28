@@ -20,8 +20,8 @@ public class ReducedTraceElementDtoDeserializer extends StdDeserializer<ReducedT
 
 	@Override
 	public ReducedTraceElementDto deserialize(
-		JsonParser jsonParser,
-		DeserializationContext deserializationContext
+			JsonParser jsonParser,
+			DeserializationContext deserializationContext
 	) throws IOException {
 		JsonToken jsonToken = jsonParser.currentToken();
 
@@ -53,7 +53,7 @@ public class ReducedTraceElementDtoDeserializer extends StdDeserializer<ReducedT
 				return r;
 			}
 
-			else if (jsonParser.getCurrentToken() == JsonToken.VALUE_STRING){ // an access
+			else if (jsonParser.getCurrentToken() == JsonToken.VALUE_STRING) { // an access
 				String mode = jsonParser.getValueAsString();
 
 				jsonParser.nextValue();
@@ -81,9 +81,9 @@ public class ReducedTraceElementDtoDeserializer extends StdDeserializer<ReducedT
 				return a;
 			}
 
-            else {
-                throw new IOException("Error deserializing ReducedTraceElementDto - Data structure not expected");
-            }
+			else {
+				throw new IOException("Error deserializing ReducedTraceElementDto - Data structure not expected");
+			}
 		}
 
 		throw new IOException("Error deserializing ReducedTraceElementDto - First token should be START_ARRAY but was: " + jsonToken);
