@@ -70,6 +70,63 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
+  # Is the backend Java formatted? This job GATES every test job: `fast` and
+  # `e2e` both declare `needs: format`, so a formatting violation stops the run
+  # before anything is compiled or tested. Seconds, no Docker, no database.
+  #
+  # Deliberately NOT `needs: dedup`, unlike `fast`. GitHub skips a job whose
+  # `needs` was skipped, so inheriting the dedup skip here would cascade into
+  # skipping `e2e` too — and `e2e` runs on PRs and nightly regardless of dedup.
+  # This job is cheap enough that deduplicating it would not pay for that risk.
+  #
+  # No `if:` guard either: `e2e` needs this job, so gating it on
+  # `inputs.jobs != 'e2e-only'` would skip `format` on a manual e2e-only
+  # dispatch and take `e2e` down with it.
+  # ---------------------------------------------------------------------------
+  format:
+    name: format check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      # Hard failure, and the whole point of this job. `spotless:check` exits
+      # non-zero on any violation: indentation (the repo is tabs), line width
+      # (160), trailing whitespace, a missing final newline. Fix with
+      # `cd backend && make format-apply`.
+      - name: Check backend formatting
+        working-directory: backend
+        run: mvn -B spotless:check
+
+      # Advisory, and must stay that way: imports are reported, never rewritten.
+      # import-summary.py emits ::warning annotations under GITHUB_ACTIONS, so
+      # findings land on the PR's Files-changed tab rather than only in this
+      # log, and it always exits 0.
+      #
+      # `checkstyle:checkstyle`, not `checkstyle:check` — the latter counts only
+      # violations at or above <violationSeverity> (error) while the config
+      # emits `warning`, so it reports 0 while the report file holds 97. The
+      # `|| true` matches the advisory convention used for `npm test` and
+      # `go vet` below.
+      #
+      # `if: always()` so the report still appears when the gate above fired:
+      # that is exactly when you want to see everything at once.
+      - name: Report import problems (advisory)
+        if: always()
+        working-directory: backend
+        run: |
+          mvn -B checkstyle:checkstyle || true
+          python3 import-summary.py || true
+
+  # ---------------------------------------------------------------------------
   # Does every component still build? No Docker, no services, no database.
   # ---------------------------------------------------------------------------
   fast:
@@ -79,7 +136,10 @@ jobs:
     # and post duplicate status checks. Skip the push-triggered copy in that case;
     # the `pull_request` one covers it. Before a PR exists, the push run is the
     # only feedback there is, so it still runs.
-    needs: dedup
+    #
+    # `format` is also a dependency: there is no point compiling a tree that
+    # does not meet the formatting gate.
+    needs: [dedup, format]
     # `inputs.jobs` is empty for every event but workflow_dispatch, so this only
     # narrows a manual run.
     if: >-
@@ -215,6 +275,9 @@ jobs:
   # ---------------------------------------------------------------------------
   e2e:
     name: end-to-end decomposition
+    # Gated on formatting: the ~8GB scripts image should not be built, nor the
+    # suite run, for a tree that fails `spotless:check`.
+    needs: format
     if: github.event_name != 'push' && inputs.jobs != 'fast-only'
     runs-on: ubuntu-latest
     timeout-minutes: 30

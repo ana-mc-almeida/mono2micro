@@ -261,6 +261,84 @@
 					</statelessTestsetReporter>
 				</configuration>
 			</plugin>
+			<!-- Formatting, and the CI gate. `spotless:check` exits non-zero on any
+			     violation - indentation, line width, trailing whitespace - and the
+			     `format` job in ci.yml is what `fast` and `e2e` both depend on, so
+			     unformatted code never reaches a test run. A file's final newline is
+			     left as found: Eclipse JDT neither adds nor removes it, and
+			     .editorconfig deliberately does not set insert_final_newline.
+
+			     The engine is Eclipse JDT, not google-java-format or
+			     palantir-java-format: those two emit spaces unconditionally and
+			     expose no indent-character setting, and this repo uses tabs.
+			     Choosing Eclipse also means VS Code's Java extension - which IS
+			     Eclipse JDT - can read the very same profile via
+			     "java.format.settings.url", so format-on-save agrees with the build.
+
+			     Imports are deliberately NOT handled here: no <removeUnusedImports>,
+			     no <importOrder>. They are reported as warnings by
+			     checkstyle-imports.xml below, never silently rewritten.
+
+			     Bound to no phase on purpose - `mvn test` must stay the ~2s offline
+			     run it is today. Invoke via `make format-check` / `make format-apply`. -->
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.43.0</version>
+				<configuration>
+					<java>
+						<includes>
+							<include>src/**/*.java</include>
+						</includes>
+						<excludes>
+							<!-- Vendored 2004 third-party MoJo code; AGENT.md says keep it
+							     as-is. It is 4-space indented, so it looks already-clean to
+							     any indentation heuristic, but the formatter WOULD quietly
+							     reflow its block comments and its long lines. Excluded by
+							     path, and scoped to src/main so it does NOT also skip
+							     src/test/.../mojoCalculator/.../MoJoCalculatorTest.java,
+							     which is first-party and only sits in that package to reach
+							     the package-private Cluster and BipartiteGraph. -->
+							<exclude>src/main/java/**/utils/mojoCalculator/**</exclude>
+						</excludes>
+						<eclipse>
+							<file>${project.basedir}/eclipse-formatter.xml</file>
+						</eclipse>
+					</java>
+				</configuration>
+			</plugin>
+			<!-- Import hygiene, as WARNINGS. The counterpart to Spotless above, and
+			     the reason both exist: Spotless can only fix, so anything that should
+			     be reported rather than rewritten has to live here.
+
+			     <failOnViolation>false</failOnViolation> plus severity=warning in
+			     checkstyle-imports.xml means this can never fail a build, locally or
+			     in CI. Do not "tighten" that - the split is intentional. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.3.1</version>
+				<dependencies>
+					<!-- Boot 2.1.2 manages an ancient checkstyle; 10.12.7 is the last
+					     line that still runs on a JDK 11+ runtime without pulling in
+					     Java 21-only APIs. -->
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>10.12.7</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<configLocation>${project.basedir}/checkstyle-imports.xml</configLocation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<failOnViolation>false</failOnViolation>
+					<failsOnError>false</failsOnError>
+					<violationSeverity>error</violationSeverity>
+					<logViolationsToConsole>true</logViolationsToConsole>
+					<!-- Same vendored code Spotless skips. -->
+					<excludes>**/utils/mojoCalculator/**</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

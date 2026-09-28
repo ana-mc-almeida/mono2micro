@@ -1,0 +1,69 @@
+{
+    "folders": [
+        {
+            "name": "Mono2Micro",
+            "path": ".",
+        },
+        {
+            "name": "Backend",
+            "path": "backend",
+        },
+        {
+            "name": "Scripts",
+            "path": "scripts",
+        },
+        {
+            "name": "Frontend",
+            "path": "frontend",
+        },
+        {
+            "name": "Functionality Refactor",
+            "path": "tools/functionality_refactor/src",
+        },
+        {
+            "name": "Collectors",
+            "path": "collectors",
+        },
+    ],
+    "settings": {
+        "files.exclude": {
+            "backend": true,
+            "scripts": true,
+            "frontend": true,
+            "tools/functionality_refactor": true,
+            "collectors": true,
+        },
+        "search.exclude": {
+            "**/node_modules": true,
+            "**/target": true,
+            "**/__pycache__": true,
+            "scripts/models": true,
+            "data": true,
+            "codebases": true,
+            "collectors/**/data/collection": true,
+            "tools/functionality_refactor/codebases": true,
+            "tools/functionality_refactor/output": true,
+        },
+        "files.watcherExclude": {
+            "**/node_modules/**": true,
+            "**/target/**": true,
+            "**/__pycache__/**": true,
+            "scripts/models/**": true,
+            "data/**": true,
+            "codebases/**": true,
+            "collectors/**/data/collection/**": true,
+        },
+        "java.configuration.updateBuildConfiguration": "interactive",
+        "python.analysis.extraPaths": ["scripts"],
+        "files.associations": {
+            "docker-compose.yml": "dockercompose",
+        },
+        "editor.formatOnSave": false,
+        "[java]": {
+            "editor.formatOnSave": true,
+        },
+        "java.format.settings.url": "backend/eclipse-formatter.xml",
+        "java.format.settings.profile": "mono2micro",
+        "java.format.enabled": true,
+    },
+}
