@@ -24,78 +24,78 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class VariableFeatureTest {
 
-    /**
-     * A feature that declares nothing — the cheapest possible implementation.
-     */
-    private static class SilentFeature implements VariableFeature {
-    }
+	/**
+	 * A feature that declares nothing — the cheapest possible implementation.
+	 */
+	private static class SilentFeature implements VariableFeature {
+	}
 
-    /**
-     * A feature that declares in both vocabularies, showing the pairing the interface exists for.
-     * {@code AUTHOR} is a representation type the tool already speaks; {@code Version analysis}
-     * is the model's own name for what that upload provides.
-     */
-    private static class VersionAnalysingFeature implements VariableFeature {
-        @Override
-        public Set<String> requiresRepresentations() {
-            return Set.of("author", "commit");
-        }
+	/**
+	 * A feature that declares in both vocabularies, showing the pairing the interface exists for.
+	 * {@code AUTHOR} is a representation type the tool already speaks; {@code Version analysis}
+	 * is the model's own name for what that upload provides.
+	 */
+	private static class VersionAnalysingFeature implements VariableFeature {
+		@Override
+		public Set<String> requiresRepresentations() {
+			return Set.of("author", "commit");
+		}
 
-        @Override
-        public Set<String> requiresFeatures() {
-            return Set.of("Version analysis");
-        }
-    }
+		@Override
+		public Set<String> requiresFeatures() {
+			return Set.of("Version analysis");
+		}
+	}
 
-    @Test
-    public void aFeatureDeclaringNothingRequiresNoRepresentations() {
-        assertThat(new SilentFeature().requiresRepresentations()).isEmpty();
-    }
+	@Test
+	public void aFeatureDeclaringNothingRequiresNoRepresentations() {
+		assertThat(new SilentFeature().requiresRepresentations()).isEmpty();
+	}
 
-    @Test
-    public void aFeatureDeclaringNothingRequiresNoModelFeatures() {
-        assertThat(new SilentFeature().requiresFeatures()).isEmpty();
-    }
+	@Test
+	public void aFeatureDeclaringNothingRequiresNoModelFeatures() {
+		assertThat(new SilentFeature().requiresFeatures()).isEmpty();
+	}
 
-    @Test
-    public void aFeatureDeclaringNothingExcludesNothing() {
-        assertThat(new SilentFeature().excludes()).isEmpty();
-    }
+	@Test
+	public void aFeatureDeclaringNothingExcludesNothing() {
+		assertThat(new SilentFeature().excludes()).isEmpty();
+	}
 
-    /**
-     * The expectation the interface documents: every one of the model's 21 cross-tree constraints
-     * is an implication, so {@code excludes()} is expected empty everywhere. A non-empty return
-     * is a finding about the model, not a bug — see {@link VariableFeature#excludes()}.
-     */
-    @Test
-    public void excludesIsEmptyByDefaultSoAnIncompatibilityMustBeDeclaredDeliberately() {
-        assertThat(new VersionAnalysingFeature().excludes()).isEmpty();
-    }
+	/**
+	 * The expectation the interface documents: every one of the model's 21 cross-tree constraints
+	 * is an implication, so {@code excludes()} is expected empty everywhere. A non-empty return
+	 * is a finding about the model, not a bug — see {@link VariableFeature#excludes()}.
+	 */
+	@Test
+	public void excludesIsEmptyByDefaultSoAnIncompatibilityMustBeDeclaredDeliberately() {
+		assertThat(new VersionAnalysingFeature().excludes()).isEmpty();
+	}
 
-    @Test
-    public void theTwoVocabulariesAreDeclaredSeparately() {
-        VersionAnalysingFeature feature = new VersionAnalysingFeature();
+	@Test
+	public void theTwoVocabulariesAreDeclaredSeparately() {
+		VersionAnalysingFeature feature = new VersionAnalysingFeature();
 
-        assertThat(feature.requiresRepresentations())
-                .containsExactlyInAnyOrder("author", "commit");
-        assertThat(feature.requiresFeatures())
-                .containsExactly("Version analysis");
-    }
+		assertThat(feature.requiresRepresentations())
+				.containsExactlyInAnyOrder("author", "commit");
+		assertThat(feature.requiresFeatures())
+				.containsExactly("Version analysis");
+	}
 
-    /**
-     * The declarations are read by generic availability code that must not have to defend against
-     * a null from an implementor that forgot one. Defaults returning empty collections rather than
-     * null is what makes {@code containsAll} safe at the availability seam.
-     */
-    @Test
-    public void everyDeclarationReturnsACollectionRatherThanNull() {
-        VariableFeature feature = new SilentFeature();
+	/**
+	 * The declarations are read by generic availability code that must not have to defend against
+	 * a null from an implementor that forgot one. Defaults returning empty collections rather than
+	 * null is what makes {@code containsAll} safe at the availability seam.
+	 */
+	@Test
+	public void everyDeclarationReturnsACollectionRatherThanNull() {
+		VariableFeature feature = new SilentFeature();
 
-        for (Collection<String> declaration : List.of(
-                feature.requiresRepresentations(),
-                feature.requiresFeatures(),
-                feature.excludes())) {
-            assertThat(declaration).isNotNull();
-        }
-    }
+		for (Collection<String> declaration : List.of(
+				feature.requiresRepresentations(),
+				feature.requiresFeatures(),
+				feature.excludes())) {
+			assertThat(declaration).isNotNull();
+		}
+	}
 }

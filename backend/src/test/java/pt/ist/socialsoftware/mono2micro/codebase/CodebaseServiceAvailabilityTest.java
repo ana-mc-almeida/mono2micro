@@ -30,13 +30,13 @@ import static pt.ist.socialsoftware.mono2micro.representation.domain.Representat
 @RunWith(MockitoJUnitRunner.class)
 public class CodebaseServiceAvailabilityTest {
 
-    @Mock
-    private CodebaseRepository codebaseRepository;
+	@Mock
+	private CodebaseRepository codebaseRepository;
 
-    @InjectMocks
-    private CodebaseService codebaseService;
+	@InjectMocks
+	private CodebaseService codebaseService;
 
-    @Before
+	@Before
     public void givenTheFixtureCodebasesExist() {
         when(codebaseRepository.findByName(EMPTY_NAME))
                 .thenReturn(CodebaseFixtures.empty());
@@ -46,38 +46,38 @@ public class CodebaseServiceAvailabilityTest {
                 .thenReturn(CodebaseFixtures.repositoryBased());
     }
 
-    @Test
-    public void uploadsCarryingAuthorshipDataMakeTheRepositoryStrategyAvailable() {
-        assertThat(codebaseService.getAllowableCodebaseStrategyTypes(REPOSITORY_BASED_NAME))
-                .contains(Strategy.REPOSITORY_STRATEGY);
-    }
+	@Test
+	public void uploadsCarryingAuthorshipDataMakeTheRepositoryStrategyAvailable() {
+		assertThat(codebaseService.getAllowableCodebaseStrategyTypes(REPOSITORY_BASED_NAME))
+				.contains(Strategy.REPOSITORY_STRATEGY);
+	}
 
-    @Test
-    public void uploadsWithoutAuthorshipDataWithholdTheRepositoryStrategy() {
-        assertThat(codebaseService.getAllowableCodebaseStrategyTypes(ACCESSES_BASED_NAME))
-                .contains(Strategy.ACCESSES_STRATEGY)
-                .doesNotContain(Strategy.REPOSITORY_STRATEGY);
-    }
+	@Test
+	public void uploadsWithoutAuthorshipDataWithholdTheRepositoryStrategy() {
+		assertThat(codebaseService.getAllowableCodebaseStrategyTypes(ACCESSES_BASED_NAME))
+				.contains(Strategy.ACCESSES_STRATEGY)
+				.doesNotContain(Strategy.REPOSITORY_STRATEGY);
+	}
 
-    @Test
-    public void aCodebaseWithNoUploadsIsOfferedNothing() {
-        assertThat(codebaseService.getAllowableCodebaseStrategyTypes(EMPTY_NAME)).isEmpty();
-    }
+	@Test
+	public void aCodebaseWithNoUploadsIsOfferedNothing() {
+		assertThat(codebaseService.getAllowableCodebaseStrategyTypes(EMPTY_NAME)).isEmpty();
+	}
 
-    /**
-     * The same tool, two codebases, two different answers — the claim D-005 rests on. Asserted
-     * as a difference rather than as two absolute sets, so it keeps meaning as strategies are
-     * added.
-     */
-    @Test
-    public void twoCodebasesWithDifferentUploadsGetDifferentOffers() {
-        assertThat(codebaseService.getAllowableCodebaseStrategyTypes(REPOSITORY_BASED_NAME))
-                .isNotEqualTo(codebaseService.getAllowableCodebaseStrategyTypes(ACCESSES_BASED_NAME));
-    }
+	/**
+	 * The same tool, two codebases, two different answers — the claim D-005 rests on. Asserted
+	 * as a difference rather than as two absolute sets, so it keeps meaning as strategies are
+	 * added.
+	 */
+	@Test
+	public void twoCodebasesWithDifferentUploadsGetDifferentOffers() {
+		assertThat(codebaseService.getAllowableCodebaseStrategyTypes(REPOSITORY_BASED_NAME))
+				.isNotEqualTo(codebaseService.getAllowableCodebaseStrategyTypes(ACCESSES_BASED_NAME));
+	}
 
-    @Test
-    public void representationGroupsAreDerivedFromTheSameUploads() {
-        assertThat(codebaseService.getCodebaseRepresentationGroups(ACCESSES_BASED_NAME))
-                .containsExactly(ACCESSES_TYPE);
-    }
+	@Test
+	public void representationGroupsAreDerivedFromTheSameUploads() {
+		assertThat(codebaseService.getCodebaseRepresentationGroups(ACCESSES_BASED_NAME))
+				.containsExactly(ACCESSES_TYPE);
+	}
 }

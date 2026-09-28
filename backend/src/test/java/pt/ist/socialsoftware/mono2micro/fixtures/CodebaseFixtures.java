@@ -32,108 +32,108 @@ import java.util.List;
  * withheld path are testable by picking two fixtures:
  *
  * <pre>
- * Codebase offered  = CodebaseFixtures.repositoryBased();   // has authorship data
- * Codebase withheld = CodebaseFixtures.accessesBased();     // deliberately does not
+ * Codebase offered = CodebaseFixtures.repositoryBased(); // has authorship data
+ * Codebase withheld = CodebaseFixtures.accessesBased(); // deliberately does not
  * </pre>
  *
  * <p>To test a service that looks a codebase up rather than receiving one, stub the repository:
  *
  * <pre>
  * when(codebaseRepository.findByName(ACCESSES_BASED_NAME))
- *         .thenReturn(CodebaseFixtures.accessesBased());
+ * .thenReturn(CodebaseFixtures.accessesBased());
  * </pre>
  *
  * <p>Fixtures are built fresh on every call, so a test may mutate one without affecting another.
  */
 public class CodebaseFixtures {
 
-    public static final String EMPTY_NAME = "fixture-empty";
-    public static final String ACCESSES_BASED_NAME = "fixture-accesses-based";
-    public static final String REPOSITORY_BASED_NAME = "fixture-repository-based";
-    public static final String CODE_EMBEDDINGS_BASED_NAME = "fixture-code-embeddings-based";
-    public static final String STRUCTURE_BASED_NAME = "fixture-structure-based";
+	public static final String EMPTY_NAME = "fixture-empty";
+	public static final String ACCESSES_BASED_NAME = "fixture-accesses-based";
+	public static final String REPOSITORY_BASED_NAME = "fixture-repository-based";
+	public static final String CODE_EMBEDDINGS_BASED_NAME = "fixture-code-embeddings-based";
+	public static final String STRUCTURE_BASED_NAME = "fixture-structure-based";
 
-    /**
-     * A codebase with nothing uploaded. Satisfies no representation group, so every feature
-     * is withheld — the baseline against which any offered feature is a difference.
-     */
-    public static Codebase empty() {
-        return codebaseNamed(EMPTY_NAME);
-    }
+	/**
+	 * A codebase with nothing uploaded. Satisfies no representation group, so every feature
+	 * is withheld — the baseline against which any offered feature is a difference.
+	 */
+	public static Codebase empty() {
+		return codebaseNamed(EMPTY_NAME);
+	}
 
-    /**
-     * Uploads satisfying {@code Accesses Based} only.
-     *
-     * <p>Deliberately carries no authorship or commit data, so a feature requiring those is
-     * withheld. This is the counterpart to {@link #repositoryBased()}.
-     */
-    public static Codebase accessesBased() {
-        return codebaseWith(
-                ACCESSES_BASED_NAME,
-                new IDToEntityRepresentation(),
-                new AccessesRepresentation());
-    }
+	/**
+	 * Uploads satisfying {@code Accesses Based} only.
+	 *
+	 * <p>Deliberately carries no authorship or commit data, so a feature requiring those is
+	 * withheld. This is the counterpart to {@link #repositoryBased()}.
+	 */
+	public static Codebase accessesBased() {
+		return codebaseWith(
+				ACCESSES_BASED_NAME,
+				new IDToEntityRepresentation(),
+				new AccessesRepresentation());
+	}
 
-    /**
-     * Uploads satisfying {@code Repository Based} — the accesses uploads plus authorship and
-     * commit data, so a feature requiring version history is offered.
-     */
-    public static Codebase repositoryBased() {
-        return codebaseWith(
-                REPOSITORY_BASED_NAME,
-                new IDToEntityRepresentation(),
-                new AccessesRepresentation(),
-                new AuthorRepresentation(),
-                new CommitRepresentation());
-    }
+	/**
+	 * Uploads satisfying {@code Repository Based} — the accesses uploads plus authorship and
+	 * commit data, so a feature requiring version history is offered.
+	 */
+	public static Codebase repositoryBased() {
+		return codebaseWith(
+				REPOSITORY_BASED_NAME,
+				new IDToEntityRepresentation(),
+				new AccessesRepresentation(),
+				new AuthorRepresentation(),
+				new CommitRepresentation());
+	}
 
-    /** Uploads satisfying {@code Code Embeddings Based}. */
-    public static Codebase codeEmbeddingsBased() {
-        return codebaseWith(
-                CODE_EMBEDDINGS_BASED_NAME,
-                new IDToEntityRepresentation(),
-                new EntityToIDRepresentation(),
-                new AccessesRepresentation(),
-                new CodeEmbeddingsRepresentation());
-    }
+	/** Uploads satisfying {@code Code Embeddings Based}. */
+	public static Codebase codeEmbeddingsBased() {
+		return codebaseWith(
+				CODE_EMBEDDINGS_BASED_NAME,
+				new IDToEntityRepresentation(),
+				new EntityToIDRepresentation(),
+				new AccessesRepresentation(),
+				new CodeEmbeddingsRepresentation());
+	}
 
-    /** Uploads satisfying {@code Structure Based}. */
-    public static Codebase structureBased() {
-        return codebaseWith(
-                STRUCTURE_BASED_NAME,
-                new IDToEntityRepresentation(),
-                new EntityToIDRepresentation(),
-                new AccessesRepresentation(),
-                new StructureRepresentation());
-    }
+	/** Uploads satisfying {@code Structure Based}. */
+	public static Codebase structureBased() {
+		return codebaseWith(
+				STRUCTURE_BASED_NAME,
+				new IDToEntityRepresentation(),
+				new EntityToIDRepresentation(),
+				new AccessesRepresentation(),
+				new StructureRepresentation());
+	}
 
-    /** Every fixture, for tests asserting that different uploads yield different answers. */
-    public static List<Codebase> all() {
-        return Arrays.asList(
-                empty(),
-                accessesBased(),
-                repositoryBased(),
-                codeEmbeddingsBased(),
-                structureBased());
-    }
+	/** Every fixture, for tests asserting that different uploads yield different answers. */
+	public static List<Codebase> all() {
+		return Arrays.asList(
+				empty(),
+				accessesBased(),
+				repositoryBased(),
+				codeEmbeddingsBased(),
+				structureBased());
+	}
 
-    /**
-     * A codebase with exactly the given representations, for the case no named fixture covers.
-     * Prefer a named fixture where one fits, so that tests share vocabulary.
-     */
-    public static Codebase codebaseWith(String name, Representation... representations) {
-        Codebase codebase = codebaseNamed(name);
-        for (Representation representation : representations) {
-            representation.setName(name + " & " + representation.getType());
-            representation.setCodebase(codebase);
-            codebase.addRepresentation(representation);
-        }
-        return codebase;
-    }
+	/**
+	 * A codebase with exactly the given representations, for the case no named fixture covers.
+	 * Prefer a named fixture where one fits, so that tests share vocabulary.
+	 */
+	public static Codebase codebaseWith(String name, Representation... representations) {
+		Codebase codebase = codebaseNamed(name);
+		for (Representation representation : representations) {
+			representation.setName(name + " & " + representation.getType());
+			representation.setCodebase(codebase);
+			codebase.addRepresentation(representation);
+		}
+		return codebase;
+	}
 
-    private static Codebase codebaseNamed(String name) {
-        return new Codebase(name);
-    }
+	private static Codebase codebaseNamed(String name) {
+		return new Codebase(name);
+	}
 
-    private CodebaseFixtures() {}
+	private CodebaseFixtures() {}
 }

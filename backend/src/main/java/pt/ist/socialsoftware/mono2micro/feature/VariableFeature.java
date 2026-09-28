@@ -26,13 +26,13 @@ import java.util.Set;
  * are separate deliberately, and collapsing them destroys the reason this interface exists.</strong>
  *
  * <ul>
- *   <li>{@link #requiresRepresentations()} names the <em>tool's</em> representation types — the
- *       vocabulary its own subtypes already speak ({@code author}, {@code commit}). This is what
- *       makes a declaration checkable against real input: a codebase either uploaded that file or
- *       it did not.
- *   <li>{@link #requiresFeatures()} names the <em>model's</em> features, in the model's own casing
- *       ({@code Source code}, {@code Version analysis}). This is what makes the declaration an
- *       instantiation of the unified feature model rather than ordinary plumbing.
+ * <li>{@link #requiresRepresentations()} names the <em>tool's</em> representation types — the
+ * vocabulary its own subtypes already speak ({@code author}, {@code commit}). This is what
+ * makes a declaration checkable against real input: a codebase either uploaded that file or
+ * it did not.
+ * <li>{@link #requiresFeatures()} names the <em>model's</em> features, in the model's own casing
+ * ({@code Source code}, {@code Version analysis}). This is what makes the declaration an
+ * instantiation of the unified feature model rather than ordinary plumbing.
  * </ul>
  *
  * <p>Keeping only the representation types would give tidier plumbing that demonstrates nothing
@@ -61,44 +61,44 @@ import java.util.Set;
  */
 public interface VariableFeature {
 
-    /**
-     * The <em>tool's</em> representation types this feature needs, as its subtypes already name
-     * them ({@code author}, {@code commit}, {@code accesses}). A codebase whose uploads do not
-     * carry all of them cannot be offered this feature.
-     *
-     * <p>Defaults to empty: a feature that needs nothing declares nothing.
-     */
-    default Set<String> requiresRepresentations() {
-        return Collections.emptySet();
-    }
+	/**
+	 * The <em>tool's</em> representation types this feature needs, as its subtypes already name
+	 * them ({@code author}, {@code commit}, {@code accesses}). A codebase whose uploads do not
+	 * carry all of them cannot be offered this feature.
+	 *
+	 * <p>Defaults to empty: a feature that needs nothing declares nothing.
+	 */
+	default Set<String> requiresRepresentations() {
+		return Collections.emptySet();
+	}
 
-    /**
-     * The <em>model's</em> features this feature requires, in the model's own casing ({@code
-     * Source code}, {@code Version analysis}) — sentence case for leaf features, Title Case for
-     * groups. These names must match the feature model's own, because the correspondence check
-     * matches them against the {@code <var>} names in its cross-tree constraints.
-     *
-     * <p>Defaults to empty: a feature that has nothing to say about the model says nothing.
-     */
-    default Set<String> requiresFeatures() {
-        return Collections.emptySet();
-    }
+	/**
+	 * The <em>model's</em> features this feature requires, in the model's own casing ({@code
+	 * Source code}, {@code Version analysis}) — sentence case for leaf features, Title Case for
+	 * groups. These names must match the feature model's own, because the correspondence check
+	 * matches them against the {@code <var>} names in its cross-tree constraints.
+	 *
+	 * <p>Defaults to empty: a feature that has nothing to say about the model says nothing.
+	 */
+	default Set<String> requiresFeatures() {
+		return Collections.emptySet();
+	}
 
-    /**
-     * Features this one is genuinely incompatible with, in the model's vocabulary.
-     *
-     * <p><strong>This is expected to return empty for every feature.</strong> All 21 of the
-     * model's cross-tree constraints are implications — {@code requires}, never {@code excludes} —
-     * so on the model as it stands there is nothing for any feature to declare here.
-     *
-     * <p>It exists anyway so that a genuine incompatibility has somewhere to be declared if one is
-     * ever found. <strong>A non-empty return is a finding about the model, not a bug in the
-     * code.</strong> It means the tool has an incompatibility the model does not express, which is
-     * evidence the model is incomplete. The correspondence check reports such a return as a
-     * discovery and names it as one, precisely so that a future session does not read it as a
-     * defect and delete the declaration.
-     */
-    default Set<String> excludes() {
-        return Collections.emptySet();
-    }
+	/**
+	 * Features this one is genuinely incompatible with, in the model's vocabulary.
+	 *
+	 * <p><strong>This is expected to return empty for every feature.</strong> All 21 of the
+	 * model's cross-tree constraints are implications — {@code requires}, never {@code excludes} —
+	 * so on the model as it stands there is nothing for any feature to declare here.
+	 *
+	 * <p>It exists anyway so that a genuine incompatibility has somewhere to be declared if one is
+	 * ever found. <strong>A non-empty return is a finding about the model, not a bug in the
+	 * code.</strong> It means the tool has an incompatibility the model does not express, which is
+	 * evidence the model is incomplete. The correspondence check reports such a return as a
+	 * discovery and names it as one, precisely so that a future session does not read it as a
+	 * defect and delete the declaration.
+	 */
+	default Set<String> excludes() {
+		return Collections.emptySet();
+	}
 }
