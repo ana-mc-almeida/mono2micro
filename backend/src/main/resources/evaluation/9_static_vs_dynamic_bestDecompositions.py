@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from py4j.java_gateway import JavaGateway
 
-DISTR_SRC_FILE_PATH = '../../java/pt/ist/socialsoftware/mono2micro/utils/mojoCalculator/src/main/resources/distrSrc.rsf'
-DISTR_TARGET_FILE_PATH = '../../java/pt/ist/socialsoftware/mono2micro/utils/mojoCalculator/src/main/resources' \
+DISTR_SRC_FILE_PATH = '../../java/pt/ist/socialsoftware/mono2micro/qualityAssessment/metrics/severalDecompositions/mojo/src/main/resources/distrSrc.rsf'
+DISTR_TARGET_FILE_PATH = '../../java/pt/ist/socialsoftware/mono2micro/qualityAssessment/metrics/severalDecompositions/mojo/src/main/resources' \
                          '/distrTarget.rsf'
 
 

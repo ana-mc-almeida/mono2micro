@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation;
 
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.metrics.decompositionMetrics.DecompositionMetricCalculator;
+import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition.DecompositionMetricCalculator;
 
 import java.util.List;
 import java.util.Set;

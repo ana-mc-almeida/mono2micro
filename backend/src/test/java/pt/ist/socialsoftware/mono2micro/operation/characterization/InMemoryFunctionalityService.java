@@ -1,9 +1,9 @@
 package pt.ist.socialsoftware.mono2micro.operation.characterization;
 
 import org.apache.commons.io.IOUtils;
-import pt.ist.socialsoftware.mono2micro.functionality.FunctionalityService;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.Functionality;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.FunctionalityRedesign;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityService;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.FunctionalityRedesign;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

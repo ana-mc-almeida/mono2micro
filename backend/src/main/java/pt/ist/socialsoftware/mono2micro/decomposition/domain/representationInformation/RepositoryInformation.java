@@ -8,12 +8,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.element.Element;
+import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.metrics.decompositionMetrics.*;
-import pt.ist.socialsoftware.mono2micro.representation.domain.AuthorRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.CommitRepresentation;
+import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition.*;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
 
@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static pt.ist.socialsoftware.mono2micro.representation.domain.AuthorRepresentation.AUTHOR;
-import static pt.ist.socialsoftware.mono2micro.representation.domain.CommitRepresentation.COMMIT;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation.AUTHOR;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation.COMMIT;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.REPOSITORY_TYPE;
 
 public class RepositoryInformation extends RepresentationInformation {

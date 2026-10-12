@@ -1,14 +1,14 @@
 package pt.ist.socialsoftware.mono2micro.fixtures;
 
 import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.representation.domain.AccessesRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.AuthorRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.CodeEmbeddingsRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.CommitRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.EntityToIDRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.IDToEntityRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.StructureRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
 
 import java.util.Arrays;
 import java.util.List;

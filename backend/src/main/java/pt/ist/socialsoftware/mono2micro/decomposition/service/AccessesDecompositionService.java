@@ -10,12 +10,12 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.functionality.FunctionalityService;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.Functionality;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.FunctionalityRedesign;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.LocalTransaction;
-import pt.ist.socialsoftware.mono2micro.functionality.dto.FunctionalityDto;
-import pt.ist.socialsoftware.mono2micro.representation.domain.AccessesRepresentation;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityService;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.FunctionalityRedesign;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.FunctionalityDto;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.utils.Utils;
 
@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static pt.ist.socialsoftware.mono2micro.representation.domain.AccessesRepresentation.ACCESSES;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.ACCESSES_TYPE;
 
 @Service

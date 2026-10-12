@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.cluster;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import pt.ist.socialsoftware.mono2micro.element.Element;
+import pt.ist.socialsoftware.mono2micro.granularity.Element;
 
 import java.util.HashMap;
 import java.util.HashSet;

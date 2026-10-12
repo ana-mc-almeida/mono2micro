@@ -296,10 +296,10 @@
 							     any indentation heuristic, but the formatter WOULD quietly
 							     reflow its block comments and its long lines. Excluded by
 							     path, and scoped to src/main so it does NOT also skip
-							     src/test/.../mojoCalculator/.../MoJoCalculatorTest.java,
+							     src/test/.../mojo/.../MoJoCalculatorTest.java,
 							     which is first-party and only sits in that package to reach
 							     the package-private Cluster and BipartiteGraph. -->
-							<exclude>src/main/java/**/utils/mojoCalculator/**</exclude>
+							<exclude>src/main/java/**/severalDecompositions/mojo/**</exclude>
 						</excludes>
 						<eclipse>
 							<file>${project.basedir}/eclipse-formatter.xml</file>
@@ -336,7 +336,7 @@
 					<violationSeverity>error</violationSeverity>
 					<logViolationsToConsole>true</logViolationsToConsole>
 					<!-- Same vendored code Spotless skips. -->
-					<excludes>**/utils/mojoCalculator/**</excludes>
+					<excludes>**/severalDecompositions/mojo/**</excludes>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.Functionality;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.FunctionalityRedesign;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.LocalTransaction;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.FunctionalityRedesign;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 
 import java.io.IOException;

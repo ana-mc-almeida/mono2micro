@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.operation;
 import pt.ist.socialsoftware.mono2micro.cluster.Partition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
-import pt.ist.socialsoftware.mono2micro.element.DomainEntity;
+import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 
 import java.util.HashMap;
 import java.util.Map;

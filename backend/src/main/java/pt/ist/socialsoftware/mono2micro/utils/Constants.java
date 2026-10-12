@@ -11,7 +11,7 @@ public final class Constants {
 	static ApplicationContext context = new AnnotationConfigApplicationContext(PropertiesManager.class);
 
 	public static String SCRIPTS_ADDRESS = (String) context.getBean("scriptsAddress");
-	public static String MOJO_RESOURCES_PATH = "src/main/java/pt/ist/socialsoftware/mono2micro/utils/mojoCalculator/" +
+	public static String MOJO_RESOURCES_PATH = "src/main/java/pt/ist/socialsoftware/mono2micro/qualityAssessment/metrics/severalDecompositions/mojo/" +
 			"src/main/resources/";
 	public static String STRATEGIES_FOLDER = "/strategies/";
 	public static String RECOMMEND_FOLDER = "/recommendStrategies/";

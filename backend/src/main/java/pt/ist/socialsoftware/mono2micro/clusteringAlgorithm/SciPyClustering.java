@@ -10,7 +10,7 @@ import pt.ist.socialsoftware.mono2micro.cluster.Partition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.*;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.DecompositionRequest;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
-import pt.ist.socialsoftware.mono2micro.element.DomainEntity;
+import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;

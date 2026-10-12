@@ -9,8 +9,8 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import java.io.IOException;
 import java.util.*;
 
-import static pt.ist.socialsoftware.mono2micro.representation.domain.AuthorRepresentation.AUTHOR;
-import static pt.ist.socialsoftware.mono2micro.representation.domain.CommitRepresentation.COMMIT;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation.AUTHOR;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation.COMMIT;
 
 public class RepositoryWeights extends Weights {
 	public static final String REPOSITORY_WEIGHTS = "REPOSITORY_WEIGHTS";

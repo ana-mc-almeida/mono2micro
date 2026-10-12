@@ -12,18 +12,18 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.cluster.Partition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.element.Element;
+import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.functionality.FunctionalityRepository;
-import pt.ist.socialsoftware.mono2micro.functionality.FunctionalityService;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.Functionality;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.FunctionalityRedesign;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.LocalTransaction;
-import pt.ist.socialsoftware.mono2micro.functionality.dto.TraceDto;
-import pt.ist.socialsoftware.mono2micro.metrics.decompositionMetrics.*;
-import pt.ist.socialsoftware.mono2micro.representation.domain.AccessesRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.StructureRepresentation;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityService;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.FunctionalityRedesign;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.TraceDto;
+import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition.*;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
@@ -37,7 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.jgrapht.Graphs.successorListOf;
-import static pt.ist.socialsoftware.mono2micro.representation.domain.StructureRepresentation.STRUCTURE;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.STRUCTURE_TYPE;
 
 public class StructureInformation extends RepresentationInformation {

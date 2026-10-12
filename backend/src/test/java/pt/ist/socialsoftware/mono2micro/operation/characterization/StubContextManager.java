@@ -2,7 +2,7 @@ package pt.ist.socialsoftware.mono2micro.operation.characterization;
 
 import org.springframework.test.util.ReflectionTestUtils;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
-import pt.ist.socialsoftware.mono2micro.functionality.FunctionalityService;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;

@@ -2,11 +2,11 @@ package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weig
 
 import org.json.JSONException;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.functionality.dto.AccessDto;
-import pt.ist.socialsoftware.mono2micro.functionality.dto.TraceDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.TraceDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
-import pt.ist.socialsoftware.mono2micro.representation.domain.AccessesRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccessesAndRepository;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import static pt.ist.socialsoftware.mono2micro.representation.domain.AccessesRepresentation.ACCESSES;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
 
 public class AccessesWeights extends Weights {
 	public static final String ACCESSES_WEIGHTS = "ACCESSES_WEIGHTS";

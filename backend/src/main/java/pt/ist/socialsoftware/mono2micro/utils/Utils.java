@@ -5,11 +5,11 @@ import org.jgrapht.graph.DirectedAcyclicGraph;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.Functionality;
-import pt.ist.socialsoftware.mono2micro.functionality.domain.LocalTransaction;
-import pt.ist.socialsoftware.mono2micro.functionality.dto.AccessDto;
-import pt.ist.socialsoftware.mono2micro.functionality.dto.ReducedTraceElementDto;
-import pt.ist.socialsoftware.mono2micro.functionality.dto.RuleDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.ReducedTraceElementDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.RuleDto;
 
 import java.util.*;
 

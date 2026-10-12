@@ -1,6 +1,13 @@
 package pt.ist.socialsoftware.mono2micro.representation.dto;
 
+import pt.ist.socialsoftware.mono2micro.representation.analytical.dto.AccessesRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.dto.AuthorRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.dto.CodeEmbeddingsRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.dto.CommitRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.dto.StructureRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.*;
 import pt.ist.socialsoftware.mono2micro.representation.domain.*;
+import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.*;
 
 import java.util.ArrayList;
 import java.util.List;

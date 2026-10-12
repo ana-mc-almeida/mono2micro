@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.operation.split;
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.cluster.Partition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.element.Element;
+import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.merge.MergePartitionsOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
