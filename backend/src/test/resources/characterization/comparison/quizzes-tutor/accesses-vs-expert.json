@@ -1,0 +1,30 @@
+{
+  "MOJO" : {
+    "accuracy" : 0.85,
+    "falseNegative" : 1,
+    "falsePositive" : 11,
+    "fmeasure" : 0.8,
+    "mojoBiggest" : 80.0,
+    "mojoCommon" : 80.0,
+    "mojoNew" : 80.0,
+    "mojoSingletons" : 80.0,
+    "precision" : 0.69,
+    "recall" : 0.96,
+    "specificity" : 0.79,
+    "trueNegative" : 41,
+    "truePositive" : 25,
+    "type" : "MOJO"
+  },
+  "PURITY" : {
+    "clusterMapping" : {
+      "Content" : "Cluster0",
+      "Quizzes" : "Cluster1"
+    },
+    "clusterPurityMap" : {
+      "Content" : 0.8333333,
+      "Quizzes" : 0.85714287
+    },
+    "purity" : 0.84615386,
+    "type" : "PURITY"
+  }
+}

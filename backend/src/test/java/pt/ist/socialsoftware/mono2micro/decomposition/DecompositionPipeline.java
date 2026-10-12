@@ -1,7 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.decomposition;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,8 +60,14 @@ interface DecompositionPipeline {
 	/** Step 5. Returns the generated decomposition name, read back from the similarity. */
 	String createDecomposition(String similarityName);
 
-	/** Step 6. The clusters of the finished decomposition. */
-	Map<String, Cluster> getClusters(String decompositionName);
+	/**
+	 * Step 6. The clusters of the finished decomposition, as cluster name → entity names, both
+	 * sorted. A list rather than a set, so that an entity listed twice shows.
+	 *
+	 * <p>Plain strings rather than the domain's cluster class, so that an assertion on them
+	 * survives that class being renamed or moved.
+	 */
+	Map<String, List<String>> getClusters(String decompositionName);
 
 	/**
 	 * How many representations the codebase currently holds.

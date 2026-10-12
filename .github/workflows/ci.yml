@@ -310,12 +310,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Start mongo and scripts
-        run: docker compose up -d --build mongo scripts
+      # functionality_refactor is what the Context Mapper export reads from; without it
+      # PipelineCharacterizationE2ETest's export test cannot run.
+      - name: Start mongo, scripts and functionality_refactor
+        run: docker compose up -d --build mongo scripts functionality_refactor
 
-      # The test opens a raw socket to localhost:27017 and to Constants.SCRIPTS_ADDRESS,
-      # and fails (never skips) if either is down. The scripts container imports
-      # TensorFlow at boot, so it is slow to become ready -- poll instead of sleeping.
+      # The tests open a raw socket to MongoDB, Constants.SCRIPTS_ADDRESS and the
+      # refactoring tool. Locally they skip when one is down; REQUIRE_STACK=true below
+      # makes them fail here instead. The scripts container imports TensorFlow at boot,
+      # so it is slow to become ready -- poll instead of sleeping.
       - name: Wait for the stack
         shell: bash
         run: |
@@ -333,6 +336,16 @@ jobs:
             fi
             [ "$i" = 90 ] && {
               echo "scripts never came up"; docker compose logs scripts; exit 1;
+            }
+            sleep 2
+          done
+
+          for i in $(seq 1 30); do
+            if (exec 3<>/dev/tcp/localhost/5001) 2>/dev/null; then
+              echo "functionality_refactor is up"; break
+            fi
+            [ "$i" = 30 ] && {
+              echo "functionality_refactor never came up"; docker compose logs functionality_refactor; exit 1;
             }
             sleep 2
           done
@@ -357,6 +370,8 @@ jobs:
           MONGO_DB: mongodb://localhost:27017
           MONGO_DB_NAME: mono2micro
           SCRIPTS_ADDRESS: http://localhost:5002
+          REFACTOR_TOOL_ADDRESS: http://localhost:5001
+          REQUIRE_STACK: "true"
         run: mvn -B -Dexcluded.groups= test
 
       # Surefire's console output names a skipped case only by index and hides the

@@ -1,0 +1,26 @@
+{
+  "clusters" : {
+    "Cluster0" : {
+      "Cohesion" : 0.484,
+      "Complexity" : 85.839,
+      "Coupling" : 1.0
+    },
+    "Cluster1" : {
+      "Cohesion" : 0.54,
+      "Complexity" : 72.848,
+      "Coupling" : 0.65
+    },
+    "Cluster2" : {
+      "Cohesion" : 0.722,
+      "Complexity" : 99.111,
+      "Coupling" : 0.367
+    }
+  },
+  "decomposition" : {
+    "Cohesion" : 0.582,
+    "Complexity" : 57.043,
+    "Coupling" : 0.672,
+    "Performance" : 8.106,
+    "Silhouette Score" : 0.3
+  }
+}

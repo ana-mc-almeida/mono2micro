@@ -1,7 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.decomposition;
 
 import org.springframework.mock.web.MockMultipartFile;
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.codebase.CodebaseService;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
@@ -26,8 +25,10 @@ import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Drives the same pipeline by calling the Spring services directly.
@@ -262,8 +263,15 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public Map<String, Cluster> getClusters(String decompositionName) {
-		return decompositionService.getDecomposition(decompositionName).getClusters();
+	public Map<String, List<String>> getClusters(String decompositionName) {
+		Map<String, List<String>> clusters = new TreeMap<>();
+		decompositionService.getDecomposition(decompositionName).getClusters().forEach((name, cluster) -> {
+			List<String> entities = new ArrayList<>();
+			cluster.getElements().forEach(element -> entities.add(element.getName()));
+			Collections.sort(entities);
+			clusters.put(name, entities);
+		});
+		return clusters;
 	}
 
 	@Override

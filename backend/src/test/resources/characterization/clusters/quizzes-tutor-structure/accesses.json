@@ -1,0 +1,5 @@
+{
+  "Cluster0" : [ "AnswerDetails", "CodeFillInAnswer", "CodeOrderAnswer", "MultipleChoiceAnswer", "QuizAnswerItem" ],
+  "Cluster1" : [ "Assessment", "AuthDemoUser", "AuthExternalUser", "AuthTecnicoUser", "AuthUser", "Course", "CourseExecution", "Dashboard", "DemoAdmin", "DifficultQuestion", "Discussion", "FailedAnswer", "Question", "QuestionAnswer", "QuestionSubmission", "Quiz", "QuizAnswer", "QuizQuestion", "Reply", "Review", "Student", "Teacher", "Topic", "TopicConjunction", "Tournament", "User", "WeeklyScore" ],
+  "Cluster2" : [ "CodeFillInAnswerItem", "CodeFillInOption", "CodeFillInQuestion", "CodeFillInSpot", "CodeOrderAnswerItem", "CodeOrderAnswerSlot", "CodeOrderQuestion", "CodeOrderSlot", "Image", "MultipleChoiceAnswerItem", "MultipleChoiceQuestion", "Option", "QuestionAnswerItem", "QuestionDetails" ]
+}

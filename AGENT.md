@@ -109,12 +109,25 @@ make build
     the same reason. See that package's `README.md`, plus `DecompositionFixture` and
     `InMemoryHistory`, and **Gap 7** in `../implementation/docs/gap-analysis.md` for the
     findings they pin.
-  - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test) and
+  - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test),
     `DecompositionE2ETest`, which drives the real pipeline for every case x strategy
-    combination. **Needs the stack up** — `docker compose up -d mongo scripts` — and
-    fails, rather than skips, when Mongo or the scripts service is unreachable. Both are
-    tagged `@Tag("integration")` and excluded by default via surefire's
-    `<excludedGroups>${excluded.groups}</excludedGroups>` in `backend/pom.xml`.
+    combination and pins the clusters each produces, and `PipelineCharacterizationE2ETest`,
+    which pins manual editing, undo/redo, metrics, MoJo/Purity, expert import and the
+    Context Mapper export over REST. **Needs the stack up** —
+    `docker compose up -d mongo scripts`, plus `functionality_refactor` for the export —
+    and **skips**, naming the service, when one is unreachable (`decomposition/Stack`).
+    The skip is per test, so surefire counts it. With `REQUIRE_STACK=true` it **fails**
+    instead; CI's e2e job sets it, so a green CI run means the stack tests ran. Locally,
+    read the skip count before trusting a green run. All are tagged `@Tag("integration")` and excluded by default
+    via surefire's `<excludedGroups>${excluded.groups}</excludedGroups>` in
+    `backend/pom.xml`.
+
+    The expected values are JSON recorded from today's tool under
+    `src/test/resources/characterization/` (`decomposition/Golden`). On a mismatch, or
+    with nothing recorded, the actual JSON is written to `target/characterization-actual/`
+    under the same name; recording a value is reading that file and copying it over. A
+    restructure ticket that ports an endpoint changes `HttpDecompositionPipeline`'s paths
+    and payloads, **never** these files or the tests' assertions.
 
     Run **everything** (needs the stack) with an empty override:
 

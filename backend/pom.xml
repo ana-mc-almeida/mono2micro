@@ -232,8 +232,8 @@
 				<version>3.2.2</version>
 				<configuration>
 					<!-- Tests tagged @Tag("integration") need the real stack (Mongo + the
-					     Python scripts service) and FAIL, rather than skip, when it is
-					     absent. Excluding them by default makes a bare `mvn test` offline,
+					     Python scripts service). They skip when it is absent, and fail
+					     instead with REQUIRE_STACK=true, as CI's e2e job sets. Excluding them by default makes a bare `mvn test` offline,
 					     so the unit tests under <pkg>/operation/ can run on every push in
 					     CI's `fast` job, which has no Docker.
 
