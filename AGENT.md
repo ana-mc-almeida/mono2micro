@@ -345,7 +345,7 @@ Codebase
 | **Metrics**                   | `<pkg>/metrics/`                                        | `decompositionMetrics/` (Cohesion, Complexity, Coupling, Performance, TSR), `functionalityMetrics/`, `functionalityRedesignMetrics/`                        |
 | **Operation**                 | `<pkg>/operation/`                                      | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/`                                                                                 |
 | **comparisonTool**            | `<pkg>/comparisonTool/`                                 | MoJo (`<pkg>/utils/mojoCalculator/`) and Purity                                                                                                             |
-| **VariableFeature**           | `<pkg>/feature/`                                        | Interface mapping a variant to the feature model (`requiresRepresentations`, `requiresFeatures`, `excludes`). Expand-only: nothing implements it yet; the `Strategy` static maps stay authoritative |
+| **VariableFeature**           | `<pkg>/feature/`                                        | A feature's named `requirements()` (and an always-empty `excludes()`), read by the one `AvailabilityCheck` into a derivation record (D-019). Implemented by the 7 Similarity kinds (`<pkg>/similarity/kind/`, D-020) and `Clustering`. A feature's name is its `@JsonTypeName`; `utils/SelfRegistration` scans for it |
 
 ## Extension points
 
@@ -363,16 +363,18 @@ The Python side documents its own seam in `scripts/main.py:20`:
 ### New clustering algorithm
 
 1. Subclass `<pkg>/clusteringAlgorithm/Clustering.java` — implement
-   `generateDecomposition`, `getType`, `getAlgorithmSupportedStrategyTypes`.
+   `generateDecomposition` and `getType`, annotate it `@JsonTypeName` with the same type
+   string (the scan refuses an unnamed one at startup), and declare the Similarity kinds
+   it accepts in `requirements()` as a `SimilarityKindIn`.
 2. Register in `ClusteringFactory` — **both** the `switch` **and** the
    `algorithmTypes` list. The frontend reads that list via
    `GET /mono2micro/clustering/{algorithmType}/getAlgorithmSupportedStrategyTypes`.
 3. New numerics: add a router in `scripts/`, `include_router` it in `scripts/main.py`,
    call it over `WebClient` the way `SciPyClustering` does.
 
-`getAlgorithmSupportedStrategyTypes()` is how "not every algorithm supports every
-strategy" is expressed — the code-level counterpart of the feature model's cross-tree
-constraints.
+That requirement is how "not every algorithm supports every Similarity kind" is
+expressed: `getAlgorithmSupportedStrategyTypes()` runs it through the shared availability
+check once per kind.
 
 ### New metric
 
@@ -402,7 +404,9 @@ The type string is duplicated across five registries and mirrored in TypeScript:
 4. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` + `@JsonSubTypes` in `SimilarityDto.java`
 5. `<pkg>/recommendation/domain/RecommendationsType.java` + `RecommendationFactory`
 6. `<pkg>/strategy/domain/Strategy.java` — constant + entries in **both** static maps
-7. `<pkg>/clusteringAlgorithm/SciPyClustering.java` — add to `getAlgorithmSupportedStrategyTypes()`
+   (`strategiesToRepresentations` now feeds only the representation delete cascade)
+7. `<pkg>/similarity/kind/XxxKind.java` — `@JsonTypeName` + `requirements()`, and add the
+   kind to `SciPyClustering.requirements()`
 8. If new weight dimensions: `.../weights/XxxWeights.java` + `@JsonSubTypes` in
    `Weights.java` + `WeightsFactory` case
 9. Frontend: `models/similarity/` + `SimilarityFactory.ts`, `StrategyTypes.ts`,

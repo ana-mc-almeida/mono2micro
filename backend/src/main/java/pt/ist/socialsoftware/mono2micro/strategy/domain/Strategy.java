@@ -40,6 +40,8 @@ public class Strategy {
 	public static final String FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY = "Functionality Vectorization Call Graph";
 	public static final String FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY = "Functionality Vectorization Sequence Accesses";
 
+	// No longer read for availability: each Similarity kind declares its own requirements (similarity/kind/, D-019).
+	// Kept only because the representation delete cascade still reads it, until Strategy goes (ticket 09).
 	public static final Map<String, List<String>> strategiesToRepresentations = Stream.of(
 			new AbstractMap.SimpleImmutableEntry<>(ACCESSES_STRATEGY, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ACCESSES))),
 			new AbstractMap.SimpleImmutableEntry<>(REPOSITORY_STRATEGY, new ArrayList<>(Arrays.asList(ID_TO_ENTITY, ACCESSES, AUTHOR, COMMIT))),

@@ -4,19 +4,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
 import pt.ist.socialsoftware.mono2micro.codebase.repository.CodebaseRepository;
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class CodebaseService {
@@ -65,16 +66,9 @@ public class CodebaseService {
 
 	public List<String> getAllowableCodebaseStrategyTypes(String codebaseName) {
 		Codebase codebase = codebaseRepository.findByName(codebaseName);
-		Set<String> representationTypes = codebase.getRepresentations().stream().map(Representation::getType).collect(Collectors.toSet());
-
-		List<String> result = new ArrayList<>();
-		for (Map.Entry<String, List<String>> entry : Strategy.strategiesToRepresentations.entrySet()) {
-			if (representationTypes.containsAll(entry.getValue())) {
-				result.add(entry.getKey());
-			}
-		}
-
-		return result;
+		return AvailabilityCheck.derive(
+				SelfRegistration.prototypes(SimilarityKind.class).values(),
+				AvailabilityContext.of(codebase)).availableNames();
 	}
 
 	public void deleteCodebase(String codebaseName) {

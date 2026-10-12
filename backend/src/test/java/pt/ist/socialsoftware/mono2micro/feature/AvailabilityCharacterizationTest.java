@@ -172,35 +172,32 @@ public class AvailabilityCharacterizationTest {
 		assertThat(offeredKinds(codebase.getName())).containsExactlyInAnyOrderElementsOf(expectedKinds);
 	}
 
-	/** Without Entity-to-ID, Structure is still offered today; see the Structure test below (D-019). */
+	/** Without Entity-to-ID, Structure is withheld, because the Structure kind declares it (D-019); see the Structure test below. */
 	static Stream<Arguments> kindsOfferedWithoutEachRepresentation() {
-		Set<String> accessesRepositoryAndStructure = Set.of(ACCESSES_STRATEGY, REPOSITORY_STRATEGY, STRUCTURE_STRATEGY);
 		return Stream.of(
 				Arguments.of(ID_TO_ENTITY, Set.of()),
 				Arguments.of(ACCESSES, Set.of()),
-				Arguments.of(ENTITY_TO_ID, accessesRepositoryAndStructure),
-				Arguments.of(CODE_EMBEDDINGS, accessesRepositoryAndStructure),
+				Arguments.of(ENTITY_TO_ID, Set.of(ACCESSES_STRATEGY, REPOSITORY_STRATEGY)),
+				Arguments.of(CODE_EMBEDDINGS, Set.of(ACCESSES_STRATEGY, REPOSITORY_STRATEGY, STRUCTURE_STRATEGY)),
 				Arguments.of(AUTHOR, without(ALL_KINDS, REPOSITORY_STRATEGY)),
 				Arguments.of(COMMIT, without(ALL_KINDS, REPOSITORY_STRATEGY)),
 				Arguments.of(STRUCTURE, without(ALL_KINDS, STRUCTURE_STRATEGY)));
 	}
 
 	/**
-	 * The Structure kind's dependence on Entity-to-ID, recorded as found (D-019).
+	 * The Structure kind's dependence on Entity-to-ID, a behavior change D-019 allows.
 	 *
-	 * <p>Today's answer offers Structure without Entity-to-ID, although
-	 * {@code SimilarityScipyStructure.fillElements} reads it and would fail without it. The UI
-	 * cannot reach this case, because the Structure upload group requires Entity-to-ID and the
-	 * frontend uploads by group; the second assertion pins that.
-	 *
-	 * <p>D-019 has the Structure kind declare Entity-to-ID. When that declaration replaces
-	 * today's map, the first assertion flips to withholding Structure, and D-019 allows the
-	 * change. The leave-one-out case without Entity-to-ID flips with it, for the same reason.
+	 * <p>Before ticket 04, Structure was offered without Entity-to-ID, although
+	 * {@code SimilarityScipyStructure.fillElements} reads it and would fail without it. D-019 has
+	 * the Structure kind declare Entity-to-ID, so Structure is now withheld; the leave-one-out case
+	 * without Entity-to-ID changed with it. No user sees the change: the UI could never reach this
+	 * case, because the Structure upload group requires Entity-to-ID and the frontend uploads by
+	 * group. The second assertion pins that.
 	 */
 	@Test
-	public void structureIsOfferedWithoutEntityToIdButItsUploadGroupIsNotSatisfied() {
+	public void structureIsWithheldWithoutEntityToIdAndItsUploadGroupIsNotSatisfied() {
 		assertThat(offeredKinds(UNGROUPED_STRUCTURE_NAME))
-				.containsExactlyInAnyOrder(ACCESSES_STRATEGY, STRUCTURE_STRATEGY);
+				.containsExactlyInAnyOrder(ACCESSES_STRATEGY);
 		assertThat(codebaseService.getCodebaseRepresentationGroups(UNGROUPED_STRUCTURE_NAME))
 				.doesNotContain(STRUCTURE_TYPE);
 	}

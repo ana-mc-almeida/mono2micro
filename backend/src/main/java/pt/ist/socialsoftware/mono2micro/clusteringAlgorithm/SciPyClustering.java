@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.clusteringAlgorithm;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,6 +12,8 @@ import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.DecompositionR
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.element.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
+import pt.ist.socialsoftware.mono2micro.feature.Requirement;
+import pt.ist.socialsoftware.mono2micro.feature.SimilarityKindIn;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -23,14 +26,14 @@ import java.util.stream.Collectors;
 import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.*;
 import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
 
+@JsonTypeName(SciPyClustering.SCIPY)
 public class SciPyClustering extends Clustering {
 	public static final String SCIPY = "SciPy Clustering";
 	static final int MIN_CLUSTERS = 3, CLUSTER_STEP = 1;
 
-	private final GridFsService gridFsService;
-
-	public SciPyClustering() {
-		this.gridFsService = ContextManager.get().getBean(GridFsService.class);
+	/** Looked up on use rather than in the constructor, so the registration scan can build a prototype without Spring. */
+	private GridFsService gridFsService() {
+		return ContextManager.get().getBean(GridFsService.class);
 	}
 
 	@Override
@@ -39,15 +42,15 @@ public class SciPyClustering extends Clustering {
 	}
 
 	@Override
-	public List<String> getAlgorithmSupportedStrategyTypes() {
-		return new ArrayList<>(Arrays.asList(
+	public List<Requirement> requirements() {
+		return Collections.singletonList(new SimilarityKindIn(Arrays.asList(
 				ACCESSES_STRATEGY,
 				REPOSITORY_STRATEGY,
 				STRUCTURE_STRATEGY,
 				CLASS_VECTORIZATION_STRATEGY,
 				ENTITY_VECTORIZATION_STRATEGY,
 				FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY));
+				FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY)));
 	}
 
 	@Override
@@ -136,7 +139,7 @@ public class SciPyClustering extends Clustering {
 	}
 
 	public void generateMultipleDecompositions(RecommendMatrixSciPy recommendation) throws Exception {
-		Map<Short, String> idToEntity = recommendation.getIDToEntityName(gridFsService);
+		Map<Short, String> idToEntity = recommendation.getIDToEntityName(gridFsService());
 
 		JSONArray recommendationJSON = new JSONArray();
 
@@ -245,7 +248,7 @@ public class SciPyClustering extends Clustering {
 
 	// This function was created to be sure that no writes are made at the same time
 	private synchronized void setRecommendationResult(JSONArray recommendationResult, String recommendationResultName) {
-		gridFsService.replaceFile(new ByteArrayInputStream(recommendationResult.toString().getBytes()), recommendationResultName);
+		gridFsService().replaceFile(new ByteArrayInputStream(recommendationResult.toString().getBytes()), recommendationResultName);
 	}
 
 	private synchronized void addRecommendationToJSON(JSONArray arrayJSON, JSONObject decompositionJSON) {
