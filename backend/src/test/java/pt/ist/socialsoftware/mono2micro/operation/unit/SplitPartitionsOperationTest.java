@@ -1,4 +1,4 @@
-package pt.ist.socialsoftware.mono2micro.operation;
+package pt.ist.socialsoftware.mono2micro.operation.unit;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -8,6 +8,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import pt.ist.socialsoftware.mono2micro.cluster.Partition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
 import pt.ist.socialsoftware.mono2micro.element.Element;
+import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
+import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
 import pt.ist.socialsoftware.mono2micro.operation.split.SplitPartitionsOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;

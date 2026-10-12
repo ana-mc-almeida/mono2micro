@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * unrelated to the cluster arithmetic being tested. Also {@code Decomposition.outdated}, which
  * only {@code AccessesInformation} sets and which no operation restores on undo.
  */
-final class DecompositionSnapshot {
+public final class DecompositionSnapshot {
 
 	private final Map<String, Set<Short>> clusters;
 	private final Map<String, Map<String, Set<Short>>> dependencies;
@@ -45,7 +45,7 @@ final class DecompositionSnapshot {
 		this.dependencies = dependencies;
 	}
 
-	static DecompositionSnapshot of(Decomposition decomposition) {
+	public static DecompositionSnapshot of(Decomposition decomposition) {
 		Map<String, Set<Short>> clusters = new TreeMap<>();
 		Map<String, Map<String, Set<Short>>> dependencies = new TreeMap<>();
 
@@ -68,12 +68,12 @@ final class DecompositionSnapshot {
 	}
 
 	/** Cluster name → the entity IDs it holds. */
-	Map<String, Set<Short>> clusters() {
+	public Map<String, Set<Short>> clusters() {
 		return clusters;
 	}
 
 	/** Cluster name → (reached cluster → the entity IDs reached there). */
-	Map<String, Map<String, Set<Short>>> dependencies() {
+	public Map<String, Map<String, Set<Short>>> dependencies() {
 		return dependencies;
 	}
 }

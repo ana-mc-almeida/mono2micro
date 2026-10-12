@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * divergence should surface here as a red test rather than a silent recompile. It will not
  * surface on its own, though — see the class javadoc of {@link OperationHistoryBookkeepingTest}.
  */
-class InMemoryHistory extends History {
+public class InMemoryHistory extends History {
 
 	static final String IN_MEMORY_HISTORY = "IN_MEMORY_HISTORY";
 
@@ -45,7 +45,7 @@ class InMemoryHistory extends History {
 	 * them, so a bare subclass would NPE twice over: in {@code addOperation} on the null list,
 	 * and in {@code incrementCurrentHistoryDepth}, where {@code ++} unboxes a null {@code Long}.
 	 */
-	InMemoryHistory() {
+	public InMemoryHistory() {
 		setName("in-memory-history");
 		setHistoryOperationsList(new ArrayList<>());
 		setCurrentHistoryOperationDepth(0L);

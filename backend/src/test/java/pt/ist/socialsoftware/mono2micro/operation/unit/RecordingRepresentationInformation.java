@@ -1,4 +1,4 @@
-package pt.ist.socialsoftware.mono2micro.operation;
+package pt.ist.socialsoftware.mono2micro.operation.unit;
 
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;

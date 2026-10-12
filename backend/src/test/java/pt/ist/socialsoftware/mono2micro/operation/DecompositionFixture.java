@@ -33,7 +33,7 @@ import java.util.Map;
  * <p>The production types are used directly rather than wrapped: the point is to exercise
  * {@code Partition} and {@code DomainEntity} as the operations see them.
  */
-final class DecompositionFixture {
+public final class DecompositionFixture {
 
 	private final PartitionsDecomposition decomposition = new PartitionsDecomposition();
 
@@ -53,12 +53,12 @@ final class DecompositionFixture {
 	private DecompositionFixture() {
 	}
 
-	static DecompositionFixture with() {
+	public static DecompositionFixture with() {
 		return new DecompositionFixture();
 	}
 
 	/** A cluster holding the given entity IDs. {@code int} to spare every call site a cast. */
-	DecompositionFixture cluster(String name, int... entityIDs) {
+	public DecompositionFixture cluster(String name, int... entityIDs) {
 		Partition partition = new Partition(name);
 		for (int entityID : entityIDs)
 			partition.addElement(entity((short) entityID));
@@ -67,7 +67,7 @@ final class DecompositionFixture {
 	}
 
 	/** A cluster with no entities — the state {@code split} leaves behind. */
-	DecompositionFixture emptyCluster(String name) {
+	public DecompositionFixture emptyCluster(String name) {
 		decomposition.addCluster(new Partition(name));
 		return this;
 	}
@@ -80,7 +80,7 @@ final class DecompositionFixture {
 	 * reference when the key is absent, and a fixture that seeded through it could alias two
 	 * clusters' dependency sets and make an unrelated test fail in a baffling way.
 	 */
-	DecompositionFixture dependency(String from, String to, int... entityIDs) {
+	public DecompositionFixture dependency(String from, String to, int... entityIDs) {
 		Partition partition = (Partition) decomposition.getCluster(from);
 		for (int entityID : entityIDs)
 			partition.addCouplingDependency(to, (short) entityID);
@@ -92,20 +92,20 @@ final class DecompositionFixture {
 	 *
 	 * <p>Left empty by default, matching the production default and keeping
 	 * {@code AccessesInformation}'s {@code ContextManager} lookup out of reach. See
-	 * {@link RecordingRepresentationInformation}.
+	 * {@code RecordingRepresentationInformation}.
 	 */
-	DecompositionFixture representationInformation(RepresentationInformation representationInformation) {
+	public DecompositionFixture representationInformation(RepresentationInformation representationInformation) {
 		decomposition.addRepresentationInformation(representationInformation);
 		return this;
 	}
 
 	/** Leaves {@code history} null, so {@code execute} NPEs and {@code executeOperation} does not. */
-	DecompositionFixture noHistory() {
+	public DecompositionFixture noHistory() {
 		withHistory = false;
 		return this;
 	}
 
-	PartitionsDecomposition build() {
+	public PartitionsDecomposition build() {
 		if (withHistory)
 			decomposition.setHistory(new InMemoryHistory());
 		return decomposition;

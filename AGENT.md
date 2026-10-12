@@ -106,7 +106,10 @@ make build
     a bare **`mvn test` runs these and only these** (~2s). Possible because a hand-built
     `PartitionsDecomposition` has an empty `representationInformations` list, which keeps
     `AccessesInformation`'s `ContextManager` lookup out of reach; `History` is faked for
-    the same reason. See that package's `README.md`, plus `DecompositionFixture` and
+    the same reason. `ManualOperationCharacterizationTest` does attach the real
+    `AccessesInformation`, and keeps the real `ContextManager` out by caching a stub in
+    its place (`StubContextManager`, serving an in-memory `FunctionalityService`). See
+    that package's `README.md`, plus `DecompositionFixture` and
     `InMemoryHistory`, and **Gap 7** in `../implementation/docs/gap-analysis.md` for the
     findings they pin.
   - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test),
