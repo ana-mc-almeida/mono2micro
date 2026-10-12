@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.feature;
 
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord.FeatureAvailability;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +28,7 @@ public class VariableFeatureTest {
 	private static class AccessesReadingFeature implements VariableFeature {
 		@Override
 		public List<Requirement> requirements() {
-			return Arrays.asList(new HasRepresentation("IDToEntity"), new HasRepresentation("Accesses"));
+			return Arrays.asList(new Uploaded("IDToEntity"), new Uploaded("Accesses"));
 		}
 	}
 
@@ -70,6 +71,6 @@ public class VariableFeatureTest {
 
 		FeatureAvailability feature = record.getFeatures().get(0);
 		assertThat(feature.isAvailable()).isFalse();
-		assertThat(feature.getFailedRequirements()).containsExactly("has an Accesses representation");
+		assertThat(feature.getFailedRequirements()).containsExactly("uploaded Accesses");
 	}
 }

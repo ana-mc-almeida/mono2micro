@@ -1,5 +1,7 @@
-package pt.ist.socialsoftware.mono2micro.feature;
+package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
+import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import java.util.ArrayList;

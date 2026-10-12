@@ -9,7 +9,7 @@ import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
  * <p>A kind is not a {@code SimilarityScipy*} class. Those six classes compute the matrices and
  * stay fused (Gap 5, D-009), and one of them, {@code SimilarityScipyAccessesAndRepository},
  * computes two kinds. So each kind is its own small class, named by its {@code @JsonTypeName} and
- * found by the self-registration scan (D-020).
+ * found by the self-registration scan (D-021).
  */
 public abstract class SimilarityKind implements VariableFeature {
 }

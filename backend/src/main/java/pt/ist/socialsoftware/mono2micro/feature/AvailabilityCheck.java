@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.feature;
 
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord.FeatureAvailability;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import java.util.Collection;

@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import pt.ist.socialsoftware.mono2micro.feature.HasRepresentation;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
+import pt.ist.socialsoftware.mono2micro.representation.HasRepresentation;
 
 import java.util.Arrays;
 import java.util.List;

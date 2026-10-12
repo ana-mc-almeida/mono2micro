@@ -5,8 +5,9 @@ package pt.ist.socialsoftware.mono2micro.feature;
  * terms ("has an Accesses representation", "Similarity kind in {…}").
  *
  * <p>A requirement is an object rather than a string so that the shared check never needs a branch
- * per kind of requirement: a new kind is one new class (D-019). Requirements used by several
- * families live in this package; one tied to a single family lives with that family.
+ * per kind of requirement: a new kind is one new class (D-019). A requirement lives with the module
+ * whose data it reads, such as {@code HasRepresentation} in {@code representation/}, so this package
+ * never imports any module of the tool (D-022).
  */
 public interface Requirement {
 

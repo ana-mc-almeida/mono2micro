@@ -1,9 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.feature;
 
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord.FeatureAvailability;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,7 +21,7 @@ public class AvailabilityCheckTest {
 	private static class NeedsAccesses implements VariableFeature {
 		@Override
 		public List<Requirement> requirements() {
-			return Collections.singletonList(new HasRepresentation("Accesses"));
+			return Collections.singletonList(new Uploaded("Accesses"));
 		}
 	}
 
@@ -31,9 +30,9 @@ public class AvailabilityCheckTest {
 		@Override
 		public List<Requirement> requirements() {
 			return Arrays.asList(
-					new HasRepresentation("Accesses"),
-					new HasRepresentation("Changes Authorship"),
-					new HasRepresentation("File Changes"));
+					new Uploaded("Accesses"),
+					new Uploaded("Changes Authorship"),
+					new Uploaded("File Changes"));
 		}
 	}
 
@@ -48,8 +47,8 @@ public class AvailabilityCheckTest {
 				.containsExactly(
 						tuple("Needs accesses", true, Collections.emptyList()),
 						tuple("Needs history", false, Arrays.asList(
-								"has a Changes Authorship representation",
-								"has a File Changes representation")));
+								"uploaded Changes Authorship",
+								"uploaded File Changes")));
 	}
 
 	@Test
@@ -59,16 +58,5 @@ public class AvailabilityCheckTest {
 				AvailabilityContext.ofRepresentationKinds(Collections.singleton("Accesses")));
 
 		assertThat(record.availableNames()).containsExactly("Needs accesses");
-	}
-
-	@Test
-	public void aSystemsContextHoldsTheSystemAndTheKindsOfItsCollectedRepresentations() {
-		Codebase system = CodebaseFixtures.accessesBased();
-
-		AvailabilityContext context = AvailabilityContext.of(system);
-
-		assertThat(context.getSystem()).isSameAs(system);
-		assertThat(context.getRepresentationKinds()).containsExactlyInAnyOrder("IDToEntity", "Accesses");
-		assertThat(context.getInput()).isEmpty();
 	}
 }

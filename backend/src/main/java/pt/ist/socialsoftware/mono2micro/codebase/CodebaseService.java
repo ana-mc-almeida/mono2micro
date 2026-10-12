@@ -18,6 +18,7 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CodebaseService {
@@ -68,7 +69,7 @@ public class CodebaseService {
 		Codebase codebase = codebaseRepository.findByName(codebaseName);
 		return AvailabilityCheck.derive(
 				SelfRegistration.prototypes(SimilarityKind.class).values(),
-				AvailabilityContext.of(codebase)).availableNames();
+				availabilityContextOf(codebase)).availableNames();
 	}
 
 	public void deleteCodebase(String codebaseName) {
@@ -80,4 +81,10 @@ public class CodebaseService {
 		codebaseRepository.deleteById(codebaseName);
 	}
 
+	/** The context the shared check reads: the kinds of the representations this System has collected (D-022). */
+	private AvailabilityContext availabilityContextOf(Codebase codebase) {
+		return AvailabilityContext.ofRepresentationKinds(codebase.getRepresentations().stream()
+				.map(Representation::getType)
+				.collect(Collectors.toSet()));
+	}
 }

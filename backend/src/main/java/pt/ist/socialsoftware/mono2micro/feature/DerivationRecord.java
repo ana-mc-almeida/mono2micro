@@ -27,4 +27,30 @@ public class DerivationRecord {
 				.map(FeatureAvailability::getName)
 				.collect(Collectors.toList());
 	}
+
+	/** One feature's line in the record. */
+	public static class FeatureAvailability {
+
+		private final String name;
+		private final boolean available;
+		private final List<String> failedRequirements;
+
+		public FeatureAvailability(String name, List<String> failedRequirements) {
+			this.name = name;
+			this.failedRequirements = Collections.unmodifiableList(new ArrayList<>(failedRequirements));
+			this.available = failedRequirements.isEmpty();
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public boolean isAvailable() {
+			return available;
+		}
+
+		public List<String> getFailedRequirements() {
+			return failedRequirements;
+		}
+	}
 }

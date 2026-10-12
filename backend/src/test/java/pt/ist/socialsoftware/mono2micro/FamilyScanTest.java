@@ -1,6 +1,10 @@
-package pt.ist.socialsoftware.mono2micro.feature;
+package pt.ist.socialsoftware.mono2micro;
 
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord.FeatureAvailability;
 import org.junit.jupiter.api.Test;
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;

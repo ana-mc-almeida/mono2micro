@@ -13,11 +13,11 @@ import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDt
 import pt.ist.socialsoftware.mono2micro.element.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
-import pt.ist.socialsoftware.mono2micro.feature.SimilarityKindIn;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKindIn;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
