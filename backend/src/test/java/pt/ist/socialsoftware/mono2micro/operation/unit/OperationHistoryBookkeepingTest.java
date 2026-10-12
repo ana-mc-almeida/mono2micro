@@ -1,9 +1,11 @@
-package pt.ist.socialsoftware.mono2micro.operation;
+package pt.ist.socialsoftware.mono2micro.operation.unit;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
 import pt.ist.socialsoftware.mono2micro.history.domain.History;
+import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
+import pt.ist.socialsoftware.mono2micro.operation.InMemoryHistory;
 import pt.ist.socialsoftware.mono2micro.operation.rename.RenamePartitionsOperation;
 
 import static org.assertj.core.api.Assertions.assertThat;
