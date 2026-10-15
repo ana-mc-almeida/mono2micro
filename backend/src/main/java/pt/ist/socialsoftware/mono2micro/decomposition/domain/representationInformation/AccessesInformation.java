@@ -136,7 +136,7 @@ public class AccessesInformation extends RepresentationInformation {
 				continue;
 
 			iter.getFunctionalityWithName(functionalityName);
-			Functionality functionality = new Functionality(decomposition.getName(), functionalityName);
+			Functionality functionality = new Functionality(functionalityName);
 
 			// Get traces according to trace type
 			List<TraceDto> traceDtos = iter.getTracesByType(similarity.getTraceType());
@@ -294,7 +294,7 @@ public class AccessesInformation extends RepresentationInformation {
 	public void copyFunctionalities(AccessesInformation accessesInformation) throws IOException {
 		FunctionalityService functionalityService = ContextManager.get().getBean(FunctionalityService.class);
 		for (Functionality functionality : accessesInformation.getFunctionalities().values()) {
-			Functionality snapshotFunctionality = new Functionality(getDecompositionName(), functionality);
+			Functionality snapshotFunctionality = new Functionality(functionality);
 			snapshotFunctionality.setFunctionalityRedesignNameUsedForMetrics(functionality.getFunctionalityRedesignNameUsedForMetrics());
 
 			for (String redesignName : functionality.getFunctionalityRedesigns().keySet()) {

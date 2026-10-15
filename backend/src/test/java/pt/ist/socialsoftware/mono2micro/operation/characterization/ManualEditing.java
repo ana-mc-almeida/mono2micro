@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
  */
 final class ManualEditing {
 
-	/** The name every request addresses; tests that build named domain objects reuse it. */
+	/** The name every request addresses. */
 	static final String DECOMPOSITION_NAME = "decomposition-under-test";
 
 	private final Decomposition decomposition;

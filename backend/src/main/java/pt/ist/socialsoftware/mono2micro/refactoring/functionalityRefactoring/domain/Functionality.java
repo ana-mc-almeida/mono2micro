@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.json.JSONException;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -41,13 +42,13 @@ public class Functionality {
 
 	public Functionality() {}
 
-	public Functionality(String decompositionName, String name) {
-		this.id = decompositionName + " & " + name.replace(".", "_");
+	public Functionality(String name) {
+		this.id = new ObjectId().toHexString();
 		this.name = name;
 	}
 
-	public Functionality(String decompositionName, Functionality functionality) { // Useful when redesigns are not needed
-		this.id = decompositionName + " & " + functionality.getName().replace(".", "_");
+	public Functionality(Functionality functionality) { // A copy with a new id. Useful when redesigns are not needed
+		this.id = new ObjectId().toHexString();
 		this.name = functionality.getName();
 		this.type = functionality.getType();
 		this.metrics = functionality.getMetrics();
