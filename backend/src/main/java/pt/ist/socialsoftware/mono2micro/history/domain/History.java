@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.history.domain;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import pt.ist.socialsoftware.mono2micro.operation.Operation;
 
@@ -7,11 +8,20 @@ import java.util.List;
 
 public abstract class History {
 	@Id
+	String id = new ObjectId().toHexString();
 	String name;
 
 	Long currentHistoryOperationDepth;
 
 	List<Operation> historyOperationList;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
