@@ -51,15 +51,16 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void createSoftwareSystem(String softwareSystemName) {
-		ResponseEntity<String> response = rest.postForEntity(
-				base + "/softwareSystems/create?softwareSystemName={name}", null, String.class, softwareSystemName);
+	public String createSoftwareSystem(String softwareSystemName) {
+		ResponseEntity<JsonNode> response = rest.postForEntity(
+				base + "/softwareSystems/create?softwareSystemName={name}", null, JsonNode.class, softwareSystemName);
 
 		require(response, HttpStatus.CREATED, "create software system " + softwareSystemName);
+		return response.getBody().path("id").asText();
 	}
 
 	@Override
-	public void addRepresentations(String softwareSystemName, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemId, StrategyCase strategyCase) {
 		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 
 		// Index-aligned repeated parts: representationTypes[i] describes representations[i].
@@ -75,24 +76,24 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 		ResponseEntity<String> response = rest.exchange(
-				base + "/softwareSystems/{name}/addRepresentations/{group}",
+				base + "/softwareSystems/{id}/addRepresentations/{group}",
 				HttpMethod.POST,
 				new HttpEntity<>(form, headers),
 				String.class,
-				softwareSystemName,
+				softwareSystemId,
 				strategyCase.representationGroup());
 
-		require(response, HttpStatus.CREATED, "add representations to " + softwareSystemName);
+		require(response, HttpStatus.CREATED, "add representations to " + softwareSystemId);
 	}
 
 	@Override
-	public String createStrategy(String softwareSystemName, StrategyCase strategyCase) {
+	public String createStrategy(String softwareSystemId, StrategyCase strategyCase) {
 		// strategyTypes is a repeated query parameter, so a multi-type strategy such as
 		// Repository sends it twice rather than as one comma-joined value.
 		StringBuilder url = new StringBuilder(
-				base + "/softwareSystems/{name}/createStrategy?algorithmType={algorithm}");
+				base + "/softwareSystems/{id}/createStrategy?algorithmType={algorithm}");
 		List<Object> uriVariables = new ArrayList<>();
-		uriVariables.add(softwareSystemName);
+		uriVariables.add(softwareSystemId);
 		uriVariables.add("SciPy Clustering");
 
 		for (String strategyType : strategyCase.strategyTypes()) {
@@ -100,12 +101,12 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 			uriVariables.add(strategyType);
 		}
 
-		ResponseEntity<String> response = rest.postForEntity(
-				url.toString(), null, String.class, uriVariables.toArray());
+		ResponseEntity<JsonNode> response = rest.postForEntity(
+				url.toString(), null, JsonNode.class, uriVariables.toArray());
 
-		require(response, HttpStatus.CREATED, "create strategy for " + softwareSystemName);
+		require(response, HttpStatus.CREATED, "create strategy for " + softwareSystemId);
 
-		return strategyCase.strategyName(softwareSystemName);
+		return response.getBody().path("name").asText();
 	}
 
 	@Override
@@ -336,13 +337,13 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public int representationCount(String softwareSystemName) {
-		return getJson("/softwareSystems/{name}/getRepresentations", softwareSystemName).size();
+	public int representationCount(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/getRepresentations", softwareSystemId).size();
 	}
 
 	@Override
-	public void deleteSoftwareSystem(String softwareSystemName) {
-		rest.delete(base + "/softwareSystems/{name}/delete", softwareSystemName);
+	public void deleteSoftwareSystem(String softwareSystemId) {
+		rest.delete(base + "/softwareSystems/{id}/delete", softwareSystemId);
 	}
 
 	private Map<String, Object> operation(String type) {

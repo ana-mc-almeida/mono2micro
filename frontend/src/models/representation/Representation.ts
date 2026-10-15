@@ -1,13 +1,13 @@
 export default abstract class Representation {
     name!: string;
     type!: string;
-    softwareSystemName!: string;
+    softwareSystemId!: string;
     inputFile!: string;
 
     protected constructor(representation: Representation) {
         this.name = representation.name;
         this.type = representation.type;
-        this.softwareSystemName = representation.softwareSystemName;
+        this.softwareSystemId = representation.softwareSystemId;
         this.inputFile = representation.inputFile;
     }
 

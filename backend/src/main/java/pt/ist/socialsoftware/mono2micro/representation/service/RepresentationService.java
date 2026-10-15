@@ -31,9 +31,10 @@ public class RepresentationService {
 	@Autowired
 	GridFsService gridFsService;
 
-	public void addRepresentations(String softwareSystemName, String representationInfoType, List<String> representationTypes, List<Object> representations)
+	public void addRepresentations(String softwareSystemId, String representationInfoType, List<String> representationTypes, List<Object> representations)
 			throws Exception {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
+				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
 
 		if (representationTypes == null && representations == null) { // representations already added
 			return;
@@ -59,8 +60,9 @@ public class RepresentationService {
 		softwareSystemRepository.save(softwareSystem);
 	}
 
-	public Representation getSoftwareSystemRepresentation(String softwareSystemName, String representationType) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	public Representation getSoftwareSystemRepresentation(String softwareSystemId, String representationType) {
+		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
+				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
 		return softwareSystem.getRepresentations().stream().filter(representation -> representation.getType().equals(representationType)).findFirst()
 				.orElseThrow(() -> new RuntimeException("No representation with type" + representationType));
 	}

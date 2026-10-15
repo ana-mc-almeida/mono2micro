@@ -11,7 +11,7 @@ import {RepresentationInfoParameters} from "../../../type-declarations/types";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({softwareSystemName, strategy, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");

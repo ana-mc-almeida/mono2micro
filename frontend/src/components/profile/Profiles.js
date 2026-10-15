@@ -15,14 +15,19 @@ import {useParams} from "react-router-dom";
 const HttpStatus = require('http-status-codes');
 
 export const Profiles = () => {
-    let { softwareSystemName, representationName } = useParams();
+    let { softwareSystemId, representationName } = useParams();
+    const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [representation, setRepresentation] = useState({});
     const [newProfileName, setNewProfileName] = useState("");
     const [moveToProfile, setMoveToProfile] = useState("");
     const [selectedFunctionalities, setSelectedFunctionalities] = useState([]);
     const [isUploaded, setIsUploaded] = useState("");
 
-    useEffect(() => loadRepresentation(), []);
+    useEffect(() => {
+        const service = new APIService();
+        service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
+        loadRepresentation();
+    }, []);
 
     function loadRepresentation() {
         const service = new APIService();
@@ -106,10 +111,10 @@ export const Profiles = () => {
                 <Breadcrumb.Item href="/softwareSystems">
                     Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {representationName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

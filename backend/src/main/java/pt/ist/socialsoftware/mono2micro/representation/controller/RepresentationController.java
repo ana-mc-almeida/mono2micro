@@ -24,9 +24,9 @@ public class RepresentationController {
 	@Autowired
 	RepresentationService representationService;
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemName}/representation/{representationType}/getSoftwareSystemRepresentation")
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/representation/{representationType}/getSoftwareSystemRepresentation")
 	public ResponseEntity<RepresentationDto> getSoftwareSystemRepresentation(
-			@PathVariable String softwareSystemName,
+			@PathVariable String softwareSystemId,
 			@PathVariable String representationType
 	) {
 		logger.debug("getSoftwareSystemRepresentation");
@@ -34,7 +34,7 @@ public class RepresentationController {
 		try {
 			return new ResponseEntity<>(
 					RepresentationDtoFactory.getFactory()
-							.getRepresentationDto(representationService.getSoftwareSystemRepresentation(softwareSystemName, representationType)),
+							.getRepresentationDto(representationService.getSoftwareSystemRepresentation(softwareSystemId, representationType)),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -72,9 +72,9 @@ public class RepresentationController {
 		}
 	}
 
-	@PostMapping(value = "/softwareSystems/{softwareSystemName}/addRepresentations/{representationInfoType}")
+	@PostMapping(value = "/softwareSystems/{softwareSystemId}/addRepresentations/{representationInfoType}")
 	public ResponseEntity<HttpStatus> createStrategy(
-			@PathVariable String softwareSystemName,
+			@PathVariable String softwareSystemId,
 			@PathVariable String representationInfoType,
 			@Nullable @RequestParam List<String> representationTypes,
 			@Nullable @RequestParam List<Object> representations
@@ -82,7 +82,7 @@ public class RepresentationController {
 		logger.debug("createStrategy");
 
 		try {
-			representationService.addRepresentations(softwareSystemName, representationInfoType, representationTypes, representations);
+			representationService.addRepresentations(softwareSystemId, representationInfoType, representationTypes, representations);
 			return new ResponseEntity<>(HttpStatus.CREATED);
 
 		} catch (Exception e) {

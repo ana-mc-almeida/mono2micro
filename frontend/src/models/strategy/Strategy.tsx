@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import React from "react";
 
 export default class Strategy {
+    softwareSystemId!: string;
     softwareSystemName!: string;
     name!: string;
     algorithmType!: string;
@@ -10,6 +11,7 @@ export default class Strategy {
     parameterTypes!: string[];
 
     constructor(strategy: any) {
+        this.softwareSystemId = strategy.softwareSystemId;
         this.softwareSystemName = strategy.softwareSystemName;
         this.name = strategy.name;
         this.algorithmType = strategy.algorithmType;
@@ -25,14 +27,14 @@ export default class Strategy {
                 <span>{this.algorithmType}<br/></span>
                 {this.strategyTypes.map(rep => <span key={rep}>{rep}<br/></span> )}
                 <Button
-                    href={`/softwareSystems/${this.softwareSystemName}/${this.name}/similarity`}
+                    href={`/softwareSystems/${this.softwareSystemId}/${this.name}/similarity`}
                     className="mb-2"
                 >
                     Manual Setup
                 </Button>
                 <br/>
                 <Button
-                    href={`/softwareSystems/${this.softwareSystemName}/${this.name}/recommendation`}
+                    href={`/softwareSystems/${this.softwareSystemId}/${this.name}/recommendation`}
                     className="mb-2"
                 >
                     Recommendation

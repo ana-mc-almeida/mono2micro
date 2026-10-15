@@ -14,7 +14,7 @@ import {SIMILARITY_SCIPY_ACCESSES_REPOSITORY} from "../../../models/similarity/S
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixSciPyForm = ({softwareSystemName, strategy, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
     const [profiles, setProfiles] = useState([]);
@@ -62,7 +62,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemName, strategy, setUpda
     }
 
     function loadProfiles() {
-        service.getSoftwareSystemRepresentation(softwareSystemName, RepresentationFile.ACCESSES)
+        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.ACCESSES)
             .then((response) => setProfiles(response.profiles));
     }
 

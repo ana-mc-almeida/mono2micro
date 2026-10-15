@@ -77,12 +77,12 @@ public class AccessesRepresentationController {
 
 	// FIXME (ticket 07): the path variable is a software system name, not a representation name;
 	// move to /softwareSystems/{softwareSystemName}/getIdToEntity
-	@GetMapping(value = "/representation/{softwareSystemName}/getIdToEntity")
-	public ResponseEntity<String> getIdToEntity(@PathVariable String softwareSystemName) {
+	@GetMapping(value = "/representation/{softwareSystemId}/getIdToEntity")
+	public ResponseEntity<String> getIdToEntity(@PathVariable String softwareSystemId) {
 		logger.debug("getIdToEntity");
 
 		try {
-			return new ResponseEntity<>(accessesRepresentationService.getIdToEntity(softwareSystemName), HttpStatus.OK);
+			return new ResponseEntity<>(accessesRepresentationService.getIdToEntity(softwareSystemId), HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();

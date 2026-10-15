@@ -43,17 +43,16 @@ public class StrategyController {
 		}
 	}
 
-	@PostMapping(value = "/softwareSystems/{softwareSystemName}/createStrategy")
-	public ResponseEntity<HttpStatus> createStrategy(
-			@PathVariable String softwareSystemName,
+	@PostMapping(value = "/softwareSystems/{softwareSystemId}/createStrategy")
+	public ResponseEntity<StrategyDto> createStrategy(
+			@PathVariable String softwareSystemId,
 			@Nullable @RequestParam String algorithmType,
 			@Nullable @RequestParam List<String> strategyTypes
 	) {
 		logger.debug("createStrategy");
 
 		try {
-			strategyService.createStrategy(softwareSystemName, algorithmType, strategyTypes);
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			return new ResponseEntity<>(new StrategyDto(strategyService.createStrategy(softwareSystemId, algorithmType, strategyTypes)), HttpStatus.CREATED);
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -24,8 +24,11 @@ import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -100,6 +103,9 @@ public class AvailabilityCharacterizationTest {
 
 	@InjectMocks
 	private SoftwareSystemService softwareSystemService;
+
+	/** The fixtures by name, so a test can name the software system it asks about. */
+	private final Map<String, SoftwareSystem> softwareSystems = new HashMap<>();
 
 	@BeforeEach
 	public void givenTheFixtureSoftwareSystemsExist() {
@@ -198,7 +204,7 @@ public class AvailabilityCharacterizationTest {
 	public void structureIsWithheldWithoutEntityToIdAndItsUploadGroupIsNotSatisfied() {
 		assertThat(offeredKinds(UNGROUPED_STRUCTURE_NAME))
 				.containsExactlyInAnyOrder(ACCESSES_STRATEGY);
-		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(UNGROUPED_STRUCTURE_NAME))
+		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(softwareSystems.get(UNGROUPED_STRUCTURE_NAME).getId()))
 				.doesNotContain(STRUCTURE_TYPE);
 	}
 
@@ -219,11 +225,12 @@ public class AvailabilityCharacterizationTest {
 	}
 
 	private List<String> offeredKinds(String softwareSystemName) {
-		return softwareSystemService.getAllowableSoftwareSystemStrategyTypes(softwareSystemName);
+		return softwareSystemService.getAllowableSoftwareSystemStrategyTypes(softwareSystems.get(softwareSystemName).getId());
 	}
 
 	private void givenTheRepositoryFinds(SoftwareSystem softwareSystem) {
-		when(softwareSystemRepository.findByName(softwareSystem.getName())).thenReturn(softwareSystem);
+		softwareSystems.put(softwareSystem.getName(), softwareSystem);
+		when(softwareSystemRepository.findById(softwareSystem.getId())).thenReturn(Optional.of(softwareSystem));
 	}
 
 	/** A software system with every representation type except {@code missingType}; {@code null} omits none. */

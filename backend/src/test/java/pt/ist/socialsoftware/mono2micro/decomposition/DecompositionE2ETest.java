@@ -120,19 +120,19 @@ class DecompositionE2ETest {
 			String softwareSystemName = caseName + "-" + strategyCase.label() + "-"
 					+ pipeline.layer() + "-" + System.currentTimeMillis();
 
-			pipeline.createSoftwareSystem(softwareSystemName);
-			cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystemName));
+			String softwareSystemId = pipeline.createSoftwareSystem(softwareSystemName);
+			cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystemId));
 
-			pipeline.addRepresentations(softwareSystemName, strategyCase);
+			pipeline.addRepresentations(softwareSystemId, strategyCase);
 
 			// Guards a silent failure: RepresentationService returns without doing anything
 			// when both request parameters bind to null, which would otherwise surface several
 			// steps later as an unrelated error.
-			assertThat(pipeline.representationCount(softwareSystemName))
+			assertThat(pipeline.representationCount(softwareSystemId))
 					.as("representations uploaded via %s", pipeline.layer())
 					.isEqualTo(strategyCase.representations().size());
 
-			String strategyName = pipeline.createStrategy(softwareSystemName, strategyCase);
+			String strategyName = pipeline.createStrategy(softwareSystemId, strategyCase);
 			String similarityName = pipeline.createSimilarity(strategyName, strategyCase);
 			String decompositionName = pipeline.createDecomposition(similarityName);
 

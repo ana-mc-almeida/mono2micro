@@ -8,6 +8,7 @@ import java.util.Map;
 
 public abstract class DecompositionDto {
 	String name;
+	String softwareSystemId;
 	String softwareSystemName;
 	String strategyName;
 	String similarityName;
@@ -22,6 +23,14 @@ public abstract class DecompositionDto {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
+	}
+
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
 	}
 
 	public String getSoftwareSystemName() {

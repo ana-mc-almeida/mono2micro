@@ -106,7 +106,8 @@ const functionalityRedesignColumns = [
 export const FunctionalityRefactorToolMenu = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile, translateEntity } = context;
-    let { softwareSystemName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyName, similarityName, decompositionName } = useParams();
+    const [decomposition, setDecomposition] = useState(undefined);
 
     const [waitingResponse, setWaitingResponse] = useState(false);
     const [functionalities, setFunctionalities] = useState([]);
@@ -123,8 +124,9 @@ export const FunctionalityRefactorToolMenu = () => {
 
     useEffect(() => {
         const service = new APIService();
+        service.getDecomposition(decompositionName).then(response => setDecomposition(response));
         viewSoftwareSystemRefactor();
-        service.getIdToEntity(softwareSystemName).then(response => {
+        service.getIdToEntity(softwareSystemId).then(response => {
             updateEntityTranslationFile(response.data);
         });
     }, []);
@@ -324,13 +326,13 @@ export const FunctionalityRefactorToolMenu = () => {
                 <Breadcrumb.Item href="/softwareSystems">
                     Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
-                    {softwareSystemName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
+                    {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

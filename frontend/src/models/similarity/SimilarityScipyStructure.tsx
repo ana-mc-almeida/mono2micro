@@ -32,7 +32,7 @@ export default class SimilarityScipyStructure extends Similarity {
                         Object.entries(weights.weightsLabel).map(([key, value]) => <span key={key}>{value + ": " + weights[key] + "%"} <br/></span>)
                     )}
                 </Card.Text>
-                <Button href={`/softwareSystems/${this.softwareSystemName}/${this.strategyName}/${this.name}/decomposition`}
+                <Button href={`/softwareSystems/${this.softwareSystemId}/${this.strategyName}/${this.name}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

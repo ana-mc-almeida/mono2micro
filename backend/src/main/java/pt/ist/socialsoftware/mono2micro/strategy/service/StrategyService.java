@@ -32,18 +32,21 @@ public class StrategyService {
 	@Autowired
 	RecommendationService recommendationService;
 
-	public void createStrategy(String softwareSystemName, String algorithmType, List<String> strategyTypes) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	/** Returns the new strategy, or the existing one with the same algorithm and types. */
+	public Strategy createStrategy(String softwareSystemId, String algorithmType, List<String> strategyTypes) {
+		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
+				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
 		for (Strategy strategy : softwareSystem.getStrategies())
 			if (strategy.getAlgorithmType().equals(algorithmType) &&
 					strategy.getStrategyTypes().size() == strategyTypes.size() &&
 					strategy.getStrategyTypes().containsAll(strategyTypes)) // strategy already exists
-				return;
+				return strategy;
 		Strategy strategy = new Strategy(softwareSystem, algorithmType, strategyTypes);
 		strategy.setSoftwareSystem(softwareSystem);
 		softwareSystem.addStrategy(strategy);
 		strategyRepository.save(strategy);
 		softwareSystemRepository.save(softwareSystem);
+		return strategy;
 	}
 
 	public void removeSpecificStrategyProperties(Strategy strategy) {

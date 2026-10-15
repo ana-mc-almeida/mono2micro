@@ -44,7 +44,8 @@ export const views = {
 export const AccessesViews = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile } = context;
-    let { softwareSystemName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyName, similarityName, decompositionName } = useParams();
+    const [decomposition, setDecomposition] = useState(undefined);
 
     const [view, setView] = useState(views.CLUSTERS);
     const [displayAccesses, setDisplayAccesses] = useState("block");
@@ -68,6 +69,7 @@ export const AccessesViews = () => {
         setNow(10);
 
         const service = new APIService();
+        service.getDecomposition(decompositionName).then(response => setDecomposition(response));
         service.getClustersAndClustersFunctionalities(decompositionName).then(response => {
             setNow(prev => prev + 20);
             setClusters(Object.values(response.data.clusters).sort((a, b) => a.name - b.name));
@@ -78,7 +80,7 @@ export const AccessesViews = () => {
                 setEdgeWeights(response.data);
             });
         });
-        service.getIdToEntity(softwareSystemName).then(response => {
+        service.getIdToEntity(softwareSystemId).then(response => {
             setNow(prev => prev + 10);
             updateEntityTranslationFile(response.data);
         });
@@ -87,6 +89,7 @@ export const AccessesViews = () => {
 
     function loadClustersAndClustersFunctionalities() {
         const service = new APIService();
+        service.getDecomposition(decompositionName).then(response => setDecomposition(response));
         service.getClustersAndClustersFunctionalities(decompositionName).then(response => {
             setClusters(Object.values(response.data.clusters).sort((a, b) => a.name - b.name));
             setClustersFunctionalities(response.data.clustersFunctionalities);
@@ -171,13 +174,13 @@ export const AccessesViews = () => {
                 <Breadcrumb.Item href="/softwareSystems">
                     Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
-                    {softwareSystemName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
+                    {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

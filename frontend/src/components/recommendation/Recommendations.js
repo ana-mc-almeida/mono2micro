@@ -10,7 +10,7 @@ import { StrategyType } from '../../models/strategy/StrategyTypes';
 import { RecommendationType } from '../../models/recommendation/RecommendationTypes';
 
 export const Recommendations = () => {
-    let { softwareSystemName, strategyName } = useParams();
+    let { softwareSystemId, strategyName } = useParams();
 
     const [strategy, setStrategy] = useState(undefined);
     const [decompositions, setDecompositions] = useState([]);
@@ -90,7 +90,7 @@ export const Recommendations = () => {
             <Breadcrumb>
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
                 <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>{softwareSystemName}</Breadcrumb.Item>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{strategy?.softwareSystemName}</Breadcrumb.Item>
                 <Breadcrumb.Item active>{strategyName}</Breadcrumb.Item>
             </Breadcrumb>
         );
@@ -111,7 +111,7 @@ export const Recommendations = () => {
                     {strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.ENTITY_VECTORIZATION_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_ENTITY_VECTORIZATION}
@@ -119,7 +119,7 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.CLASS_VECTORIZATION_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_CLASS_VECTORIZATION}
@@ -127,7 +127,7 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_CALLGRAPH}
@@ -135,7 +135,7 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES}
@@ -143,14 +143,14 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.STRUCTURE_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_SCIPY_STRUCTURE}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         <RecommendMatrixSciPy
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_SCIPY}

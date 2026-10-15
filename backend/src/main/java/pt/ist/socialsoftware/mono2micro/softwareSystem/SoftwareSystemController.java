@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.dto.SoftwareSystemDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
@@ -43,15 +44,15 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemName}")
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}")
 	public ResponseEntity<SoftwareSystemDto> getSoftwareSystem(
-			@PathVariable String softwareSystemName
+			@PathVariable String softwareSystemId
 	) {
 		logger.debug("getSoftwareSystem");
 
 		try {
 			return new ResponseEntity<>(
-					new SoftwareSystemDto(softwareSystemService.getSoftwareSystem(softwareSystemName)),
+					new SoftwareSystemDto(softwareSystemService.getSoftwareSystem(softwareSystemId)),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -60,15 +61,15 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemName}/getRepresentations")
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getRepresentations")
 	public ResponseEntity<List<RepresentationDto>> getRepresentations(
-			@PathVariable String softwareSystemName
+			@PathVariable String softwareSystemId
 	) {
 		logger.debug("getRepresentations");
 
 		try {
 			return new ResponseEntity<>(
-					softwareSystemService.getRepresentationTypes(softwareSystemName),
+					softwareSystemService.getRepresentationTypes(softwareSystemId),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -77,12 +78,12 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemName}/getSoftwareSystemStrategies")
-	public ResponseEntity<List<StrategyDto>> getSoftwareSystemStrategies(@PathVariable String softwareSystemName) {
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getSoftwareSystemStrategies")
+	public ResponseEntity<List<StrategyDto>> getSoftwareSystemStrategies(@PathVariable String softwareSystemId) {
 		logger.debug("getSoftwareSystemStrategies");
 
 		try {
-			List<StrategyDto> strategies = softwareSystemService.getSoftwareSystemStrategies(softwareSystemName).stream().map(StrategyDto::new)
+			List<StrategyDto> strategies = softwareSystemService.getSoftwareSystemStrategies(softwareSystemId).stream().map(StrategyDto::new)
 					.collect(Collectors.toList());
 			return new ResponseEntity<>(strategies, HttpStatus.OK);
 
@@ -92,12 +93,12 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemName}/getAllowableSoftwareSystemStrategyTypes")
-	public ResponseEntity<List<String>> getAllowableSoftwareSystemStrategyTypes(@PathVariable String softwareSystemName) {
-		logger.debug("getPossibleSoftwareSystemStrategyTypes");
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getAllowableSoftwareSystemStrategyTypes")
+	public ResponseEntity<List<String>> getAllowableSoftwareSystemStrategyTypes(@PathVariable String softwareSystemId) {
+		logger.debug("getAllowableSoftwareSystemStrategyTypes");
 
 		try {
-			return new ResponseEntity<>(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(softwareSystemName), HttpStatus.OK);
+			return new ResponseEntity<>(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(softwareSystemId), HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -105,15 +106,15 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemName}/getSoftwareSystemDecompositions")
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getSoftwareSystemDecompositions")
 	public ResponseEntity<List<DecompositionDto>> getSoftwareSystemDecompositions(
-			@PathVariable String softwareSystemName
+			@PathVariable String softwareSystemId
 	) {
 		logger.debug("getSoftwareSystemDecompositions");
 
 		try {
 			List<DecompositionDto> decompositionDtos = DecompositionDtoFactory.getDecompositionDtos(
-					softwareSystemService.getSoftwareSystemStrategies(softwareSystemName).stream()
+					softwareSystemService.getSoftwareSystemStrategies(softwareSystemId).stream()
 							.map(Strategy::getDecompositions)
 							.flatMap(Collection::stream)
 							.collect(Collectors.toList())
@@ -126,12 +127,12 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@DeleteMapping(value = "/softwareSystems/{softwareSystemName}/delete")
-	public ResponseEntity<HttpStatus> deleteSoftwareSystem(@PathVariable String softwareSystemName) {
+	@DeleteMapping(value = "/softwareSystems/{softwareSystemId}/delete")
+	public ResponseEntity<HttpStatus> deleteSoftwareSystem(@PathVariable String softwareSystemId) {
 		logger.debug("deleteSoftwareSystem");
 
 		try {
-			softwareSystemService.deleteSoftwareSystem(softwareSystemName);
+			softwareSystemService.deleteSoftwareSystem(softwareSystemId);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -141,14 +142,14 @@ public class SoftwareSystemController {
 	}
 
 	@PostMapping(value = "/softwareSystems/create")
-	public ResponseEntity<HttpStatus> createSoftwareSystem(
+	public ResponseEntity<SoftwareSystemDto> createSoftwareSystem(
 			@RequestParam String softwareSystemName
 	) {
 		logger.debug("createSoftwareSystem");
 
 		try {
-			softwareSystemService.createSoftwareSystem(softwareSystemName);
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			SoftwareSystem softwareSystem = softwareSystemService.createSoftwareSystem(softwareSystemName);
+			return new ResponseEntity<>(new SoftwareSystemDto(softwareSystem), HttpStatus.CREATED);
 
 		} catch (KeyAlreadyExistsException e) {
 			e.printStackTrace();
@@ -160,14 +161,14 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemName}/getSoftwareSystemRepresentationGroups")
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getSoftwareSystemRepresentationGroups")
 	public ResponseEntity<List<String>> getSoftwareSystemRepresentationGroups(
-			@PathVariable String softwareSystemName
+			@PathVariable String softwareSystemId
 	) {
-		logger.debug("getSoftwareSystemRepresentationInfoTypes");
+		logger.debug("getSoftwareSystemRepresentationGroups");
 
 		try {
-			return new ResponseEntity<>(softwareSystemService.getSoftwareSystemRepresentationGroups(softwareSystemName), HttpStatus.OK);
+			return new ResponseEntity<>(softwareSystemService.getSoftwareSystemRepresentationGroups(softwareSystemId), HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();

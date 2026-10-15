@@ -366,7 +366,7 @@ class PipelineCharacterizationE2ETest {
 
 		JsonNode contract = zipEntry(response.getBody(), "m2m_decomposition.json");
 
-		assertThat(contract.path("name").asText()).as("the contract is named after the software system").isEqualTo(built.softwareSystem);
+		assertThat(contract.path("name").asText()).as("the contract is named after the software system").isEqualTo(built.softwareSystemName);
 		assertThat(contract.path("entities").size()).as("entities, from the Structure data").isGreaterThan(0);
 		assertThat(contract.path("functionalities").size()).as("functionalities, from the refactoring").isGreaterThan(0);
 
@@ -408,9 +408,9 @@ class PipelineCharacterizationE2ETest {
 				+ String.join(", ", missing) + " under representations/" + caseName + "/. See that folder's README.md.");
 
 		HttpDecompositionPipeline pipeline = new HttpDecompositionPipeline(rest, port, caseName);
-		String softwareSystem = caseName + "-characterization-" + System.nanoTime();
+		String softwareSystemName = caseName + "-characterization-" + System.nanoTime();
 
-		pipeline.createSoftwareSystem(softwareSystem);
+		String softwareSystem = pipeline.createSoftwareSystem(softwareSystemName);
 		cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystem));
 		pipeline.addRepresentations(softwareSystem, strategyCase);
 
@@ -418,7 +418,7 @@ class PipelineCharacterizationE2ETest {
 		String similarity = pipeline.createSimilarity(strategy, strategyCase);
 		String decomposition = pipeline.createDecomposition(similarity);
 
-		return new Built(pipeline, softwareSystem, similarity, decomposition);
+		return new Built(pipeline, softwareSystemName, similarity, decomposition);
 	}
 
 	/** Two clusters that cut across the algorithm's three, so the comparison has something to find. */
@@ -499,18 +499,18 @@ class PipelineCharacterizationE2ETest {
 		return node;
 	}
 
-	/** One software system's names, and the pipeline that built it. */
+	/** One software system's name, its similarity and decomposition ids, and the pipeline that built them. */
 	private static final class Built {
 		final HttpDecompositionPipeline pipeline;
-		final String softwareSystem;
+		final String softwareSystemName;
 		final String similarity;
 		final String decomposition;
 
 		private Map<String, Short> ids;
 
-		Built(HttpDecompositionPipeline pipeline, String softwareSystem, String similarity, String decomposition) {
+		Built(HttpDecompositionPipeline pipeline, String softwareSystemName, String similarity, String decomposition) {
 			this.pipeline = pipeline;
-			this.softwareSystem = softwareSystem;
+			this.softwareSystemName = softwareSystemName;
 			this.similarity = similarity;
 			this.decomposition = decomposition;
 		}

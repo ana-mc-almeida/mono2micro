@@ -76,12 +76,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void createSoftwareSystem(String softwareSystemName) {
-		softwareSystemService.createSoftwareSystem(softwareSystemName);
+	public String createSoftwareSystem(String softwareSystemName) {
+		return softwareSystemService.createSoftwareSystem(softwareSystemName).getId();
 	}
 
 	@Override
-	public void addRepresentations(String softwareSystemName, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemId, StrategyCase strategyCase) {
 		List<String> types = new ArrayList<>();
 		List<Object> files = new ArrayList<>();
 
@@ -94,16 +94,15 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 
 		try {
 			representationService.addRepresentations(
-					softwareSystemName, strategyCase.representationGroup(), types, files);
+					softwareSystemId, strategyCase.representationGroup(), types, files);
 		} catch (Exception e) {
-			throw new AssertionError("Could not add representations to " + softwareSystemName, e);
+			throw new AssertionError("Could not add representations to " + softwareSystemId, e);
 		}
 	}
 
 	@Override
-	public String createStrategy(String softwareSystemName, StrategyCase strategyCase) {
-		strategyService.createStrategy(softwareSystemName, "SciPy Clustering", strategyCase.strategyTypes());
-		return strategyCase.strategyName(softwareSystemName);
+	public String createStrategy(String softwareSystemId, StrategyCase strategyCase) {
+		return strategyService.createStrategy(softwareSystemId, "SciPy Clustering", strategyCase.strategyTypes()).getName();
 	}
 
 	@Override
@@ -275,12 +274,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public int representationCount(String softwareSystemName) {
-		return softwareSystemService.getRepresentationTypes(softwareSystemName).size();
+	public int representationCount(String softwareSystemId) {
+		return softwareSystemService.getRepresentationTypes(softwareSystemId).size();
 	}
 
 	@Override
-	public void deleteSoftwareSystem(String softwareSystemName) {
-		softwareSystemService.deleteSoftwareSystem(softwareSystemName);
+	public void deleteSoftwareSystem(String softwareSystemId) {
+		softwareSystemService.deleteSoftwareSystem(softwareSystemId);
 	}
 }

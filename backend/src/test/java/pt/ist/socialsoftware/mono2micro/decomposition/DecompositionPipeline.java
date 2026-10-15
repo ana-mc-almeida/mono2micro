@@ -40,8 +40,8 @@ import java.util.Map;
  */
 interface DecompositionPipeline {
 
-	/** Step 1. Throws if the software system already exists. */
-	void createSoftwareSystem(String softwareSystemName);
+	/** Step 1. Returns the new software system's id. Throws if a software system with that name already exists. */
+	String createSoftwareSystem(String softwareSystemName);
 
 	/**
 	 * Step 2. Uploads every file the case's representation group requires, in one request.
@@ -49,10 +49,10 @@ interface DecompositionPipeline {
 	 * <p>It has to be one request: {@code RepresentationService} rejects a second upload of a
 	 * type the software system already holds with "Re-sending representations is not allowed."
 	 */
-	void addRepresentations(String softwareSystemName, StrategyCase strategyCase);
+	void addRepresentations(String softwareSystemId, StrategyCase strategyCase);
 
-	/** Step 3. Returns the strategy name, which is deterministic — see {@link StrategyCase#strategyName}. */
-	String createStrategy(String softwareSystemName, StrategyCase strategyCase);
+	/** Step 3. Returns the strategy name, read back from the created strategy. */
+	String createStrategy(String softwareSystemId, StrategyCase strategyCase);
 
 	/** Step 4. Returns the generated similarity name, read back from the strategy. */
 	String createSimilarity(String strategyName, StrategyCase strategyCase);
@@ -76,10 +76,10 @@ interface DecompositionPipeline {
 	 * <em>silently</em> when both request parameters bind to null, so a malformed upload
 	 * reports success and fails several steps later with an unrelated error.
 	 */
-	int representationCount(String softwareSystemName);
+	int representationCount(String softwareSystemId);
 
 	/** Cleanup. Mongo state persists in the {@code mongodata} volume across runs. */
-	void deleteSoftwareSystem(String softwareSystemName);
+	void deleteSoftwareSystem(String softwareSystemId);
 
 	/** Names the layer under test, for the parameterized test's display name. */
 	String layer();

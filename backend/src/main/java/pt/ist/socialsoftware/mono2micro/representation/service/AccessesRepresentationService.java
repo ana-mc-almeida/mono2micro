@@ -49,8 +49,9 @@ public class AccessesRepresentationService {
 		representationRepository.save(representation);
 	}
 
-	public String getIdToEntity(String softwareSystemName) throws IOException {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	public String getIdToEntity(String softwareSystemId) throws IOException {
+		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
+				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
 		Representation representation = softwareSystem.getRepresentationByFileType(ID_TO_ENTITY);
 		return IOUtils.toString(gridFsService.getFile(representation.getName()), StandardCharsets.UTF_8);
 	}

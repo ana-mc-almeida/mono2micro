@@ -78,11 +78,11 @@ export const ComparisonTool = () => {
         });
     }
 
-    function loadSoftwareSystemDecompositions(softwareSystemName) {
+    function loadSoftwareSystemDecompositions(softwareSystemId) {
         const service = new APIService();
         
         service.getSoftwareSystemDecompositions(
-            softwareSystemName
+            softwareSystemId
         ).then((response) => {
             if (response.data !== null) {
                 setDecompositions(response.data);
@@ -93,7 +93,7 @@ export const ComparisonTool = () => {
     function changeSoftwareSystem(softwareSystem) {
         setSoftwareSystem(softwareSystem);
 
-        loadSoftwareSystemDecompositions(softwareSystem.name);
+        loadSoftwareSystemDecompositions(softwareSystem.id);
     }
 
     function changeDecomposition1(decomposition) {
@@ -209,7 +209,7 @@ export const ComparisonTool = () => {
                         >
                             {softwareSystems.map(softwareSystem =>
                                 <Dropdown.Item
-                                    key={softwareSystem.name}
+                                    key={softwareSystem.id}
                                     onClick={() => changeSoftwareSystem(softwareSystem)}
                                 >
                                     {softwareSystem.name}
@@ -283,7 +283,7 @@ export const ComparisonTool = () => {
 
             {analysisTypes.includes("MOJO") &&
                 <MoJoResults
-                    softwareSystemName={softwareSystem.name}
+                    softwareSystemId={softwareSystem.id}
                     comparisonData={comparisonData}
                 />
             }

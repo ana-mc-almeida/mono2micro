@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StrategyDto {
+	String softwareSystemId;
 	String softwareSystemName;
 	String name;
 	String algorithmType;
@@ -15,6 +16,7 @@ public class StrategyDto {
 	List<String> parameterTypes;
 
 	public StrategyDto(Strategy strategy) {
+		this.softwareSystemId = strategy.getSoftwareSystem().getId();
 		this.softwareSystemName = strategy.getSoftwareSystem().getName();
 		this.name = strategy.getName();
 		this.algorithmType = strategy.getAlgorithmType();
@@ -28,6 +30,14 @@ public class StrategyDto {
 				}
 			}
 		}
+	}
+
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
+	}
+
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
 	}
 
 	public String getSoftwareSystemName() {

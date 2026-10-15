@@ -20,7 +20,7 @@ import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy
 		@JsonSubTypes.Type(value = SimilarityScipyStructureDto.class, name = SIMILARITY_SCIPY_STRUCTURE)
 })
 public abstract class SimilarityDto {
-	String softwareSystemName;
+	String softwareSystemId;
 	String strategyName;
 	String name;
 	String type;
@@ -49,11 +49,11 @@ public abstract class SimilarityDto {
 		this.strategyName = strategyName;
 	}
 
-	public String getSoftwareSystemName() {
-		return softwareSystemName;
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
 	}
 
-	public void setSoftwareSystemName(String softwareSystemName) {
-		this.softwareSystemName = softwareSystemName;
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
 	}
 }

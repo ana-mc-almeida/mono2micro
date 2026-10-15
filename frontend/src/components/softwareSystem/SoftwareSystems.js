@@ -30,10 +30,10 @@ export const SoftwareSystems = () => {
         setNewSoftwareSystemName(event.target.value);
     }
 
-    function handleDeleteSoftwareSystem(softwareSystemName) {
+    function handleDeleteSoftwareSystem(softwareSystemId) {
         let toastId = toast.loading("Deleting software system information...", {type: toast.TYPE.INFO});
         const service = new APIService();
-        service.deleteSoftwareSystem(softwareSystemName).then(() => {
+        service.deleteSoftwareSystem(softwareSystemId).then(() => {
             loadSoftwareSystems();
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Software System deleted.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
@@ -45,12 +45,12 @@ export const SoftwareSystems = () => {
             <Row>
                 {
                     softwareSystems.map(softwareSystem =>
-                        <Col key={softwareSystem.name} md="auto">
+                        <Col key={softwareSystem.id} md="auto">
                             <Card className={"text-center"} style={{ width: '15rem', marginBottom: "16px" }}>
                                 <Card.Header>{softwareSystem.name}</Card.Header>
                                 <Card.Body>
                                     <Button
-                                        href={`/softwareSystems/${softwareSystem.name}`}
+                                        href={`/softwareSystems/${softwareSystem.id}`}
                                         className="mb-2"
                                         variant={"primary"}
                                     >
@@ -58,7 +58,7 @@ export const SoftwareSystems = () => {
                                     </Button>
                                     <br/>
                                     <Button
-                                        onClick={() => handleDeleteSoftwareSystem(softwareSystem.name)}
+                                        onClick={() => handleDeleteSoftwareSystem(softwareSystem.id)}
                                         variant="danger"
                                     >
                                         Delete

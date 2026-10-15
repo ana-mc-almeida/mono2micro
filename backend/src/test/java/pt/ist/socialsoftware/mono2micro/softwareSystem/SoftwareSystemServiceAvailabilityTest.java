@@ -5,9 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -34,33 +39,33 @@ public class SoftwareSystemServiceAvailabilityTest {
 	@InjectMocks
 	private SoftwareSystemService softwareSystemService;
 
+	/** The fixtures by name, so a test can name the software system it asks about. */
+	private final Map<String, SoftwareSystem> softwareSystems = new HashMap<>();
+
 	@BeforeEach
 	public void givenTheFixtureSoftwareSystemsExist() {
 		MockitoAnnotations.initMocks(this);
-		when(softwareSystemRepository.findByName(EMPTY_NAME))
-				.thenReturn(SoftwareSystemFixtures.empty());
-		when(softwareSystemRepository.findByName(ACCESSES_BASED_NAME))
-				.thenReturn(SoftwareSystemFixtures.accessesBased());
-		when(softwareSystemRepository.findByName(REPOSITORY_BASED_NAME))
-				.thenReturn(SoftwareSystemFixtures.repositoryBased());
+		givenTheRepositoryFinds(SoftwareSystemFixtures.empty());
+		givenTheRepositoryFinds(SoftwareSystemFixtures.accessesBased());
+		givenTheRepositoryFinds(SoftwareSystemFixtures.repositoryBased());
 	}
 
 	@Test
 	public void uploadsCarryingAuthorshipDataMakeTheRepositoryStrategyAvailable() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(REPOSITORY_BASED_NAME))
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(REPOSITORY_BASED_NAME)))
 				.contains(Strategy.REPOSITORY_STRATEGY);
 	}
 
 	@Test
 	public void uploadsWithoutAuthorshipDataWithholdTheRepositoryStrategy() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(ACCESSES_BASED_NAME))
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(ACCESSES_BASED_NAME)))
 				.contains(Strategy.ACCESSES_STRATEGY)
 				.doesNotContain(Strategy.REPOSITORY_STRATEGY);
 	}
 
 	@Test
 	public void aSoftwareSystemWithNoUploadsIsOfferedNothing() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(EMPTY_NAME)).isEmpty();
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(EMPTY_NAME))).isEmpty();
 	}
 
 	/**
@@ -70,13 +75,22 @@ public class SoftwareSystemServiceAvailabilityTest {
 	 */
 	@Test
 	public void twoSoftwareSystemsWithDifferentUploadsGetDifferentOffers() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(REPOSITORY_BASED_NAME))
-				.isNotEqualTo(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(ACCESSES_BASED_NAME));
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(REPOSITORY_BASED_NAME)))
+				.isNotEqualTo(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(ACCESSES_BASED_NAME)));
 	}
 
 	@Test
 	public void representationGroupsAreDerivedFromTheSameUploads() {
-		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(ACCESSES_BASED_NAME))
+		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(idOf(ACCESSES_BASED_NAME)))
 				.containsExactly(ACCESSES_TYPE);
+	}
+
+	private void givenTheRepositoryFinds(SoftwareSystem softwareSystem) {
+		softwareSystems.put(softwareSystem.getName(), softwareSystem);
+		when(softwareSystemRepository.findById(softwareSystem.getId())).thenReturn(Optional.of(softwareSystem));
+	}
+
+	private String idOf(String softwareSystemName) {
+		return softwareSystems.get(softwareSystemName).getId();
 	}
 }

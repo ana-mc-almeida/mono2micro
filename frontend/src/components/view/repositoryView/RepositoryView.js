@@ -30,7 +30,8 @@ export const repositoryViewHelp = (<div>
 </div>);
 
 export const RepositoryView = () => {
-    let { softwareSystemName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyName, similarityName, decompositionName } = useParams();
+    const [decomposition, setDecomposition] = useState(undefined);
 
     const [displayRepository, setDisplayRepository] = useState("none");
     const [showModal, setShowModal] = useState(false);
@@ -55,6 +56,7 @@ export const RepositoryView = () => {
         const service = new APIService();
         const response1 = service.getDecomposition(decompositionName).then(response => {
             setNow(n => n + 30);
+            setDecomposition(response);
             setClusters(Object.values(response.clusters));
             let representationInfo = response.representationInformations.find(rep => rep.type === RepresentationType.REPOSITORY_TYPE);
             setAuthors(representationInfo.authors);
@@ -80,13 +82,13 @@ export const RepositoryView = () => {
                 <Breadcrumb.Item href="/softwareSystems">
                     Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
-                    {softwareSystemName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
+                    {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

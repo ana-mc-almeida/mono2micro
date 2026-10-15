@@ -14,7 +14,7 @@ import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 import {TraceType} from "../../../type-declarations/types";
 
 
-export const SimilarityMatrixSciPyStructureForm = ({softwareSystemName, strategy, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [profiles, setProfiles] = useState([]);
     const [profile, setProfile] = useState("Generic")
@@ -60,7 +60,7 @@ export const SimilarityMatrixSciPyStructureForm = ({softwareSystemName, strategy
     }
 
     function loadProfiles() {
-        service.getSoftwareSystemRepresentation(softwareSystemName, RepresentationFile.STRUCTURE)
+        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.STRUCTURE)
             .then((response) => setProfiles(response.profiles));
     }
 

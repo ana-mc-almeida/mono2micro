@@ -35,7 +35,8 @@ function renderBreadCrumbs(softwareSystemName) {
 }
 
 export function Strategies() {
-    let { softwareSystemName } = useParams();
+    let { softwareSystemId } = useParams();
+    const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [representationToDelete, setRepresentationToDelete] = useState(undefined);
     const [softwareSystemStrategies, setSoftwareSystemStrategies] = useState([]);
@@ -57,6 +58,7 @@ export function Strategies() {
     //Executed on mount
     useEffect(() => {
         const service = new APIService();
+        service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
         loadStrategies();
         loadRepresentations();
         loadSoftwareSystemRepresentationGroups();
@@ -66,12 +68,12 @@ export function Strategies() {
 
     function loadSoftwareSystemRepresentationGroups() {
         const service = new APIService();
-        service.getSoftwareSystemRepresentationGroups(softwareSystemName).then(response => setSoftwareSystemRepresentationGroups(response.data));
+        service.getSoftwareSystemRepresentationGroups(softwareSystemId).then(response => setSoftwareSystemRepresentationGroups(response.data));
     }
 
     function loadRepresentations() {
         const service = new APIService();
-        service.getRepresentations(softwareSystemName).then(response => {
+        service.getRepresentations(softwareSystemId).then(response => {
             setRepresentations(response);
             setObtainedRepresentations(response.map(representation => representation.type));
         });
@@ -79,7 +81,7 @@ export function Strategies() {
 
     function loadStrategies() {
         const service = new APIService();
-        service.getSoftwareSystemStrategies(softwareSystemName).then(response => {
+        service.getSoftwareSystemStrategies(softwareSystemId).then(response => {
             setSoftwareSystemStrategies(response);
         });
     }
@@ -90,7 +92,7 @@ export function Strategies() {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.addRepresentations(softwareSystemName, selectedRepresentationType, addedRepresentations)
+        service.addRepresentations(softwareSystemId, selectedRepresentationType, addedRepresentations)
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     loadSoftwareSystemRepresentationGroups();
@@ -176,7 +178,7 @@ export function Strategies() {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.createStrategy(softwareSystemName, strategyRepresentations, strategyAlgorithm)
+        service.createStrategy(softwareSystemId, strategyRepresentations, strategyAlgorithm)
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     loadStrategies();
@@ -234,7 +236,7 @@ export function Strategies() {
 
     function clickStrategyAlgorithm(type) {
         const service = new APIService();
-        service.getAllowableSoftwareSystemStrategyTypes(softwareSystemName).then(response => {
+        service.getAllowableSoftwareSystemStrategyTypes(softwareSystemId).then(response => {
             setAvailableStrategyTypes(response.data.filter(strategy => !includesStrategy(strategy)));
         })
 

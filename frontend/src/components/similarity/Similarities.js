@@ -16,7 +16,7 @@ import { StrategyType } from '../../models/strategy/StrategyTypes';
 
 export const Similarities = () => {
 
-    let { softwareSystemName, strategyName } = useParams();
+    let { softwareSystemId, strategyName } = useParams();
 
     const [strategy, setStrategy] = useState(undefined);
     const [similarities, setSimilarities] = useState([]);
@@ -71,7 +71,7 @@ export const Similarities = () => {
             <Breadcrumb>
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
                 <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>{softwareSystemName}</Breadcrumb.Item>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{strategy?.softwareSystemName}</Breadcrumb.Item>
                 <Breadcrumb.Item active>{strategyName}</Breadcrumb.Item>
             </Breadcrumb>
         );
@@ -103,41 +103,41 @@ export const Similarities = () => {
                     {strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.ENTITY_VECTORIZATION_STRATEGY) ?
                         <SimilarityMatrixSciPyEntityVectorizationForm
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.CLASS_VECTORIZATION_STRATEGY) ?
                         <SimilarityMatrixSciPyClassVectorizationForm
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY) ?
                         <SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY) ?
                         <SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.STRUCTURE_STRATEGY) ?
                         <SimilarityMatrixSciPyStructureForm
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         <SimilarityMatrixSciPyForm
-                            softwareSystemName={softwareSystemName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         />

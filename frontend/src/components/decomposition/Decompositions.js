@@ -13,13 +13,15 @@ import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "..
 import {SIMILARITY_SCIPY_STRUCTURE} from "../../models/similarity/SimilarityScipyStructure";
 
 export const Decompositions = () => {
-    let { softwareSystemName, strategyName, similarityName } = useParams();
+    let { softwareSystemId, strategyName, similarityName } = useParams();
+    const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [similarity, setSimilarity] = useState({});
     const [decompositions, setDecompositions] = useState([]);
 
     //Executed on mount
     useEffect(() => {
         const service = new APIService();
+        service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
         service.getSimilarity(similarityName).then(response => {
             setSimilarity(response);
             loadDecompositions();
@@ -93,10 +95,10 @@ export const Decompositions = () => {
                 <Breadcrumb.Item href="/softwareSystems">
                     Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

@@ -32,18 +32,18 @@ public class SoftwareSystemService {
 	@Autowired
 	SoftwareSystemRepository softwareSystemRepository;
 
-	public void createSoftwareSystem(String softwareSystemName) {
+	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
 		if (softwareSystemRepository.existsByName(softwareSystemName))
 			throw new KeyAlreadyExistsException();
-		softwareSystemRepository.save(new SoftwareSystem(softwareSystemName));
+		return softwareSystemRepository.save(new SoftwareSystem(softwareSystemName));
 	}
 
 	public Map<String, List<String>> getRepresentationGroups() {
 		return Representation.representationGroupToRepresentations;
 	}
 
-	public List<String> getSoftwareSystemRepresentationGroups(String softwareSystemName) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	public List<String> getSoftwareSystemRepresentationGroups(String softwareSystemId) {
+		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
 		return softwareSystem.getRepresentationGroups();
 	}
 
@@ -51,29 +51,30 @@ public class SoftwareSystemService {
 		return softwareSystemRepository.getSoftwareSystems();
 	}
 
-	public SoftwareSystem getSoftwareSystem(String softwareSystemName) {
-		return softwareSystemRepository.findByName(softwareSystemName);
+	public SoftwareSystem getSoftwareSystem(String softwareSystemId) {
+		return softwareSystemRepository.findById(softwareSystemId)
+				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
 	}
 
-	public List<RepresentationDto> getRepresentationTypes(String softwareSystemName) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	public List<RepresentationDto> getRepresentationTypes(String softwareSystemId) {
+		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
 		return RepresentationDtoFactory.getFactory().getRepresentationDtos(softwareSystem.getRepresentations());
 	}
 
-	public List<Strategy> getSoftwareSystemStrategies(String softwareSystemName) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	public List<Strategy> getSoftwareSystemStrategies(String softwareSystemId) {
+		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
 		return softwareSystem.getStrategies();
 	}
 
-	public List<String> getAllowableSoftwareSystemStrategyTypes(String softwareSystemName) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	public List<String> getAllowableSoftwareSystemStrategyTypes(String softwareSystemId) {
+		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
 		return AvailabilityCheck.derive(
 				SelfRegistration.prototypes(SimilarityKind.class).values(),
 				availabilityContextOf(softwareSystem)).availableNames();
 	}
 
-	public void deleteSoftwareSystem(String softwareSystemName) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+	public void deleteSoftwareSystem(String softwareSystemId) {
+		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
 		for (Strategy strategy : softwareSystem.getStrategies())
 			strategyService.deleteStrategy(strategy);
 		for (Representation representation : softwareSystem.getRepresentations())

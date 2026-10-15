@@ -88,31 +88,31 @@ export class APIService {
         return this.axios.get("/softwareSystems").then(response => response.data.map((softwareSystem:any) => new SoftwareSystem(softwareSystem)));
     }
 
-    getSoftwareSystem(softwareSystemName: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemName).then(response => new SoftwareSystem(response.data));
+    getSoftwareSystem(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId).then(response => new SoftwareSystem(response.data));
     }
 
-    getSoftwareSystemStrategies(softwareSystemName: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemName + "/getSoftwareSystemStrategies")
+    getSoftwareSystemStrategies(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemStrategies")
             .then(response => {return response.data.map((strategy:any) => new Strategy(strategy))});
     }
 
-    getSoftwareSystemDecompositions(softwareSystemName: string) {
-        return this.axios.get<Decomposition[]>("/softwareSystems/" + softwareSystemName + "/getSoftwareSystemDecompositions");
+    getSoftwareSystemDecompositions(softwareSystemId: string) {
+        return this.axios.get<Decomposition[]>("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemDecompositions");
     }
 
-    deleteSoftwareSystem(name: string) {
-        return this.axios.delete<null>("/softwareSystems/" + name + "/delete");
+    deleteSoftwareSystem(softwareSystemId: string) {
+        return this.axios.delete<null>("/softwareSystems/" + softwareSystemId + "/delete");
     }
 
     createSoftwareSystem(softwareSystemName: string) {
         const data = new FormData();
         data.append('softwareSystemName', softwareSystemName);
-        return this.axios.post<null>("/softwareSystems/create", data);
+        return this.axios.post("/softwareSystems/create", data);
     }
 
-    getSoftwareSystemRepresentationGroups(softwareSystemName: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemName + "/getSoftwareSystemRepresentationGroups");
+    getSoftwareSystemRepresentationGroups(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemRepresentationGroups");
     }
 
     getRepresentationGroups() {
@@ -161,7 +161,7 @@ export class APIService {
     //Representation
 
     addRepresentations(
-        softwareSystemName: string,
+        softwareSystemId: string,
         selectedRepresentationType: string,
         representations: Map<string, File>
     ) {
@@ -173,16 +173,16 @@ export class APIService {
         const data = new FormData();
         Object.entries(representations).forEach((entry) => {data.append("representationTypes", entry[0]); data.append("representations", entry[1])});
 
-        return this.axios.post<null>("/softwareSystems/" + softwareSystemName + "/addRepresentations/" + selectedRepresentationType, data, config);
+        return this.axios.post<null>("/softwareSystems/" + softwareSystemId + "/addRepresentations/" + selectedRepresentationType, data, config);
     }
 
-    getRepresentations(softwareSystemName: string) {
-        return this.axios.get<Representation[]>("/softwareSystems/" + softwareSystemName + "/getRepresentations")
+    getRepresentations(softwareSystemId: string) {
+        return this.axios.get<Representation[]>("/softwareSystems/" + softwareSystemId + "/getRepresentations")
             .then((response) => RepresentationFactory.getRepresentations(response.data));
     }
 
-    getSoftwareSystemRepresentation(softwareSystemName: string, representationType: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemName + "/representation/" + representationType + "/getSoftwareSystemRepresentation")
+    getSoftwareSystemRepresentation(softwareSystemId: string, representationType: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/representation/" + representationType + "/getSoftwareSystemRepresentation")
             .then((response) => RepresentationFactory.getRepresentation(response.data));
     }
 
@@ -195,9 +195,9 @@ export class APIService {
         return this.axios.delete<null>("/representation/" + id + "/delete");
     }
 
-    getIdToEntity(softwareSystemName: string) {
+    getIdToEntity(softwareSystemId: string) {
         // FIXME (ticket 07): takes a software system name under /representation; move with the backend route
-        return this.axios.get<string>("/representation/" + softwareSystemName + "/getIdToEntity");
+        return this.axios.get<string>("/representation/" + softwareSystemId + "/getIdToEntity");
     }
 
 
@@ -215,8 +215,8 @@ export class APIService {
         return this.axios.post<null>("/similarity/create", similarity);
     }
 
-    getAllowableSoftwareSystemStrategyTypes(softwareSystemName: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemName + "/getAllowableSoftwareSystemStrategyTypes");
+    getAllowableSoftwareSystemStrategyTypes(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/getAllowableSoftwareSystemStrategyTypes");
     }
 
     getAlgorithmSupportedStrategyTypes(algorithmType: string) {
@@ -226,7 +226,7 @@ export class APIService {
 
     //Strategies
     createStrategy(
-        softwareSystemName: string,
+        softwareSystemId: string,
         strategyRepresentations: string[],
         strategyAlgorithm: string
     ) {
@@ -239,7 +239,7 @@ export class APIService {
         strategyRepresentations.forEach(repr => data.append("strategyTypes", repr));
         data.append("algorithmType", strategyAlgorithm);
 
-        return this.axios.post<null>("/softwareSystems/" + softwareSystemName + "/createStrategy", data, config);
+        return this.axios.post("/softwareSystems/" + softwareSystemId + "/createStrategy", data, config);
     }
 
     getAlgorithms() {

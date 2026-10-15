@@ -63,7 +63,7 @@ const selectRow = {
     clickToSelect: true
 };
 
-export const RecommendMatrixSciPy = ({softwareSystemName, strategy, setUpdateStrategies, recommendationType}) => {
+export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrategies, recommendationType}) => {
 
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
@@ -88,7 +88,7 @@ export const RecommendMatrixSciPy = ({softwareSystemName, strategy, setUpdateStr
     }, [])
 
     function loadProfiles() {
-        service.getSoftwareSystemRepresentation(softwareSystemName, RepresentationFile.ACCESSES)
+        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.ACCESSES)
             .then((response) => setProfiles(response.profiles));
     }
 
