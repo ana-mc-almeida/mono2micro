@@ -6,13 +6,13 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * What a {@link Requirement} is checked against: the kinds of the representations a System has
+ * What a {@link Requirement} is checked against: the kinds of the representations a software system has
  * collected, and the optional input the feature would act on (D-019, D-022).
  *
- * <p>This package does not know where those come from. The module that owns the System builds the
- * context from it, so {@code feature/} never imports how the System stores its uploads.
+ * <p>This package does not know where those come from. The module that owns the software system builds the
+ * context from it, so {@code feature/} never imports how the software system stores its uploads.
  *
- * <p>Immutable: {@link #withInput(Object)} returns a new context, so one System's context can be
+ * <p>Immutable: {@link #withInput(Object)} returns a new context, so one software system's context can be
  * reused across the inputs of a family.
  */
 public class AvailabilityContext {

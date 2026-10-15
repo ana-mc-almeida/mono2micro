@@ -81,7 +81,7 @@ public class SoftwareSystemService {
 		softwareSystemRepository.deleteById(softwareSystemName);
 	}
 
-	/** The context the shared check reads: the kinds of the representations this System has collected (D-022). */
+	/** The context the shared check reads: the kinds of the representations this software system has collected (D-022). */
 	private AvailabilityContext availabilityContextOf(SoftwareSystem softwareSystem) {
 		return AvailabilityContext.ofRepresentationKinds(softwareSystem.getRepresentations().stream()
 				.map(Representation::getType)
