@@ -28,23 +28,23 @@ public class AccessesRepresentationService {
 	@Autowired
 	GridFsService gridFsService;
 
-	public void addAccessesProfile(String representationId, String profile) {
-		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+	public void addAccessesProfile(String representationName, String profile) {
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findByName(representationName)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationName + " found."));
 		representation.addProfile(profile, new HashSet<>());
 		representationRepository.save(representation);
 	}
 
-	public void moveAccessesFunctionalities(String representationId, String[] functionalities, String targetProfile) {
-		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+	public void moveAccessesFunctionalities(String representationName, String[] functionalities, String targetProfile) {
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findByName(representationName)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationName + " found."));
 		representation.moveFunctionalities(functionalities, targetProfile);
 		representationRepository.save(representation);
 	}
 
-	public void deleteAccessesProfile(String representationId, String profile) {
-		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+	public void deleteAccessesProfile(String representationName, String profile) {
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findByName(representationName)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationName + " found."));
 		representation.deleteProfile(profile);
 		representationRepository.save(representation);
 	}

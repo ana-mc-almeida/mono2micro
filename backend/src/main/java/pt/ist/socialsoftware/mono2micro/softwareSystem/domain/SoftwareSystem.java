@@ -71,8 +71,8 @@ public class SoftwareSystem {
 		this.representations.add(representation);
 	}
 
-	public void removeRepresentation(String representationId) {
-		this.representations = this.representations.stream().filter(representation -> !representation.getName().equals(representationId))
+	public void removeRepresentation(String representationName) {
+		this.representations = this.representations.stream().filter(representation -> !representation.getName().equals(representationName))
 				.collect(Collectors.toList());
 	}
 

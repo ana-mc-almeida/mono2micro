@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.representation.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
@@ -35,6 +36,7 @@ public abstract class Representation {
 	).collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
 
 	@Id
+	protected String id = new ObjectId().toHexString();
 	protected String name;
 
 	@DBRef(lazy = true)
@@ -44,6 +46,14 @@ public abstract class Representation {
 
 	@JsonIgnore
 	public abstract String getType();
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
