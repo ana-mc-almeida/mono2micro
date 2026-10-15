@@ -22,7 +22,7 @@ public class AccessesRepresentation extends Representation {
 		this.name = softwareSystem.getName() + " & " + getType();
 		this.softwareSystem = softwareSystem;
 		addProfile("Generic", getFunctionalitiesNamesFromRepresentationFile(representationFile));
-		return name;
+		return id;
 	}
 
 	@Override

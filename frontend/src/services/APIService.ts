@@ -120,9 +120,9 @@ export class APIService {
     }
 
     // Profiles
-    addAccessesProfile(representationName: string, profile: string) {
+    addAccessesProfile(representationId: string, profile: string) {
         return this.axios.post<null>(
-            "/representation/" + representationName + "/addAccessesProfile",
+            "/representation/" + representationId + "/addAccessesProfile",
             null,
             {
                 params: {
@@ -132,12 +132,12 @@ export class APIService {
     }
 
     moveAccessesFunctionalities(
-        representationName: string,
+        representationId: string,
         functionalities: string[],
         targetProfile: string,
     ) {
         return this.axios.post<null>(
-            "/representation/" + representationName + "/moveAccessesFunctionalities",
+            "/representation/" + representationId + "/moveAccessesFunctionalities",
             functionalities,
             {
                 params: {
@@ -147,9 +147,9 @@ export class APIService {
         );
     }
 
-    deleteAccessesProfile(representationName: string, profile: string) {
+    deleteAccessesProfile(representationId: string, profile: string) {
         return this.axios.delete<null>(
-            "/representation/" + representationName + "/deleteAccessesProfile",
+            "/representation/" + representationId + "/deleteAccessesProfile",
             {
                 params: {
                     "profile" : profile
@@ -186,13 +186,13 @@ export class APIService {
             .then((response) => RepresentationFactory.getRepresentation(response.data));
     }
 
-    getRepresentation(representationName: string) {
-        return this.axios.get("/representation/" + representationName + "/getRepresentation")
+    getRepresentation(representationId: string) {
+        return this.axios.get("/representation/" + representationId + "/getRepresentation")
             .then((response) => RepresentationFactory.getRepresentation(response.data));
     }
 
-    deleteRepresentation(id: string) {
-        return this.axios.delete<null>("/representation/" + id + "/delete");
+    deleteRepresentation(representationId: string) {
+        return this.axios.delete<null>("/representation/" + representationId + "/delete");
     }
 
     getIdToEntity(softwareSystemId: string) {

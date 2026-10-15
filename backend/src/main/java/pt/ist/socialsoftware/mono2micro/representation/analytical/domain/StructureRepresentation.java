@@ -22,7 +22,7 @@ public class StructureRepresentation extends Representation {
 		this.name = softwareSystem.getName() + " & " + getType();
 		this.softwareSystem = softwareSystem;
 		addProfile("Generic", getEntitiesNamesFromRepresentationFile(representationFile));
-		return name;
+		return id;
 	}
 
 	@Override

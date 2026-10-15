@@ -122,7 +122,7 @@ public class AccessesInformation extends RepresentationInformation {
 
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
 		AccessesRepresentation accesses = (AccessesRepresentation) decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
-		InputStream inputStream = gridFsService.getFile(accesses.getName());
+		InputStream inputStream = gridFsService.getFile(accesses.getId());
 		Set<String> profileFunctionalities = accesses.getProfile(similarity.getProfile());
 
 		FunctionalityTracesIterator iter = new FunctionalityTracesIterator(inputStream, similarity.getTracesMaxLimit());

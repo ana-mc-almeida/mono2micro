@@ -95,7 +95,7 @@ public class DecompositionService {
 		zipOutputStream.putNextEntry(new ZipEntry("m2m_decomposition.json"));
 		zipOutputStream.write(new ContextMapperContractBuilder(decomposition)
 				.addStructureRepresentationData(gridFsService.getFile(
-						decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(STRUCTURE).getName()))
+						decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(STRUCTURE).getId()))
 				.addSagaRefactorizationData(gridFsService.getFile(decompositionName + "_refactorization"))
 				.buildContract()
 				.getBytes());

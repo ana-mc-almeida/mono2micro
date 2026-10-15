@@ -43,13 +43,13 @@ public class RepresentationController {
 		}
 	}
 
-	@DeleteMapping(value = "/representation/{representationName}/delete")
-	public ResponseEntity<HttpStatus> deleteRepresentation(@PathVariable String representationName) {
+	@DeleteMapping(value = "/representation/{representationId}/delete")
+	public ResponseEntity<HttpStatus> deleteRepresentation(@PathVariable String representationId) {
 		// FIXME (ticket 07): copied from deleteSoftwareSystem; should be "deleteRepresentation"
 		logger.debug("deleteSoftwareSystem");
 
 		try {
-			representationService.deleteSingleRepresentation(representationName);
+			representationService.deleteSingleRepresentation(representationId);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -58,12 +58,12 @@ public class RepresentationController {
 		}
 	}
 
-	@GetMapping(value = "/representation/{representationName}/getRepresentation")
-	public ResponseEntity<RepresentationDto> getRepresentation(@PathVariable String representationName) {
+	@GetMapping(value = "/representation/{representationId}/getRepresentation")
+	public ResponseEntity<RepresentationDto> getRepresentation(@PathVariable String representationId) {
 		logger.debug("getRepresentation");
 
 		try {
-			return new ResponseEntity<>(RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentation(representationName)),
+			return new ResponseEntity<>(RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentation(representationId)),
 					HttpStatus.OK);
 
 		} catch (Exception e) {

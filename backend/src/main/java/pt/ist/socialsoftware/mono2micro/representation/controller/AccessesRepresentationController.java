@@ -20,15 +20,15 @@ public class AccessesRepresentationController {
 	@Autowired
 	AccessesRepresentationService accessesRepresentationService;
 
-	@PostMapping(value = "/representation/{representationName}/addAccessesProfile")
+	@PostMapping(value = "/representation/{representationId}/addAccessesProfile")
 	public ResponseEntity<HttpStatus> addAccessesProfile(
-			@PathVariable String representationName,
+			@PathVariable String representationId,
 			@RequestParam String profile
 	) {
 		logger.debug("addAccessesProfile");
 
 		try {
-			accessesRepresentationService.addAccessesProfile(representationName, profile);
+			accessesRepresentationService.addAccessesProfile(representationId, profile);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (KeyAlreadyExistsException e) {
@@ -41,16 +41,16 @@ public class AccessesRepresentationController {
 		}
 	}
 
-	@PostMapping(value = "/representation/{representationName}/moveAccessesFunctionalities")
+	@PostMapping(value = "/representation/{representationId}/moveAccessesFunctionalities")
 	public ResponseEntity<HttpStatus> moveAccessesFunctionalities(
-			@PathVariable String representationName,
+			@PathVariable String representationId,
 			@RequestBody String[] functionalities,
 			@RequestParam String targetProfile
 	) {
 		logger.debug("moveAccessesFunctionalities");
 
 		try {
-			accessesRepresentationService.moveAccessesFunctionalities(representationName, functionalities, targetProfile);
+			accessesRepresentationService.moveAccessesFunctionalities(representationId, functionalities, targetProfile);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -59,15 +59,15 @@ public class AccessesRepresentationController {
 		}
 	}
 
-	@DeleteMapping(value = "/representation/{representationName}/deleteAccessesProfile")
+	@DeleteMapping(value = "/representation/{representationId}/deleteAccessesProfile")
 	public ResponseEntity<HttpStatus> deleteAccessesProfile(
-			@PathVariable String representationName,
+			@PathVariable String representationId,
 			@RequestParam String profile
 	) {
 		logger.debug("deleteAccessesProfile");
 
 		try {
-			accessesRepresentationService.deleteAccessesProfile(representationName, profile);
+			accessesRepresentationService.deleteAccessesProfile(representationId, profile);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();

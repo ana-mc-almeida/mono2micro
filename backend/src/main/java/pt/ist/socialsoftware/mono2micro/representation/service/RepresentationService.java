@@ -67,23 +67,23 @@ public class RepresentationService {
 				.orElseThrow(() -> new RuntimeException("No representation with type" + representationType));
 	}
 
-	public Representation getRepresentation(String representationName) {
-		return representationRepository.findByName(representationName)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationName + " found."));
+	public Representation getRepresentation(String representationId) {
+		return representationRepository.findById(representationId)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
 	}
 
-	public void deleteRepresentation(String representationName) {
-		Representation representation = representationRepository.findByName(representationName)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationName));
-		gridFsService.deleteFile(representation.getName());
-		representationRepository.deleteByName(representationName);
+	public void deleteRepresentation(String representationId) {
+		Representation representation = representationRepository.findById(representationId)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationId));
+		gridFsService.deleteFile(representation.getId());
+		representationRepository.deleteById(representationId);
 	}
 
-	public void deleteSingleRepresentation(String representationName) {
-		Representation representation = representationRepository.findByName(representationName)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationName));
+	public void deleteSingleRepresentation(String representationId) {
+		Representation representation = representationRepository.findById(representationId)
+				.orElseThrow(() -> new RuntimeException("No representation " + representationId));
 		SoftwareSystem softwareSystem = representation.getSoftwareSystem();
-		softwareSystem.removeRepresentation(representationName);
+		softwareSystem.removeRepresentation(representation.getName());
 		ArrayList<Strategy> strategies = new ArrayList<>();
 		for (Strategy strategy : softwareSystem.getStrategies()) {
 			boolean deleted = false;
@@ -99,8 +99,8 @@ public class RepresentationService {
 		}
 
 		softwareSystem.setStrategies(strategies);
-		gridFsService.deleteFile(representation.getName());
+		gridFsService.deleteFile(representation.getId());
 		softwareSystemRepository.save(softwareSystem);
-		representationRepository.deleteByName(representationName);
+		representationRepository.deleteById(representationId);
 	}
 }

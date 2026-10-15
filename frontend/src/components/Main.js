@@ -28,7 +28,7 @@ export const Main = () => (
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyName/:similarityName/:decompositionName/structureView' element={<StructureView/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyName/:similarityName/:decompositionName/functionalityRefactor' element={<FunctionalityRefactorToolMenu/>} />
 
-      <Route exact path='/softwareSystems/:softwareSystemId/:representationName/profiles' element={<Profiles/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/:representationId/profiles' element={<Profiles/>} />
 
       <Route exact path='/comparisonTool' element={<ComparisonTool/>} />
     </Routes>

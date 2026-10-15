@@ -103,8 +103,8 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 
 		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
 		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
-		matrix.put("translationFileName", idToEntity.getName());
-		matrix.put("accessesFileName", accessesInfo.getName());
+		matrix.put("translationFileName", idToEntity.getId());
+		matrix.put("accessesFileName", accessesInfo.getId());
 
 		JSONObject matrixJSON = new JSONObject(matrix);
 		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
@@ -282,7 +282,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		remainders[0] = INTERVAL;
 
 		Set<String> similarityMatrices = new HashSet<>();
-		getMatrixCombinations(similarityMatrices, codeEmbeddings, idToEntity.getName(), accessesInfo.getName(), weights, remainders, 0);
+		getMatrixCombinations(similarityMatrices, codeEmbeddings, idToEntity.getId(), accessesInfo.getId(), weights, remainders, 0);
 		return similarityMatrices;
 	}
 

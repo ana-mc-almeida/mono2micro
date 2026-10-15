@@ -152,7 +152,7 @@ export function Strategies() {
 
         let toastId = toast.loading("Deleting representation...", {type: toast.TYPE.INFO});
         const service = new APIService();
-        service.deleteRepresentation(representationToDelete.name).then(() => {
+        service.deleteRepresentation(representationToDelete.id).then(() => {
             loadSoftwareSystemRepresentationGroups();
             loadRepresentations();
             loadStrategies();

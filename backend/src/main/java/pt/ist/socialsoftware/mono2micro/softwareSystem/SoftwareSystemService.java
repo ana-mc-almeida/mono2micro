@@ -78,7 +78,7 @@ public class SoftwareSystemService {
 		for (Strategy strategy : softwareSystem.getStrategies())
 			strategyService.deleteStrategy(strategy);
 		for (Representation representation : softwareSystem.getRepresentations())
-			representationService.deleteRepresentation(representation.getName());
+			representationService.deleteRepresentation(representation.getId());
 		softwareSystemRepository.delete(softwareSystem);
 	}
 

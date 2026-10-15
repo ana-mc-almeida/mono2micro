@@ -57,7 +57,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
-		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getName()), new TypeReference<Map<Short, String>>() {});
+		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 
 	@Override
@@ -147,7 +147,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem()
 				.getRepresentationByFileType(ID_TO_ENTITY);
 		Map<Short, String> idToEntity = new ObjectMapper().readValue(
-				gridFsService.getFileAsString(idToEntityRepresentation.getName()),
+				gridFsService.getFileAsString(idToEntityRepresentation.getId()),
 				new TypeReference<Map<Short, String>>() {}
 		);
 		return new TreeSet<>(idToEntity.keySet());

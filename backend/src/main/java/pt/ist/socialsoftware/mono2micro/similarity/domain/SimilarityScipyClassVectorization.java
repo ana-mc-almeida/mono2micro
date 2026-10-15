@@ -211,7 +211,7 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 
 		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
-				gridFsService.getFileAsString(entityToId.getName()),
+				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
 		);
 	}

@@ -87,7 +87,7 @@ public class AccessesDecompositionService {
 
 		DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)
 				.createLocalTransactionGraphFromScratch(
-						gridFsService.getFile(representation.getName()),
+						gridFsService.getFile(representation.getId()),
 						similarity.getTracesMaxLimit(),
 						similarity.getTraceType(),
 						decomposition.getEntityIDToClusterName());

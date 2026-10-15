@@ -129,7 +129,7 @@ public class AccessesWeights extends Weights {
 			throws IOException, JSONException {
 		SimilarityScipyAccessesAndRepository s = (SimilarityScipyAccessesAndRepository) similarity;
 		AccessesRepresentation accesses = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(s.getProfile()), s.getTraceType(),
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getId()), accesses.getProfile(s.getProfile()), s.getTraceType(),
 				s.getTracesMaxLimit());
 	}
 
@@ -138,7 +138,7 @@ public class AccessesWeights extends Weights {
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
 		AccessesRepresentation accesses = (AccessesRepresentation) recommendation.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(r.getProfile()), r.getTraceType(),
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getId()), accesses.getProfile(r.getProfile()), r.getTraceType(),
 				r.getTracesMaxLimit());
 	}
 

@@ -120,7 +120,7 @@ public class StructureInformation extends RepresentationInformation {
 		StructureRepresentation structureRepresentation = (StructureRepresentation) decomposition.getStrategy().getSoftwareSystem()
 				.getRepresentationByFileType(STRUCTURE);
 		Map<String, Object> jsonData = new ObjectMapper().readValue(
-				gridFsService.getFileAsString(structureRepresentation.getName()),
+				gridFsService.getFileAsString(structureRepresentation.getId()),
 				new TypeReference<Map<String, Object>>() {}
 		);
 

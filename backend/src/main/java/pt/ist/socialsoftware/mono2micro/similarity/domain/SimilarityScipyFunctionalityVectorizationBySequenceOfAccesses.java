@@ -99,8 +99,8 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 
 		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
 		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
-		matrix.put("translationFileName", idToEntity.getName());
-		matrix.put("accessesFileName", accessesInfo.getName());
+		matrix.put("translationFileName", idToEntity.getId());
+		matrix.put("accessesFileName", accessesInfo.getId());
 
 		JSONObject matrixJSON = new JSONObject(matrix);
 
@@ -279,7 +279,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 
 		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
-				gridFsService.getFileAsString(entityToId.getName()),
+				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
 		);
 	}
@@ -289,7 +289,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 
 		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
 		return new ObjectMapper().readValue(
-				gridFsService.getFileAsString(idToEntity.getName()),
+				gridFsService.getFileAsString(idToEntity.getId()),
 				new TypeReference<Map<Short, String>>() {}
 		);
 	}
@@ -299,7 +299,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 
 		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ACCESSES);
 		return new JSONObject(
-				gridFsService.getFileAsString(accessesRepresentation.getName())
+				gridFsService.getFileAsString(accessesRepresentation.getId())
 		);
 	}
 
@@ -323,7 +323,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		remainders[0] = INTERVAL;
 
 		Set<String> similarityMatrices = new HashSet<>();
-		getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, idToEntity.getName(), accessesInfo.getName(), entityToId, weights,
+		getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, idToEntity.getId(), accessesInfo.getId(), entityToId, weights,
 				remainders, 0);
 		return similarityMatrices;
 	}

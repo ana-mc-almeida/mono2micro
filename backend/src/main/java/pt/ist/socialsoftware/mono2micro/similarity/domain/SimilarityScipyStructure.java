@@ -130,7 +130,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 		EntityToIDRepresentation entityToIDRepresentation = (EntityToIDRepresentation) similarity.getStrategy().getSoftwareSystem()
 				.getRepresentationByFileType(ENTITY_TO_ID);
 		Map<String, Short> entityToId = new ObjectMapper().readValue(
-				gridFsService.getFileAsString(entityToIDRepresentation.getName()),
+				gridFsService.getFileAsString(entityToIDRepresentation.getId()),
 				new TypeReference<Map<String, Short>>() {}
 		);
 		return new TreeSet<>(entityToId.values());

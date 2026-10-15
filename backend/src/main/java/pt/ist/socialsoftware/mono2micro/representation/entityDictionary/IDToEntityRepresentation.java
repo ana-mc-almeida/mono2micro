@@ -16,7 +16,7 @@ public class IDToEntityRepresentation extends Representation {
 	public String init(SoftwareSystem softwareSystem, byte[] representationFile) {
 		this.name = softwareSystem.getName() + " & " + getType();
 		this.softwareSystem = softwareSystem;
-		return name;
+		return id;
 	}
 
 	@Override

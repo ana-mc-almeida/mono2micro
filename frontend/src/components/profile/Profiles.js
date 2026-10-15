@@ -15,7 +15,7 @@ import {useParams} from "react-router-dom";
 const HttpStatus = require('http-status-codes');
 
 export const Profiles = () => {
-    let { softwareSystemId, representationName } = useParams();
+    let { softwareSystemId, representationId } = useParams();
     const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [representation, setRepresentation] = useState({});
     const [newProfileName, setNewProfileName] = useState("");
@@ -31,7 +31,7 @@ export const Profiles = () => {
 
     function loadRepresentation() {
         const service = new APIService();
-        service.getRepresentation(representationName).then(response => {
+        service.getRepresentation(representationId).then(response => {
             setRepresentation(response === null ? {} : response);
         });
     }
@@ -46,7 +46,7 @@ export const Profiles = () => {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.addAccessesProfile(representationName, newProfileName).then(response => {
+        service.addAccessesProfile(representationId, newProfileName).then(response => {
             if (response.status === HttpStatus.OK) {
                 loadRepresentation();
                 setIsUploaded("Upload completed successfully.");
@@ -71,7 +71,7 @@ export const Profiles = () => {
         const service = new APIService();
 
         service.moveAccessesFunctionalities(
-            representationName,
+            representationId,
             selectedFunctionalities,
             moveToProfile
         ).then(() => {
@@ -84,7 +84,7 @@ export const Profiles = () => {
         const service = new APIService();
 
         service.deleteAccessesProfile(
-            representationName,
+            representationId,
             profile
         ).then(() => {
             loadRepresentation();
@@ -115,7 +115,7 @@ export const Profiles = () => {
                     {softwareSystemName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
-                    {representationName}
+                    {representation.name}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
                     Profiles
