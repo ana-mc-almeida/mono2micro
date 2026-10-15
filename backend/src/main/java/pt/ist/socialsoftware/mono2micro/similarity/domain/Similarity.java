@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 public abstract class Similarity {
 	@Id
+	protected String id = new ObjectId().toHexString();
 	protected String name;
 	@DBRef
 	private Strategy strategy;
@@ -28,6 +30,14 @@ public abstract class Similarity {
 		strategy.addSimilarity(this);
 		this.name = name;
 		setDecompositions(new ArrayList<>());
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getName() {
