@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.softwareSystem.domain;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 @Document("softwareSystem")
 public class SoftwareSystem {
 	@Id
+	private String id = new ObjectId().toHexString();
 	private String name;
 	@DBRef(lazy = true)
 	private List<Representation> representations;
@@ -24,6 +26,14 @@ public class SoftwareSystem {
 		this.name = name;
 		representations = new ArrayList<>();
 		strategies = new ArrayList<>();
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getName() {

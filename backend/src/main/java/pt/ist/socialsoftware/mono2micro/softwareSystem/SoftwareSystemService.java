@@ -78,7 +78,7 @@ public class SoftwareSystemService {
 			strategyService.deleteStrategy(strategy);
 		for (Representation representation : softwareSystem.getRepresentations())
 			representationService.deleteRepresentation(representation.getName());
-		softwareSystemRepository.deleteById(softwareSystemName);
+		softwareSystemRepository.delete(softwareSystem);
 	}
 
 	/** The context the shared check reads: the kinds of the representations this software system has collected (D-022). */
