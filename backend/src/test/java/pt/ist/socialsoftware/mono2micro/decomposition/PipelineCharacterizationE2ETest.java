@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * {@link HttpDecompositionPipeline}. When a ticket changes an endpoint, it changes the path or
  * payload there and nothing here, so a red test after a port is a regression.
  *
- * <p>Each test builds its own codebase from the {@code quizzes-tutor} fixture with the
+ * <p>Each test builds its own software system from the {@code quizzes-tutor} fixture with the
  * Accesses strategy, whose algorithm run (average linkage, cut N=3) gives:
  *
  * <pre>
@@ -88,7 +88,7 @@ class PipelineCharacterizationE2ETest {
 	}
 
 	@AfterEach
-	void removeCreatedCodebases() {
+	void removeCreatedSoftwareSystems() {
 		for (Runnable cleanup : cleanups) {
 			try {
 				cleanup.run();
@@ -366,7 +366,7 @@ class PipelineCharacterizationE2ETest {
 
 		JsonNode contract = zipEntry(response.getBody(), "m2m_decomposition.json");
 
-		assertThat(contract.path("name").asText()).as("the contract is named after the codebase").isEqualTo(built.codebase);
+		assertThat(contract.path("name").asText()).as("the contract is named after the software system").isEqualTo(built.softwareSystem);
 		assertThat(contract.path("entities").size()).as("entities, from the Structure data").isGreaterThan(0);
 		assertThat(contract.path("functionalities").size()).as("functionalities, from the refactoring").isGreaterThan(0);
 
@@ -401,24 +401,24 @@ class PipelineCharacterizationE2ETest {
 
 	// Building blocks.
 
-	/** A codebase with one algorithm run, removed after the test. */
+	/** A software system with one algorithm run, removed after the test. */
 	private Built build(String caseName, StrategyCase strategyCase) {
 		List<String> missing = RepresentationFiles.missing(caseName, strategyCase.fixtureSuffixes());
 		assumeTrue(missing.isEmpty(), "No fixture for " + caseName + " / " + strategyCase.label() + ": missing "
 				+ String.join(", ", missing) + " under representations/" + caseName + "/. See that folder's README.md.");
 
 		HttpDecompositionPipeline pipeline = new HttpDecompositionPipeline(rest, port, caseName);
-		String codebase = caseName + "-characterization-" + System.nanoTime();
+		String softwareSystem = caseName + "-characterization-" + System.nanoTime();
 
-		pipeline.createCodebase(codebase);
-		cleanups.add(() -> pipeline.deleteCodebase(codebase));
-		pipeline.addRepresentations(codebase, strategyCase);
+		pipeline.createSoftwareSystem(softwareSystem);
+		cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystem));
+		pipeline.addRepresentations(softwareSystem, strategyCase);
 
-		String strategy = pipeline.createStrategy(codebase, strategyCase);
+		String strategy = pipeline.createStrategy(softwareSystem, strategyCase);
 		String similarity = pipeline.createSimilarity(strategy, strategyCase);
 		String decomposition = pipeline.createDecomposition(similarity);
 
-		return new Built(pipeline, codebase, similarity, decomposition);
+		return new Built(pipeline, softwareSystem, similarity, decomposition);
 	}
 
 	/** Two clusters that cut across the algorithm's three, so the comparison has something to find. */
@@ -499,18 +499,18 @@ class PipelineCharacterizationE2ETest {
 		return node;
 	}
 
-	/** One codebase's names, and the pipeline that built it. */
+	/** One software system's names, and the pipeline that built it. */
 	private static final class Built {
 		final HttpDecompositionPipeline pipeline;
-		final String codebase;
+		final String softwareSystem;
 		final String similarity;
 		final String decomposition;
 
 		private Map<String, Short> ids;
 
-		Built(HttpDecompositionPipeline pipeline, String codebase, String similarity, String decomposition) {
+		Built(HttpDecompositionPipeline pipeline, String softwareSystem, String similarity, String decomposition) {
 			this.pipeline = pipeline;
-			this.codebase = codebase;
+			this.softwareSystem = softwareSystem;
 			this.similarity = similarity;
 			this.decomposition = decomposition;
 		}

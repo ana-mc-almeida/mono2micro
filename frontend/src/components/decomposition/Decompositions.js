@@ -13,7 +13,7 @@ import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "..
 import {SIMILARITY_SCIPY_STRUCTURE} from "../../models/similarity/SimilarityScipyStructure";
 
 export const Decompositions = () => {
-    let { codebaseName, strategyName, similarityName } = useParams();
+    let { softwareSystemName, strategyName, similarityName } = useParams();
     const [similarity, setSimilarity] = useState({});
     const [decompositions, setDecompositions] = useState([]);
 
@@ -90,13 +90,13 @@ export const Decompositions = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                    {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

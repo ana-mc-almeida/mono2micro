@@ -56,7 +56,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getName()), new TypeReference<Map<Short, String>>() {});
 	}
 
@@ -144,7 +144,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	}
 
 	public Set<Short> fillElements(GridFsService gridFsService, Similarity similarity) throws IOException {
-		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) similarity.getStrategy().getCodebase()
+		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem()
 				.getRepresentationByFileType(ID_TO_ENTITY);
 		Map<Short, String> idToEntity = new ObjectMapper().readValue(
 				gridFsService.getFileAsString(idToEntityRepresentation.getName()),

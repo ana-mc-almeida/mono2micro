@@ -18,27 +18,27 @@ import {AddCircleOutline, CheckCircle} from "@mui/icons-material";
 import MUIButton from "@mui/material/Button";
 import Card from "react-bootstrap/Card";
 
-function renderBreadCrumbs(codebaseName) {
+function renderBreadCrumbs(softwareSystemName) {
     return (
         <Breadcrumb>
             <Breadcrumb.Item href="/">
                 Home
             </Breadcrumb.Item>
-            <Breadcrumb.Item href="/codebases">
-                Codebases
+            <Breadcrumb.Item href="/softwareSystems">
+                Software Systems
             </Breadcrumb.Item>
             <Breadcrumb.Item active>
-                {codebaseName}
+                {softwareSystemName}
             </Breadcrumb.Item>
         </Breadcrumb>
     );
 }
 
 export function Strategies() {
-    let { codebaseName } = useParams();
+    let { softwareSystemName } = useParams();
     const [showPopup, setShowPopup] = useState(false);
     const [representationToDelete, setRepresentationToDelete] = useState(undefined);
-    const [codebaseStrategies, setCodebaseCodebaseStrategies] = useState([]);
+    const [softwareSystemStrategies, setSoftwareSystemStrategies] = useState([]);
     const [representations, setRepresentations] = useState([]);
     const [requiredRepresentations, setRequiredRepresentations] = useState([]);
     const [obtainedRepresentations, setObtainedRepresentations] = useState([]);
@@ -48,7 +48,7 @@ export function Strategies() {
     const [canSubmit, setCanSubmit] = useState(false);
     const [add, setAdd] = useState("");
     const [representationGroups, setRepresentationGroups] = useState([]);
-    const [codebaseRepresentationGroups, setCodebaseRepresentationGroups] = useState([]);
+    const [softwareSystemRepresentationGroups, setSoftwareSystemRepresentationGroups] = useState([]);
     const [strategyRepresentations, setStrategyRepresentations] = useState([]);
     const [algorithms, setAlgorithms] = useState([]);
     const [strategyAlgorithm, setStrategyAlgorithm] = useState(undefined);
@@ -59,19 +59,19 @@ export function Strategies() {
         const service = new APIService();
         loadStrategies();
         loadRepresentations();
-        loadCodebaseRepresentationGroups();
+        loadSoftwareSystemRepresentationGroups();
         service.getAlgorithms().then(response => setAlgorithms(response.data));
         service.getRepresentationGroups().then(response => setRepresentationGroups(response.data));
     }, []);
 
-    function loadCodebaseRepresentationGroups() {
+    function loadSoftwareSystemRepresentationGroups() {
         const service = new APIService();
-        service.getCodebaseRepresentationGroups(codebaseName).then(response => setCodebaseRepresentationGroups(response.data));
+        service.getSoftwareSystemRepresentationGroups(softwareSystemName).then(response => setSoftwareSystemRepresentationGroups(response.data));
     }
 
     function loadRepresentations() {
         const service = new APIService();
-        service.getRepresentations(codebaseName).then(response => {
+        service.getRepresentations(softwareSystemName).then(response => {
             setRepresentations(response);
             setObtainedRepresentations(response.map(representation => representation.type));
         });
@@ -79,8 +79,8 @@ export function Strategies() {
 
     function loadStrategies() {
         const service = new APIService();
-        service.getCodebaseStrategies(codebaseName).then(response => {
-            setCodebaseCodebaseStrategies(response);
+        service.getSoftwareSystemStrategies(softwareSystemName).then(response => {
+            setSoftwareSystemStrategies(response);
         });
     }
 
@@ -90,10 +90,10 @@ export function Strategies() {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.addRepresentations(codebaseName, selectedRepresentationType, addedRepresentations)
+        service.addRepresentations(softwareSystemName, selectedRepresentationType, addedRepresentations)
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
-                    loadCodebaseRepresentationGroups();
+                    loadSoftwareSystemRepresentationGroups();
                     loadRepresentations();
                     setIsUploaded("");
                 } else setIsUploaded("Upload failed.");
@@ -151,7 +151,7 @@ export function Strategies() {
         let toastId = toast.loading("Deleting representation...", {type: toast.TYPE.INFO});
         const service = new APIService();
         service.deleteRepresentation(representationToDelete.name).then(() => {
-            loadCodebaseRepresentationGroups();
+            loadSoftwareSystemRepresentationGroups();
             loadRepresentations();
             loadStrategies();
             toast.dismiss(toastId);
@@ -176,7 +176,7 @@ export function Strategies() {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.createStrategy(codebaseName, strategyRepresentations, strategyAlgorithm)
+        service.createStrategy(softwareSystemName, strategyRepresentations, strategyAlgorithm)
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     loadStrategies();
@@ -219,7 +219,7 @@ export function Strategies() {
     function includesStrategy(strategy) {
         // this is too specific and needs to be refactored
 
-        let existing = codebaseStrategies.map(strategy => strategy.strategyTypes).filter((strategyTypes) => strategyTypes.includes(strategy));
+        let existing = softwareSystemStrategies.map(strategy => strategy.strategyTypes).filter((strategyTypes) => strategyTypes.includes(strategy));
 
         // the vectorization strategies can not be combined
         if (existing.length === 1 && existing[0].length === 1 && existing[0][0].includes('Vectorization')) {
@@ -234,7 +234,7 @@ export function Strategies() {
 
     function clickStrategyAlgorithm(type) {
         const service = new APIService();
-        service.getAllowableCodebaseStrategyTypes(codebaseName).then(response => {
+        service.getAllowableSoftwareSystemStrategyTypes(softwareSystemName).then(response => {
             setAvailableStrategyTypes(response.data.filter(strategy => !includesStrategy(strategy)));
         })
 
@@ -300,7 +300,7 @@ export function Strategies() {
                 <Form.Group as={Row} controlId="selectRepresentationInfo" className="align-items-center mb-3">
                     <Col sm={2}>
                         <DropdownButton title={selectedRepresentationType === undefined? "Choose Representation Type" : selectedRepresentationType}>
-                            {representationGroups !== undefined && Object.keys(representationGroups).filter(representationType => !codebaseRepresentationGroups.includes(representationType))
+                            {representationGroups !== undefined && Object.keys(representationGroups).filter(representationType => !softwareSystemRepresentationGroups.includes(representationType))
                                 .map(representationType =>
                                     <Dropdown.Item
                                         key={representationType}
@@ -422,7 +422,7 @@ export function Strategies() {
 
             <Row className="mt-4">
                 <Col>
-                    { renderBreadCrumbs(codebaseName) }
+                    { renderBreadCrumbs(softwareSystemName) }
                 </Col>
                 <Col className="me-5">
                     <OverlayTrigger trigger="click" placement="left" overlay={getHelpText}>
@@ -442,7 +442,7 @@ export function Strategies() {
                 Strategies
             </h4>
             <div className={"d-flex flex-wrap mw-100"} style={{gap: '1rem 1rem'}}>
-                {[...codebaseStrategies.map(strategy => strategy.printCard(handleDeleteStrategy)), addCard("Strategy")]}
+                {[...softwareSystemStrategies.map(strategy => strategy.printCard(handleDeleteStrategy)), addCard("Strategy")]}
             </div>
         </div>
     );

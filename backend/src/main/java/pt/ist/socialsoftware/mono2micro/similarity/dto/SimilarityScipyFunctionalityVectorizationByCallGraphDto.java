@@ -19,7 +19,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto() { this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH; }
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(SimilarityScipyFunctionalityVectorizationByCallGraph similarity) {
-		this.codebaseName = similarity.getStrategy().getCodebase().getName();
+		this.softwareSystemName = similarity.getStrategy().getSoftwareSystem().getName();
 		this.strategyName = similarity.getStrategy().getName();
 		this.name = similarity.getName();
 		this.type = similarity.getType();

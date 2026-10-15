@@ -15,7 +15,7 @@ import {useParams} from "react-router-dom";
 const HttpStatus = require('http-status-codes');
 
 export const Profiles = () => {
-    let { codebaseName, representationName } = useParams();
+    let { softwareSystemName, representationName } = useParams();
     const [representation, setRepresentation] = useState({});
     const [newProfileName, setNewProfileName] = useState("");
     const [moveToProfile, setMoveToProfile] = useState("");
@@ -103,13 +103,13 @@ export const Profiles = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                    {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
                     {representationName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

@@ -44,7 +44,7 @@ export const views = {
 export const AccessesViews = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile } = context;
-    let { codebaseName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemName, strategyName, similarityName, decompositionName } = useParams();
 
     const [view, setView] = useState(views.CLUSTERS);
     const [displayAccesses, setDisplayAccesses] = useState("block");
@@ -78,7 +78,7 @@ export const AccessesViews = () => {
                 setEdgeWeights(response.data);
             });
         });
-        service.getIdToEntity(codebaseName).then(response => {
+        service.getIdToEntity(softwareSystemName).then(response => {
             setNow(prev => prev + 10);
             updateEntityTranslationFile(response.data);
         });
@@ -168,16 +168,16 @@ export const AccessesViews = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                    {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

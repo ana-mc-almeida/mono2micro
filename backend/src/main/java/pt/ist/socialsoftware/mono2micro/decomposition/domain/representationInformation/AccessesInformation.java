@@ -121,7 +121,7 @@ public class AccessesInformation extends RepresentationInformation {
 		FunctionalityRepository functionalityRepository = ContextManager.get().getBean(FunctionalityRepository.class);
 
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
-		AccessesRepresentation accesses = (AccessesRepresentation) decomposition.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		AccessesRepresentation accesses = (AccessesRepresentation) decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
 		InputStream inputStream = gridFsService.getFile(accesses.getName());
 		Set<String> profileFunctionalities = accesses.getProfile(similarity.getProfile());
 

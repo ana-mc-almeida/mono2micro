@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.decomposition;
 
 import org.springframework.mock.web.MockMultipartFile;
-import pt.ist.socialsoftware.mono2micro.codebase.CodebaseService;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
@@ -45,7 +45,7 @@ import java.util.TreeMap;
  */
 class ServiceDecompositionPipeline implements DecompositionPipeline {
 
-	private final CodebaseService codebaseService;
+	private final SoftwareSystemService softwareSystemService;
 	private final RepresentationService representationService;
 	private final StrategyService strategyService;
 	private final SimilarityService similarityService;
@@ -55,14 +55,14 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	private final String caseName;
 
 	ServiceDecompositionPipeline(
-			CodebaseService codebaseService,
+			SoftwareSystemService softwareSystemService,
 			RepresentationService representationService,
 			StrategyService strategyService,
 			SimilarityService similarityService,
 			DecompositionService decompositionService,
 			String caseName
 	) {
-		this.codebaseService = codebaseService;
+		this.softwareSystemService = softwareSystemService;
 		this.representationService = representationService;
 		this.strategyService = strategyService;
 		this.similarityService = similarityService;
@@ -76,12 +76,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void createCodebase(String codebaseName) {
-		codebaseService.createCodebase(codebaseName);
+	public void createSoftwareSystem(String softwareSystemName) {
+		softwareSystemService.createSoftwareSystem(softwareSystemName);
 	}
 
 	@Override
-	public void addRepresentations(String codebaseName, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemName, StrategyCase strategyCase) {
 		List<String> types = new ArrayList<>();
 		List<Object> files = new ArrayList<>();
 
@@ -94,16 +94,16 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 
 		try {
 			representationService.addRepresentations(
-					codebaseName, strategyCase.representationGroup(), types, files);
+					softwareSystemName, strategyCase.representationGroup(), types, files);
 		} catch (Exception e) {
-			throw new AssertionError("Could not add representations to " + codebaseName, e);
+			throw new AssertionError("Could not add representations to " + softwareSystemName, e);
 		}
 	}
 
 	@Override
-	public String createStrategy(String codebaseName, StrategyCase strategyCase) {
-		strategyService.createStrategy(codebaseName, "SciPy Clustering", strategyCase.strategyTypes());
-		return strategyCase.strategyName(codebaseName);
+	public String createStrategy(String softwareSystemName, StrategyCase strategyCase) {
+		strategyService.createStrategy(softwareSystemName, "SciPy Clustering", strategyCase.strategyTypes());
+		return strategyCase.strategyName(softwareSystemName);
 	}
 
 	@Override
@@ -275,12 +275,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public int representationCount(String codebaseName) {
-		return codebaseService.getRepresentationTypes(codebaseName).size();
+	public int representationCount(String softwareSystemName) {
+		return softwareSystemService.getRepresentationTypes(softwareSystemName).size();
 	}
 
 	@Override
-	public void deleteCodebase(String codebaseName) {
-		codebaseService.deleteCodebase(codebaseName);
+	public void deleteSoftwareSystem(String softwareSystemName) {
+		softwareSystemService.deleteSoftwareSystem(softwareSystemName);
 	}
 }

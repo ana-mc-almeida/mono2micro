@@ -7,7 +7,7 @@ import {
     ComparisonToolDto,
     Cluster,
     LocalTransactionsGraph,
-    RefactorCodebase,
+    RefactorSoftwareSystem,
     Edges
 } from "../type-declarations/types";
 import { addSearchParamsToUrl } from "../utils/url";
@@ -16,7 +16,7 @@ import Similarity from "../models/similarity/Similarity";
 import {SimilarityFactory} from "../models/similarity/SimilarityFactory";
 import {DecompositionFactory} from "../models/decompositions/DecompositionFactory";
 import Decomposition from "../models/decompositions/Decomposition";
-import Codebase from "../models/codebase/Codebase";
+import SoftwareSystem from "../models/softwareSystem/SoftwareSystem";
 import {RecommendationFactory} from "../models/recommendation/RecommendationFactory";
 import Recommendation from "../models/recommendation/Recommendation";
 import Representation from "../models/representation/Representation";
@@ -83,40 +83,40 @@ export class APIService {
         return this.axios.post<null>("/recommendation/" + recommendationName + "/createDecompositions", data);
     }
 
-    //Codebases
-    getCodebases() {
-        return this.axios.get("/codebases").then(response => response.data.map((codebase:any) => new Codebase(codebase)));
+    //Software Systems
+    getSoftwareSystems() {
+        return this.axios.get("/softwareSystems").then(response => response.data.map((softwareSystem:any) => new SoftwareSystem(softwareSystem)));
     }
 
-    getCodebase(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName).then(response => new Codebase(response.data));
+    getSoftwareSystem(softwareSystemName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemName).then(response => new SoftwareSystem(response.data));
     }
 
-    getCodebaseStrategies(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/getCodebaseStrategies")
+    getSoftwareSystemStrategies(softwareSystemName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemName + "/getSoftwareSystemStrategies")
             .then(response => {return response.data.map((strategy:any) => new Strategy(strategy))});
     }
 
-    getCodebaseDecompositions(codebaseName: string) {
-        return this.axios.get<Decomposition[]>("/codebase/" + codebaseName + "/getCodebaseDecompositions");
+    getSoftwareSystemDecompositions(softwareSystemName: string) {
+        return this.axios.get<Decomposition[]>("/softwareSystems/" + softwareSystemName + "/getSoftwareSystemDecompositions");
     }
 
-    deleteCodebase(name: string) {
-        return this.axios.delete<null>("/codebase/" + name + "/delete");
+    deleteSoftwareSystem(name: string) {
+        return this.axios.delete<null>("/softwareSystems/" + name + "/delete");
     }
 
-    createCodebase(codebaseName: string) {
+    createSoftwareSystem(softwareSystemName: string) {
         const data = new FormData();
-        data.append('codebaseName', codebaseName);
-        return this.axios.post<null>("/codebase/create", data);
+        data.append('softwareSystemName', softwareSystemName);
+        return this.axios.post<null>("/softwareSystems/create", data);
     }
 
-    getCodebaseRepresentationGroups(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/getCodebaseRepresentationGroups");
+    getSoftwareSystemRepresentationGroups(softwareSystemName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemName + "/getSoftwareSystemRepresentationGroups");
     }
 
     getRepresentationGroups() {
-        return this.axios.get("/codebase/getRepresentationGroups");
+        return this.axios.get("/softwareSystems/getRepresentationGroups");
     }
 
     // Profiles
@@ -161,7 +161,7 @@ export class APIService {
     //Representation
 
     addRepresentations(
-        codebaseName: string,
+        softwareSystemName: string,
         selectedRepresentationType: string,
         representations: Map<string, File>
     ) {
@@ -173,16 +173,16 @@ export class APIService {
         const data = new FormData();
         Object.entries(representations).forEach((entry) => {data.append("representationTypes", entry[0]); data.append("representations", entry[1])});
 
-        return this.axios.post<null>("/codebase/" + codebaseName + "/addRepresentations/" + selectedRepresentationType, data, config);
+        return this.axios.post<null>("/softwareSystems/" + softwareSystemName + "/addRepresentations/" + selectedRepresentationType, data, config);
     }
 
-    getRepresentations(codebaseName: string) {
-        return this.axios.get<Representation[]>("/codebase/" + codebaseName + "/getRepresentations")
+    getRepresentations(softwareSystemName: string) {
+        return this.axios.get<Representation[]>("/softwareSystems/" + softwareSystemName + "/getRepresentations")
             .then((response) => RepresentationFactory.getRepresentations(response.data));
     }
 
-    getCodebaseRepresentation(codebaseName: string, representationType: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/representation/" + representationType + "/getCodebaseRepresentation")
+    getSoftwareSystemRepresentation(softwareSystemName: string, representationType: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemName + "/representation/" + representationType + "/getSoftwareSystemRepresentation")
             .then((response) => RepresentationFactory.getRepresentation(response.data));
     }
 
@@ -195,8 +195,9 @@ export class APIService {
         return this.axios.delete<null>("/representation/" + id + "/delete");
     }
 
-    getIdToEntity(codebaseName: string) {
-        return this.axios.get<string>("/representation/" + codebaseName + "/getIdToEntity");
+    getIdToEntity(softwareSystemName: string) {
+        // FIXME (ticket 07): takes a software system name under /representation; move with the backend route
+        return this.axios.get<string>("/representation/" + softwareSystemName + "/getIdToEntity");
     }
 
 
@@ -214,8 +215,8 @@ export class APIService {
         return this.axios.post<null>("/similarity/create", similarity);
     }
 
-    getAllowableCodebaseStrategyTypes(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/getAllowableCodebaseStrategyTypes");
+    getAllowableSoftwareSystemStrategyTypes(softwareSystemName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemName + "/getAllowableSoftwareSystemStrategyTypes");
     }
 
     getAlgorithmSupportedStrategyTypes(algorithmType: string) {
@@ -225,7 +226,7 @@ export class APIService {
 
     //Strategies
     createStrategy(
-        codebaseName: string,
+        softwareSystemName: string,
         strategyRepresentations: string[],
         strategyAlgorithm: string
     ) {
@@ -238,7 +239,7 @@ export class APIService {
         strategyRepresentations.forEach(repr => data.append("strategyTypes", repr));
         data.append("algorithmType", strategyAlgorithm);
 
-        return this.axios.post<null>("/codebase/" + codebaseName + "/createStrategy", data, config);
+        return this.axios.post<null>("/softwareSystems/" + softwareSystemName + "/createStrategy", data, config);
     }
 
     getAlgorithms() {
@@ -549,7 +550,7 @@ export class APIService {
         );
     }
 
-    refactorCodebase(
+    refactorSoftwareSystem(
         decompositionName: string,
         functionalityNames: string[],
         dataDependenceThreshold: number,
@@ -558,7 +559,7 @@ export class APIService {
         newRefactor: boolean,
     ) {
 
-        const refactorRequest: RefactorCodebase = {
+        const refactorRequest: RefactorSoftwareSystem = {
             decomposition_name: decompositionName,
             functionality_names: functionalityNames,
             data_dependence_threshold: dataDependenceThreshold,

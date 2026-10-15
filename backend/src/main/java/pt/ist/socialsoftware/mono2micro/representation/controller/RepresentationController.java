@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
-import pt.ist.socialsoftware.mono2micro.codebase.CodebaseController;
+// FIXME (ticket 07): unused import, left over from a copied logger; remove
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemController;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
@@ -23,17 +24,17 @@ public class RepresentationController {
 	@Autowired
 	RepresentationService representationService;
 
-	@GetMapping(value = "/codebase/{codebaseName}/representation/{representationType}/getCodebaseRepresentation")
-	public ResponseEntity<RepresentationDto> getCodebaseRepresentation(
-			@PathVariable String codebaseName,
+	@GetMapping(value = "/softwareSystems/{softwareSystemName}/representation/{representationType}/getSoftwareSystemRepresentation")
+	public ResponseEntity<RepresentationDto> getSoftwareSystemRepresentation(
+			@PathVariable String softwareSystemName,
 			@PathVariable String representationType
 	) {
-		logger.debug("getCodebaseRepresentation");
+		logger.debug("getSoftwareSystemRepresentation");
 
 		try {
 			return new ResponseEntity<>(
 					RepresentationDtoFactory.getFactory()
-							.getRepresentationDto(representationService.getCodebaseRepresentation(codebaseName, representationType)),
+							.getRepresentationDto(representationService.getSoftwareSystemRepresentation(softwareSystemName, representationType)),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -44,7 +45,8 @@ public class RepresentationController {
 
 	@DeleteMapping(value = "/representation/{representationName}/delete")
 	public ResponseEntity<HttpStatus> deleteRepresentation(@PathVariable String representationName) {
-		logger.debug("deleteCodebase");
+		// FIXME (ticket 07): copied from deleteSoftwareSystem; should be "deleteRepresentation"
+		logger.debug("deleteSoftwareSystem");
 
 		try {
 			representationService.deleteSingleRepresentation(representationName);
@@ -70,9 +72,9 @@ public class RepresentationController {
 		}
 	}
 
-	@PostMapping(value = "/codebase/{codebaseName}/addRepresentations/{representationInfoType}")
+	@PostMapping(value = "/softwareSystems/{softwareSystemName}/addRepresentations/{representationInfoType}")
 	public ResponseEntity<HttpStatus> createStrategy(
-			@PathVariable String codebaseName,
+			@PathVariable String softwareSystemName,
 			@PathVariable String representationInfoType,
 			@Nullable @RequestParam List<String> representationTypes,
 			@Nullable @RequestParam List<Object> representations
@@ -80,7 +82,7 @@ public class RepresentationController {
 		logger.debug("createStrategy");
 
 		try {
-			representationService.addRepresentations(codebaseName, representationInfoType, representationTypes, representations);
+			representationService.addRepresentations(softwareSystemName, representationInfoType, representationTypes, representations);
 			return new ResponseEntity<>(HttpStatus.CREATED);
 
 		} catch (Exception e) {

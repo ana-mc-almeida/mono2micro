@@ -43,16 +43,16 @@ public class StrategyController {
 		}
 	}
 
-	@PostMapping(value = "/codebase/{codebaseName}/createStrategy")
+	@PostMapping(value = "/softwareSystems/{softwareSystemName}/createStrategy")
 	public ResponseEntity<HttpStatus> createStrategy(
-			@PathVariable String codebaseName,
+			@PathVariable String softwareSystemName,
 			@Nullable @RequestParam String algorithmType,
 			@Nullable @RequestParam List<String> strategyTypes
 	) {
 		logger.debug("createStrategy");
 
 		try {
-			strategyService.createStrategy(codebaseName, algorithmType, strategyTypes);
+			strategyService.createStrategy(softwareSystemName, algorithmType, strategyTypes);
 			return new ResponseEntity<>(HttpStatus.CREATED);
 
 		} catch (Exception e) {

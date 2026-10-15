@@ -3,8 +3,8 @@ package pt.ist.socialsoftware.mono2micro.representation.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.codebase.repository.CodebaseRepository;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.RepresentationFactory;
@@ -15,13 +15,12 @@ import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class RepresentationService {
 	@Autowired
-	CodebaseRepository codebaseRepository;
+	SoftwareSystemRepository softwareSystemRepository;
 
 	@Autowired
 	StrategyService strategyService;
@@ -32,9 +31,9 @@ public class RepresentationService {
 	@Autowired
 	GridFsService gridFsService;
 
-	public void addRepresentations(String codebaseName, String representationInfoType, List<String> representationTypes, List<Object> representations)
+	public void addRepresentations(String softwareSystemName, String representationInfoType, List<String> representationTypes, List<Object> representations)
 			throws Exception {
-		Codebase codebase = codebaseRepository.findByName(codebaseName);
+		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
 
 		if (representationTypes == null && representations == null) { // representations already added
 			return;
@@ -42,7 +41,7 @@ public class RepresentationService {
 		if (representationTypes == null || representations == null || representationTypes.size() != representations.size())
 			throw new RuntimeException("Number of representations is different from the number of representation types.");
 
-		List<String> availableRepresentationsTypes = codebase.getRepresentations().stream().map(Representation::getType).collect(Collectors.toList());
+		List<String> availableRepresentationsTypes = softwareSystem.getRepresentations().stream().map(Representation::getType).collect(Collectors.toList());
 
 		for (String representationType : representationTypes)
 			if (availableRepresentationsTypes.contains(representationType))
@@ -52,17 +51,17 @@ public class RepresentationService {
 			String representationType = representationTypes.get(i);
 			byte[] representationFileStream = ((MultipartFile) representations.get(i)).getBytes();
 			Representation representation = RepresentationFactory.getRepresentation(representationType);
-			String fileName = representation.init(codebase, representationFileStream);
-			codebase.addRepresentation(representation);
+			String fileName = representation.init(softwareSystem, representationFileStream);
+			softwareSystem.addRepresentation(representation);
 			gridFsService.saveFile(new ByteArrayInputStream(representationFileStream), fileName);
 			representationRepository.save(representation);
 		}
-		codebaseRepository.save(codebase);
+		softwareSystemRepository.save(softwareSystem);
 	}
 
-	public Representation getCodebaseRepresentation(String codebaseName, String representationType) {
-		Codebase codebase = codebaseRepository.findByName(codebaseName);
-		return codebase.getRepresentations().stream().filter(representation -> representation.getType().equals(representationType)).findFirst()
+	public Representation getSoftwareSystemRepresentation(String softwareSystemName, String representationType) {
+		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+		return softwareSystem.getRepresentations().stream().filter(representation -> representation.getType().equals(representationType)).findFirst()
 				.orElseThrow(() -> new RuntimeException("No representation with type" + representationType));
 	}
 
@@ -80,10 +79,10 @@ public class RepresentationService {
 	public void deleteSingleRepresentation(String representationId) {
 		Representation representation = representationRepository.findById(representationId)
 				.orElseThrow(() -> new RuntimeException("No representation with id " + representationId));
-		Codebase codebase = representation.getCodebase();
-		codebase.removeRepresentation(representationId);
+		SoftwareSystem softwareSystem = representation.getSoftwareSystem();
+		softwareSystem.removeRepresentation(representationId);
 		ArrayList<Strategy> strategies = new ArrayList<>();
-		for (Strategy strategy : codebase.getStrategies()) {
+		for (Strategy strategy : softwareSystem.getStrategies()) {
 			boolean deleted = false;
 			for (String strategyType : strategy.getStrategyTypes()) {
 				if (Strategy.strategiesToRepresentations.get(strategyType).contains(representation.getType())) {
@@ -96,9 +95,9 @@ public class RepresentationService {
 				strategies.add(strategy);
 		}
 
-		codebase.setStrategies(strategies);
+		softwareSystem.setStrategies(strategies);
 		gridFsService.deleteFile(representation.getName());
-		codebaseRepository.save(codebase);
+		softwareSystemRepository.save(softwareSystem);
 		representationRepository.deleteById(representationId);
 	}
 }

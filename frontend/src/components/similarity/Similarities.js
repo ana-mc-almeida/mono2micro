@@ -16,7 +16,7 @@ import { StrategyType } from '../../models/strategy/StrategyTypes';
 
 export const Similarities = () => {
 
-    let { codebaseName, strategyName } = useParams();
+    let { softwareSystemName, strategyName } = useParams();
 
     const [strategy, setStrategy] = useState(undefined);
     const [similarities, setSimilarities] = useState([]);
@@ -70,8 +70,8 @@ export const Similarities = () => {
         return (
             <Breadcrumb>
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">Codebases</Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>{codebaseName}</Breadcrumb.Item>
+                <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>{softwareSystemName}</Breadcrumb.Item>
                 <Breadcrumb.Item active>{strategyName}</Breadcrumb.Item>
             </Breadcrumb>
         );
@@ -103,41 +103,41 @@ export const Similarities = () => {
                     {strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.ENTITY_VECTORIZATION_STRATEGY) ?
                         <SimilarityMatrixSciPyEntityVectorizationForm
-                            codebaseName={codebaseName}
+                            softwareSystemName={softwareSystemName}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.CLASS_VECTORIZATION_STRATEGY) ?
                         <SimilarityMatrixSciPyClassVectorizationForm
-                            codebaseName={codebaseName}
+                            softwareSystemName={softwareSystemName}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY) ?
                         <SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm
-                            codebaseName={codebaseName}
+                            softwareSystemName={softwareSystemName}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY) ?
                         <SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm
-                            codebaseName={codebaseName}
+                            softwareSystemName={softwareSystemName}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.STRUCTURE_STRATEGY) ?
                         <SimilarityMatrixSciPyStructureForm
-                            codebaseName={codebaseName}
+                            softwareSystemName={softwareSystemName}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         <SimilarityMatrixSciPyForm
-                            codebaseName={codebaseName}
+                            softwareSystemName={softwareSystemName}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         />

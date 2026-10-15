@@ -8,7 +8,7 @@ public class PartitionsDecompositionDto extends DecompositionDto {
 	private boolean expert;
 
 	public PartitionsDecompositionDto(PartitionsDecomposition decomposition) {
-		this.setCodebaseName(decomposition.getSimilarity().getStrategy().getCodebase().getName());
+		this.setSoftwareSystemName(decomposition.getSimilarity().getStrategy().getSoftwareSystem().getName());
 		this.setStrategyName(decomposition.getStrategy().getName());
 		this.setSimilarityName(decomposition.getSimilarity().getName());
 		this.setName(decomposition.getName());

@@ -117,7 +117,7 @@ public class StructureInformation extends RepresentationInformation {
 
 	private void setupEntities(Decomposition decomposition) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		StructureRepresentation structureRepresentation = (StructureRepresentation) decomposition.getStrategy().getCodebase()
+		StructureRepresentation structureRepresentation = (StructureRepresentation) decomposition.getStrategy().getSoftwareSystem()
 				.getRepresentationByFileType(STRUCTURE);
 		Map<String, Object> jsonData = new ObjectMapper().readValue(
 				gridFsService.getFileAsString(structureRepresentation.getName()),
@@ -128,7 +128,7 @@ public class StructureInformation extends RepresentationInformation {
 
 		/* Filter out all the primitive types */
 		SimilarityScipyStructure s = (SimilarityScipyStructure) decomposition.getSimilarity();
-		StructureRepresentation structure = (StructureRepresentation) decomposition.getSimilarity().getStrategy().getCodebase()
+		StructureRepresentation structure = (StructureRepresentation) decomposition.getSimilarity().getStrategy().getSoftwareSystem()
 				.getRepresentationByFileType(STRUCTURE);
 		Set<String> entities = structure.getProfile(s.getProfile());
 		filterEntities(entitiesContainedMap, entities);

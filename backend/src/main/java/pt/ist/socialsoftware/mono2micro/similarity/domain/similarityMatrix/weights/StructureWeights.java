@@ -109,7 +109,7 @@ public class StructureWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		SimilarityScipyStructure s = (SimilarityScipyStructure) similarity;
-		StructureRepresentation structure = (StructureRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(STRUCTURE);
+		StructureRepresentation structure = (StructureRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(STRUCTURE);
 		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getName()), structure.getProfile(s.getProfile()), getWeights());
 	}
 
@@ -117,7 +117,7 @@ public class StructureWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-		StructureRepresentation structure = (StructureRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(STRUCTURE);
+		StructureRepresentation structure = (StructureRepresentation) recommendation.getStrategy().getSoftwareSystem().getRepresentationByFileType(STRUCTURE);
 		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getName()), structure.getProfile(r.getProfile()), getWeights());
 	}
 

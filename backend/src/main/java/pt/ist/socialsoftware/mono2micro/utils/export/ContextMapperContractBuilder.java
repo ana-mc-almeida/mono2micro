@@ -25,7 +25,7 @@ public class ContextMapperContractBuilder extends DecompositionContractBuilder {
 	public String parseContractData() throws JSONException {
 		JSONObject contractAsJSON = new JSONObject();
 
-		contractAsJSON.put("name", decomposition.getStrategy().getCodebase().getName());
+		contractAsJSON.put("name", decomposition.getStrategy().getSoftwareSystem().getName());
 		contractAsJSON.put("clusters", createClusterList(decomposition.getClusters().values()));
 		contractAsJSON.put("functionalities", createFunctionalitiesList(
 				sagaRefactorizationAsJSON.getJSONObject("functionalities")));

@@ -111,8 +111,8 @@ export interface DefaultComparisonToolDto extends ComparisonToolDto {
     mojoSingletons?: number;
 }
 
-export interface RefactorCodebase {
-    codebase_name?: string;
+export interface RefactorSoftwareSystem {
+    software_system_name?: string;
     strategy_name?: string;
     decomposition_name?: string;
     functionality_names?: string[];

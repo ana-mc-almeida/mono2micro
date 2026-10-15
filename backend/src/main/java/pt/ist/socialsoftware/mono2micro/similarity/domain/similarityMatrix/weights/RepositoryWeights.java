@@ -91,10 +91,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(similarity.getStrategy().getCodebase().getRepresentationByFileType(AUTHOR).getName()),
+						gridFsService.getFileAsString(similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(AUTHOR).getName()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(similarity.getStrategy().getCodebase().getRepresentationByFileType(COMMIT).getName()),
+						gridFsService.getFileAsString(similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(COMMIT).getName()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 
@@ -103,10 +103,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(recommendation.getStrategy().getCodebase().getRepresentationByFileType(AUTHOR).getName()),
+						gridFsService.getFileAsString(recommendation.getStrategy().getSoftwareSystem().getRepresentationByFileType(AUTHOR).getName()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(recommendation.getStrategy().getCodebase().getRepresentationByFileType(COMMIT).getName()),
+						gridFsService.getFileAsString(recommendation.getStrategy().getSoftwareSystem().getRepresentationByFileType(COMMIT).getName()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 

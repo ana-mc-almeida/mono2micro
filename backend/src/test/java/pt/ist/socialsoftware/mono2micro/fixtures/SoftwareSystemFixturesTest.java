@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.fixtures;
 
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.util.List;
@@ -24,51 +24,51 @@ import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.
  * Pins down what the fixtures promise, so a later change to the representation groups that
  * would silently invalidate every availability test fails here instead.
  */
-public class CodebaseFixturesTest {
+public class SoftwareSystemFixturesTest {
 
 	@Test
-	public void emptyCodebaseHasNoUploadsAndSatisfiesNoGroup() {
-		Codebase codebase = CodebaseFixtures.empty();
+	public void emptySoftwareSystemHasNoUploadsAndSatisfiesNoGroup() {
+		SoftwareSystem softwareSystem = SoftwareSystemFixtures.empty();
 
-		assertThat(codebase.getRepresentations()).isEmpty();
-		assertThat(codebase.getRepresentationGroups()).isEmpty();
+		assertThat(softwareSystem.getRepresentations()).isEmpty();
+		assertThat(softwareSystem.getRepresentationGroups()).isEmpty();
 	}
 
 	@Test
 	public void accessesBasedSatisfiesAccessesGroupOnly() {
-		Codebase codebase = CodebaseFixtures.accessesBased();
+		SoftwareSystem softwareSystem = SoftwareSystemFixtures.accessesBased();
 
-		assertThat(uploadedTypes(codebase)).containsExactlyInAnyOrder(ID_TO_ENTITY, ACCESSES);
-		assertThat(codebase.getRepresentationGroups()).containsExactly(ACCESSES_TYPE);
+		assertThat(uploadedTypes(softwareSystem)).containsExactlyInAnyOrder(ID_TO_ENTITY, ACCESSES);
+		assertThat(softwareSystem.getRepresentationGroups()).containsExactly(ACCESSES_TYPE);
 	}
 
 	@Test
 	public void repositoryBasedSatisfiesRepositoryGroup() {
-		Codebase codebase = CodebaseFixtures.repositoryBased();
+		SoftwareSystem softwareSystem = SoftwareSystemFixtures.repositoryBased();
 
-		assertThat(uploadedTypes(codebase))
+		assertThat(uploadedTypes(softwareSystem))
 				.containsExactlyInAnyOrder(ID_TO_ENTITY, ACCESSES, AUTHOR, COMMIT);
-		assertThat(codebase.getRepresentationGroups())
+		assertThat(softwareSystem.getRepresentationGroups())
 				.containsExactlyInAnyOrder(ACCESSES_TYPE, REPOSITORY_TYPE);
 	}
 
 	@Test
 	public void codeEmbeddingsBasedSatisfiesCodeEmbeddingsGroup() {
-		Codebase codebase = CodebaseFixtures.codeEmbeddingsBased();
+		SoftwareSystem softwareSystem = SoftwareSystemFixtures.codeEmbeddingsBased();
 
-		assertThat(uploadedTypes(codebase))
+		assertThat(uploadedTypes(softwareSystem))
 				.containsExactlyInAnyOrder(ID_TO_ENTITY, ENTITY_TO_ID, ACCESSES, CODE_EMBEDDINGS);
-		assertThat(codebase.getRepresentationGroups())
+		assertThat(softwareSystem.getRepresentationGroups())
 				.containsExactlyInAnyOrder(ACCESSES_TYPE, CODE_EMBEDDINGS_TYPE);
 	}
 
 	@Test
 	public void structureBasedSatisfiesStructureGroup() {
-		Codebase codebase = CodebaseFixtures.structureBased();
+		SoftwareSystem softwareSystem = SoftwareSystemFixtures.structureBased();
 
-		assertThat(uploadedTypes(codebase))
+		assertThat(uploadedTypes(softwareSystem))
 				.containsExactlyInAnyOrder(ID_TO_ENTITY, ENTITY_TO_ID, ACCESSES, STRUCTURE);
-		assertThat(codebase.getRepresentationGroups())
+		assertThat(softwareSystem.getRepresentationGroups())
 				.containsExactlyInAnyOrder(ACCESSES_TYPE, STRUCTURE_TYPE);
 	}
 
@@ -79,8 +79,8 @@ public class CodebaseFixturesTest {
 	 */
 	@Test
 	public void repositoryDataIsWhatSeparatesTheTwoContrastingFixtures() {
-		Codebase offered = CodebaseFixtures.repositoryBased();
-		Codebase withheld = CodebaseFixtures.accessesBased();
+		SoftwareSystem offered = SoftwareSystemFixtures.repositoryBased();
+		SoftwareSystem withheld = SoftwareSystemFixtures.accessesBased();
 
 		assertThat(offered.getRepresentationGroups()).contains(REPOSITORY_TYPE);
 		assertThat(withheld.getRepresentationGroups()).doesNotContain(REPOSITORY_TYPE);
@@ -106,49 +106,49 @@ public class CodebaseFixturesTest {
 	/** Mutating one fixture must not leak into the next test that asks for the same one. */
 	@Test
 	public void fixturesAreBuiltFreshOnEveryCall() {
-		Codebase first = CodebaseFixtures.accessesBased();
+		SoftwareSystem first = SoftwareSystemFixtures.accessesBased();
 		first.removeRepresentation(first.getRepresentations().get(0).getName());
 		assertThat(first.getRepresentations()).hasSize(1);
 
-		assertThat(CodebaseFixtures.accessesBased().getRepresentations()).hasSize(2);
+		assertThat(SoftwareSystemFixtures.accessesBased().getRepresentations()).hasSize(2);
 	}
 
 	@Test
 	public void fixtureNamesAreDistinct() {
-		List<String> names = CodebaseFixtures.all().stream()
-				.map(Codebase::getName)
+		List<String> names = SoftwareSystemFixtures.all().stream()
+				.map(SoftwareSystem::getName)
 				.collect(Collectors.toList());
 
 		assertThat(names).doesNotHaveDuplicates();
 	}
 
 	@Test
-	public void representationsKnowTheCodebaseTheyBelongTo() {
-		Codebase codebase = CodebaseFixtures.repositoryBased();
+	public void representationsKnowTheSoftwareSystemTheyBelongTo() {
+		SoftwareSystem softwareSystem = SoftwareSystemFixtures.repositoryBased();
 
-		for (Representation representation : codebase.getRepresentations()) {
-			assertThat(representation.getCodebase()).isSameAs(codebase);
-			assertThat(representation.getName()).contains(codebase.getName());
+		for (Representation representation : softwareSystem.getRepresentations()) {
+			assertThat(representation.getSoftwareSystem()).isSameAs(softwareSystem);
+			assertThat(representation.getName()).contains(softwareSystem.getName());
 		}
 	}
 
 	@Test
 	public void lookupByFileTypeFindsAnUploadedRepresentation() {
-		Codebase codebase = CodebaseFixtures.repositoryBased();
+		SoftwareSystem softwareSystem = SoftwareSystemFixtures.repositoryBased();
 
-		assertThat(codebase.getRepresentationByFileType(AUTHOR)).isNotNull();
-		assertThat(codebase.getRepresentationByFileType(STRUCTURE)).isNull();
+		assertThat(softwareSystem.getRepresentationByFileType(AUTHOR)).isNotNull();
+		assertThat(softwareSystem.getRepresentationByFileType(STRUCTURE)).isNull();
 	}
 
-	private static List<String> uploadedTypes(Codebase codebase) {
-		return codebase.getRepresentations().stream()
+	private static List<String> uploadedTypes(SoftwareSystem softwareSystem) {
+		return softwareSystem.getRepresentations().stream()
 				.map(Representation::getType)
 				.collect(Collectors.toList());
 	}
 
-	private static List<Codebase> fixturesSatisfying(String group) {
-		return CodebaseFixtures.all().stream()
-				.filter(codebase -> codebase.getRepresentationGroups().contains(group))
+	private static List<SoftwareSystem> fixturesSatisfying(String group) {
+		return SoftwareSystemFixtures.all().stream()
+				.filter(softwareSystem -> softwareSystem.getRepresentationGroups().contains(group))
 				.collect(Collectors.toList());
 	}
 }

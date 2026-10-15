@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.representation.analytical.domain;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 @Document("representation")
 public class CommitRepresentation extends Representation {
@@ -12,9 +12,9 @@ public class CommitRepresentation extends Representation {
 	public CommitRepresentation() {}
 
 	@Override
-	public String init(Codebase codebase, byte[] representationFile) {
-		this.name = codebase.getName() + " & " + getType();
-		this.codebase = codebase;
+	public String init(SoftwareSystem softwareSystem, byte[] representationFile) {
+		this.name = softwareSystem.getName() + " & " + getType();
+		this.softwareSystem = softwareSystem;
 		return name;
 	}
 

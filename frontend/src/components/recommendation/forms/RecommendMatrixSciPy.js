@@ -63,7 +63,7 @@ const selectRow = {
     clickToSelect: true
 };
 
-export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategies, recommendationType}) => {
+export const RecommendMatrixSciPy = ({softwareSystemName, strategy, setUpdateStrategies, recommendationType}) => {
 
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
@@ -88,7 +88,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
     }, [])
 
     function loadProfiles() {
-        service.getCodebaseRepresentation(codebaseName, RepresentationFile.ACCESSES)
+        service.getSoftwareSystemRepresentation(softwareSystemName, RepresentationFile.ACCESSES)
             .then((response) => setProfiles(response.profiles));
     }
 
@@ -213,7 +213,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
             <Form onSubmit={handleCreateRecommendation} className="mt-2 mb-3">
                 <Form.Group as={Row} controlId="selectFunctionalityProfiles" className="align-items-center mb-3">
                     <Form.Label column sm={2}>
-                        Select Codebase Profile
+                        Select Software System Profile
                     </Form.Label>
                     <Col sm={2}>
                         <DropdownButton title={profile === ""? 'Functionality Profiles': profile}>

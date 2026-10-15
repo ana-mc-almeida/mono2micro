@@ -282,7 +282,7 @@ final class StrategyCase {
 	 * <p>Reproduced rather than read back because it is needed <em>before</em> anything exists
 	 * to read it from — unlike the similarity and decomposition names, which are read back.
 	 */
-	String strategyName(String codebaseName) {
+	String strategyName(String softwareSystemName) {
 		StringBuilder shortForm = new StringBuilder();
 		for (int i = 0; i < strategyTypes.size(); i++) {
 			if (i > 0)
@@ -290,7 +290,7 @@ final class StrategyCase {
 			for (String word : strategyTypes.get(i).split(" "))
 				shortForm.append(word.charAt(0));
 		}
-		return codebaseName + " - " + shortForm + " Strategy";
+		return softwareSystemName + " - " + shortForm + " Strategy";
 	}
 
 	/** Fixture suffixes this case needs present, for the up-front precondition check. */

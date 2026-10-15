@@ -8,7 +8,7 @@ import java.util.Map;
 
 public abstract class DecompositionDto {
 	String name;
-	String codebaseName;
+	String softwareSystemName;
 	String strategyName;
 	String similarityName;
 	String type;
@@ -24,12 +24,12 @@ public abstract class DecompositionDto {
 		this.name = name;
 	}
 
-	public String getCodebaseName() {
-		return codebaseName;
+	public String getSoftwareSystemName() {
+		return softwareSystemName;
 	}
 
-	public void setCodebaseName(String codebaseName) {
-		this.codebaseName = codebaseName;
+	public void setSoftwareSystemName(String softwareSystemName) {
+		this.softwareSystemName = softwareSystemName;
 	}
 
 	public String getStrategyName() {

@@ -2,8 +2,8 @@ package pt.ist.socialsoftware.mono2micro.strategy.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.codebase.repository.CodebaseRepository;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 public class StrategyService {
 	@Autowired
-	CodebaseRepository codebaseRepository;
+	SoftwareSystemRepository softwareSystemRepository;
 
 	@Autowired
 	StrategyRepository strategyRepository;
@@ -32,18 +32,18 @@ public class StrategyService {
 	@Autowired
 	RecommendationService recommendationService;
 
-	public void createStrategy(String codebaseName, String algorithmType, List<String> strategyTypes) {
-		Codebase codebase = codebaseRepository.findByName(codebaseName);
-		for (Strategy strategy : codebase.getStrategies())
+	public void createStrategy(String softwareSystemName, String algorithmType, List<String> strategyTypes) {
+		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+		for (Strategy strategy : softwareSystem.getStrategies())
 			if (strategy.getAlgorithmType().equals(algorithmType) &&
 					strategy.getStrategyTypes().size() == strategyTypes.size() &&
 					strategy.getStrategyTypes().containsAll(strategyTypes)) // strategy already exists
 				return;
-		Strategy strategy = new Strategy(codebase, algorithmType, strategyTypes);
-		strategy.setCodebase(codebase);
-		codebase.addStrategy(strategy);
+		Strategy strategy = new Strategy(softwareSystem, algorithmType, strategyTypes);
+		strategy.setSoftwareSystem(softwareSystem);
+		softwareSystem.addStrategy(strategy);
 		strategyRepository.save(strategy);
-		codebaseRepository.save(codebase);
+		softwareSystemRepository.save(softwareSystem);
 	}
 
 	public void removeSpecificStrategyProperties(Strategy strategy) {
@@ -58,12 +58,12 @@ public class StrategyService {
 
 	public void deleteSingleStrategy(String strategyName) {
 		Strategy strategy = strategyRepository.findByName(strategyName);
-		strategy.getCodebase().removeStrategy(strategyName);
+		strategy.getSoftwareSystem().removeStrategy(strategyName);
 		for (Decomposition decomposition : strategy.getDecompositions())
 			decompositionService.deleteDecomposition(decomposition);
 		removeSpecificStrategyProperties(strategy);
 		strategyRepository.delete(strategy);
-		codebaseRepository.save(strategy.getCodebase());
+		softwareSystemRepository.save(strategy.getSoftwareSystem());
 	}
 
 	public void deleteStrategy(Strategy strategy) {

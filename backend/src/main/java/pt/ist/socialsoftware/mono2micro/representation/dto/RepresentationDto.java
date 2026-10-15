@@ -7,12 +7,12 @@ public class RepresentationDto {
 
 	private String type;
 
-	private String codebaseName;
+	private String softwareSystemName;
 
 	protected RepresentationDto(Representation representation) {
 		this.name = representation.getName();
 		this.type = representation.getType();
-		this.codebaseName = representation.getCodebase().getName();
+		this.softwareSystemName = representation.getSoftwareSystem().getName();
 	}
 
 	public String getName() {
@@ -31,11 +31,11 @@ public class RepresentationDto {
 		this.type = type;
 	}
 
-	public String getCodebaseName() {
-		return codebaseName;
+	public String getSoftwareSystemName() {
+		return softwareSystemName;
 	}
 
-	public void setCodebaseName(String codebaseName) {
-		this.codebaseName = codebaseName;
+	public void setSoftwareSystemName(String softwareSystemName) {
+		this.softwareSystemName = softwareSystemName;
 	}
 }

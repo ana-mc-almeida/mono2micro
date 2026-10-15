@@ -51,15 +51,15 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void createCodebase(String codebaseName) {
+	public void createSoftwareSystem(String softwareSystemName) {
 		ResponseEntity<String> response = rest.postForEntity(
-				base + "/codebase/create?codebaseName={name}", null, String.class, codebaseName);
+				base + "/softwareSystems/create?softwareSystemName={name}", null, String.class, softwareSystemName);
 
-		require(response, HttpStatus.CREATED, "create codebase " + codebaseName);
+		require(response, HttpStatus.CREATED, "create software system " + softwareSystemName);
 	}
 
 	@Override
-	public void addRepresentations(String codebaseName, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemName, StrategyCase strategyCase) {
 		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 
 		// Index-aligned repeated parts: representationTypes[i] describes representations[i].
@@ -75,24 +75,24 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 		ResponseEntity<String> response = rest.exchange(
-				base + "/codebase/{name}/addRepresentations/{group}",
+				base + "/softwareSystems/{name}/addRepresentations/{group}",
 				HttpMethod.POST,
 				new HttpEntity<>(form, headers),
 				String.class,
-				codebaseName,
+				softwareSystemName,
 				strategyCase.representationGroup());
 
-		require(response, HttpStatus.CREATED, "add representations to " + codebaseName);
+		require(response, HttpStatus.CREATED, "add representations to " + softwareSystemName);
 	}
 
 	@Override
-	public String createStrategy(String codebaseName, StrategyCase strategyCase) {
+	public String createStrategy(String softwareSystemName, StrategyCase strategyCase) {
 		// strategyTypes is a repeated query parameter, so a multi-type strategy such as
 		// Repository sends it twice rather than as one comma-joined value.
 		StringBuilder url = new StringBuilder(
-				base + "/codebase/{name}/createStrategy?algorithmType={algorithm}");
+				base + "/softwareSystems/{name}/createStrategy?algorithmType={algorithm}");
 		List<Object> uriVariables = new ArrayList<>();
-		uriVariables.add(codebaseName);
+		uriVariables.add(softwareSystemName);
 		uriVariables.add("SciPy Clustering");
 
 		for (String strategyType : strategyCase.strategyTypes()) {
@@ -103,9 +103,9 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		ResponseEntity<String> response = rest.postForEntity(
 				url.toString(), null, String.class, uriVariables.toArray());
 
-		require(response, HttpStatus.CREATED, "create strategy for " + codebaseName);
+		require(response, HttpStatus.CREATED, "create strategy for " + softwareSystemName);
 
-		return strategyCase.strategyName(codebaseName);
+		return strategyCase.strategyName(softwareSystemName);
 	}
 
 	@Override
@@ -315,7 +315,7 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	 * decomposition, which is what the export reads alongside the Structure representation.
 	 *
 	 * <p>The tool answers at once and keeps working in the background, so the export is not
-	 * ready until it finishes. The body is what the frontend's {@code refactorCodebase} sends.
+	 * ready until it finishes. The body is what the frontend's {@code refactorSoftwareSystem} sends.
 	 */
 	void refactorFunctionalities(String refactorToolAddress, String decompositionName) {
 		Map<String, Object> body = new LinkedHashMap<>();
@@ -336,13 +336,13 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public int representationCount(String codebaseName) {
-		return getJson("/codebase/{name}/getRepresentations", codebaseName).size();
+	public int representationCount(String softwareSystemName) {
+		return getJson("/softwareSystems/{name}/getRepresentations", softwareSystemName).size();
 	}
 
 	@Override
-	public void deleteCodebase(String codebaseName) {
-		rest.delete(base + "/codebase/{name}/delete", codebaseName);
+	public void deleteSoftwareSystem(String softwareSystemName) {
+		rest.delete(base + "/softwareSystems/{name}/delete", softwareSystemName);
 	}
 
 	private Map<String, Object> operation(String type) {

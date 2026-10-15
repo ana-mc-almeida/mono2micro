@@ -4,7 +4,7 @@ import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
@@ -18,9 +18,9 @@ public class AccessesRepresentation extends Representation {
 	public AccessesRepresentation() {}
 
 	@Override
-	public String init(Codebase codebase, byte[] representationFile) throws Exception {
-		this.name = codebase.getName() + " & " + getType();
-		this.codebase = codebase;
+	public String init(SoftwareSystem softwareSystem, byte[] representationFile) throws Exception {
+		this.name = softwareSystem.getName() + " & " + getType();
+		this.softwareSystem = softwareSystem;
 		addProfile("Generic", getFunctionalitiesNamesFromRepresentationFile(representationFile));
 		return name;
 	}

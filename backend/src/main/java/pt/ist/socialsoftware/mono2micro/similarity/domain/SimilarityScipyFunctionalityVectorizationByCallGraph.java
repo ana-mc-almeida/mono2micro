@@ -101,8 +101,8 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeMethodCallsFeaturesVectors(matrix, codeEmbeddings);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
 		matrix.put("translationFileName", idToEntity.getName());
 		matrix.put("accessesFileName", accessesInfo.getName());
 
@@ -272,8 +272,9 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			int totalNumberOfWeights
 	) throws Exception {
 		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getSoftwareSystem()
+				.getRepresentationByFileType(ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];
 		weights[0] = INTERVAL;

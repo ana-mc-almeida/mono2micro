@@ -57,13 +57,13 @@ public abstract class SimilarityScipy extends Similarity {
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getName()), new TypeReference<Map<Short, String>>() {});
 	}
 
 	public Map<String, Short> getEntityToId() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) getStrategy().getSoftwareSystem().getRepresentationByFileType(ENTITY_TO_ID);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(entityToId.getName()), new TypeReference<Map<String, Short>>() {});
 	}
 
@@ -92,7 +92,7 @@ public abstract class SimilarityScipy extends Similarity {
 	public JSONObject getCodeEmbeddings(Strategy strategy) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) strategy.getCodebase()
+		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) strategy.getSoftwareSystem()
 				.getRepresentationByFileType(CODE_EMBEDDINGS);
 		JSONObject codeEmbeddings = new JSONObject(
 				gridFsService.getFileAsString(codeEmbeddingsRepresentation.getName())

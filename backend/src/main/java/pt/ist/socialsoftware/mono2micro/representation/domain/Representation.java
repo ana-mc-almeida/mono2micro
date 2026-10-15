@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.representation.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,7 +18,7 @@ import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.I
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 
 /**
- * Represents an imported file during the creation of the Codebase
+ * Represents an imported file during the creation of the software system
  * Inheritors might contain additional information relevant to the imported file
  */
 public abstract class Representation {
@@ -38,9 +38,9 @@ public abstract class Representation {
 	protected String name;
 
 	@DBRef(lazy = true)
-	protected Codebase codebase;
+	protected SoftwareSystem softwareSystem;
 
-	public abstract String init(Codebase codebase, byte[] representationFile) throws Exception;
+	public abstract String init(SoftwareSystem softwareSystem, byte[] representationFile) throws Exception;
 
 	@JsonIgnore
 	public abstract String getType();
@@ -53,11 +53,11 @@ public abstract class Representation {
 		this.name = name;
 	}
 
-	public Codebase getCodebase() {
-		return codebase;
+	public SoftwareSystem getSoftwareSystem() {
+		return softwareSystem;
 	}
 
-	public void setCodebase(Codebase codebase) {
-		this.codebase = codebase;
+	public void setSoftwareSystem(SoftwareSystem softwareSystem) {
+		this.softwareSystem = softwareSystem;
 	}
 }

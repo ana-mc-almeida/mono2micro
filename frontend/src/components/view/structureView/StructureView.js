@@ -30,7 +30,7 @@ export const structureViewHelp = (<div>
 </div>);
 
 export const StructureView = () => {
-    let { codebaseName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemName, strategyName, similarityName, decompositionName } = useParams();
 
     const [displayStructure, setDisplayStructure] = useState("none");
     const [showModal, setShowModal] = useState(false);
@@ -78,16 +78,16 @@ export const StructureView = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                    {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

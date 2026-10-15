@@ -8,7 +8,7 @@ import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_ENTITY_VECTORIZATION} from "../../../models/similarity/SimilarityScipyEntityVectorization";
 
 
-export const SimilarityMatrixSciPyEntityVectorizationForm = ({codebaseName, strategy, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemName, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");

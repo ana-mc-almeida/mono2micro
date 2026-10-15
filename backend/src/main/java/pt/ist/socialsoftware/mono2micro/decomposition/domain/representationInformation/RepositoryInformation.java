@@ -124,8 +124,8 @@ public class RepositoryInformation extends RepresentationInformation {
 
 	private void setupAuthorsAndCommits(Decomposition decomposition) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		AuthorRepresentation authorRepresentation = (AuthorRepresentation) decomposition.getStrategy().getCodebase().getRepresentationByFileType(AUTHOR);
-		CommitRepresentation commitRepresentation = (CommitRepresentation) decomposition.getStrategy().getCodebase().getRepresentationByFileType(COMMIT);
+		AuthorRepresentation authorRepresentation = (AuthorRepresentation) decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(AUTHOR);
+		CommitRepresentation commitRepresentation = (CommitRepresentation) decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(COMMIT);
 		Map<Short, ArrayList<String>> localAuthors = new ObjectMapper().readValue(gridFsService.getFileAsString(authorRepresentation.getName()),
 				new TypeReference<Map<Short, ArrayList<String>>>() {});
 		Map<String, Map<String, Integer>> commits = new ObjectMapper().readValue(gridFsService.getFileAsString(commitRepresentation.getName()),

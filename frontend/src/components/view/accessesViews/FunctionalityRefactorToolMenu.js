@@ -106,7 +106,7 @@ const functionalityRedesignColumns = [
 export const FunctionalityRefactorToolMenu = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile, translateEntity } = context;
-    let { codebaseName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemName, strategyName, similarityName, decompositionName } = useParams();
 
     const [waitingResponse, setWaitingResponse] = useState(false);
     const [functionalities, setFunctionalities] = useState([]);
@@ -123,14 +123,14 @@ export const FunctionalityRefactorToolMenu = () => {
 
     useEffect(() => {
         const service = new APIService();
-        viewCodebaseRefactor();
-        service.getIdToEntity(codebaseName).then(response => {
+        viewSoftwareSystemRefactor();
+        service.getIdToEntity(softwareSystemName).then(response => {
             updateEntityTranslationFile(response.data);
         });
     }, []);
 
     useEffect(() => {
-        viewCodebaseRefactor();
+        viewSoftwareSystemRefactor();
     }, [translateEntity]);
 
     function handleChangeThreshold(event) {
@@ -225,7 +225,7 @@ export const FunctionalityRefactorToolMenu = () => {
         }
     }
 
-    function viewCodebaseRefactor(){
+    function viewSoftwareSystemRefactor(){
         const service = new APIService();
 
         setWaitingResponse(true);
@@ -241,7 +241,7 @@ export const FunctionalityRefactorToolMenu = () => {
                 }
                 else {
                     setError(true);
-                    setErrorMessage('ERROR: Failed to view refactorization of the codebase.');
+                    setErrorMessage('ERROR: Failed to view refactorization of the software system.');
                     setIsLoading(false);
                 }
                 setWaitingResponse(false);
@@ -250,12 +250,12 @@ export const FunctionalityRefactorToolMenu = () => {
         );
     }
 
-    function requestCodebaseRefactor(newRefactor){
+    function requestSoftwareSystemRefactor(newRefactor){
         const service = new APIService();
 
         setWaitingResponse(true);
 
-        service.refactorCodebase(decompositionName,
+        service.refactorSoftwareSystem(decompositionName,
             functionalities, Number(dataDependenceThreshold), minimizeSumOfComplexities, Number(timeoutSecs), newRefactor)
             .then(response => {
                 setWaitingResponse(false);
@@ -263,7 +263,7 @@ export const FunctionalityRefactorToolMenu = () => {
                 handleDataParsing(response.data);
             }).catch(() => {
                 setError(true);
-                setErrorMessage('ERROR: Failed to request refactorization of the codebase.');
+                setErrorMessage('ERROR: Failed to request refactorization of the software system.');
                 setWaitingResponse(false);
             }
         );
@@ -321,16 +321,16 @@ export const FunctionalityRefactorToolMenu = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}`}>
+                    {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/similarity`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/similarity`}>
                     {strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemName}/${strategyName}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
@@ -470,7 +470,7 @@ between the one being analyzed and the last one from the same cluster.</p>
                 </div> */}
 
                 <Button
-                    onClick={ () => requestCodebaseRefactor(true) }
+                    onClick={ () => requestSoftwareSystemRefactor(true) }
                     variant="contained"
                     color="primary"
                     disabled={isLoading}
@@ -496,7 +496,7 @@ between the one being analyzed and the last one from the same cluster.</p>
                 <div>
                     <Button
                         className="ms-3"
-                        onClick={ () => viewCodebaseRefactor() }
+                        onClick={ () => viewSoftwareSystemRefactor() }
                         variant="contained"
                         color="primary"
                     >

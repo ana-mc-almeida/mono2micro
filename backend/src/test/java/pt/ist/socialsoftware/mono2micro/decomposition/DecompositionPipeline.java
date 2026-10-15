@@ -40,19 +40,19 @@ import java.util.Map;
  */
 interface DecompositionPipeline {
 
-	/** Step 1. Throws if the codebase already exists. */
-	void createCodebase(String codebaseName);
+	/** Step 1. Throws if the software system already exists. */
+	void createSoftwareSystem(String softwareSystemName);
 
 	/**
 	 * Step 2. Uploads every file the case's representation group requires, in one request.
 	 *
 	 * <p>It has to be one request: {@code RepresentationService} rejects a second upload of a
-	 * type the codebase already holds with "Re-sending representations is not allowed."
+	 * type the software system already holds with "Re-sending representations is not allowed."
 	 */
-	void addRepresentations(String codebaseName, StrategyCase strategyCase);
+	void addRepresentations(String softwareSystemName, StrategyCase strategyCase);
 
 	/** Step 3. Returns the strategy name, which is deterministic — see {@link StrategyCase#strategyName}. */
-	String createStrategy(String codebaseName, StrategyCase strategyCase);
+	String createStrategy(String softwareSystemName, StrategyCase strategyCase);
 
 	/** Step 4. Returns the generated similarity name, read back from the strategy. */
 	String createSimilarity(String strategyName, StrategyCase strategyCase);
@@ -70,16 +70,16 @@ interface DecompositionPipeline {
 	Map<String, List<String>> getClusters(String decompositionName);
 
 	/**
-	 * How many representations the codebase currently holds.
+	 * How many representations the software system currently holds.
 	 *
 	 * <p>Not part of the pipeline — it guards step 2. {@code RepresentationService} returns
 	 * <em>silently</em> when both request parameters bind to null, so a malformed upload
 	 * reports success and fails several steps later with an unrelated error.
 	 */
-	int representationCount(String codebaseName);
+	int representationCount(String softwareSystemName);
 
 	/** Cleanup. Mongo state persists in the {@code mongodata} volume across runs. */
-	void deleteCodebase(String codebaseName);
+	void deleteSoftwareSystem(String softwareSystemName);
 
 	/** Names the layer under test, for the parameterized test's display name. */
 	String layer();

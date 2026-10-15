@@ -1,4 +1,4 @@
-package pt.ist.socialsoftware.mono2micro.codebase.domain;
+package pt.ist.socialsoftware.mono2micro.softwareSystem.domain;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -9,8 +9,8 @@ import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Document("codebase")
-public class Codebase {
+@Document("softwareSystem")
+public class SoftwareSystem {
 	@Id
 	private String name;
 	@DBRef(lazy = true)
@@ -18,9 +18,9 @@ public class Codebase {
 	@DBRef(lazy = true)
 	private List<Strategy> strategies;
 
-	public Codebase() {}
+	public SoftwareSystem() {}
 
-	public Codebase(String name) {
+	public SoftwareSystem(String name) {
 		this.name = name;
 		representations = new ArrayList<>();
 		strategies = new ArrayList<>();

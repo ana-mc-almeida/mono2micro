@@ -97,8 +97,8 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		List<HashMap> entitiesVectors = this.computeEntitiesVectors(codeEmbeddings, entityToId);
 		this.computeSequenceOfAccessesFunctionalityVectors(matrix, functionalityTraces, entitiesVectors);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
 		matrix.put("translationFileName", idToEntity.getName());
 		matrix.put("accessesFileName", accessesInfo.getName());
 
@@ -277,7 +277,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToId.getName()),
 				new TypeReference<Map<String, Short>>() {}
@@ -287,7 +287,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	private Map<String, Short> getTranslationIdToEntity(Strategy strategy) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) strategy.getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(idToEntity.getName()),
 				new TypeReference<Map<Short, String>>() {}
@@ -297,7 +297,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	private JSONObject getFunctionalityTraces(Strategy strategy) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) strategy.getCodebase().getRepresentationByFileType(ACCESSES);
+		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ACCESSES);
 		return new JSONObject(
 				gridFsService.getFileAsString(accessesRepresentation.getName())
 		);
@@ -313,8 +313,9 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
 		JSONObject functionalityTraces = getFunctionalityTraces(recommendation.getStrategy());
 		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getSoftwareSystem()
+				.getRepresentationByFileType(ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];
 		weights[0] = INTERVAL;

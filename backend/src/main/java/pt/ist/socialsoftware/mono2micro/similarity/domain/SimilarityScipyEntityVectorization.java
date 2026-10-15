@@ -176,7 +176,7 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToId.getName()),
 				new TypeReference<Map<String, Short>>() {}

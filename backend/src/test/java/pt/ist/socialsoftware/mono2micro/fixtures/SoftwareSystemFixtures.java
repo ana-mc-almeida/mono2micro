@@ -1,6 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.fixtures;
 
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
@@ -14,16 +14,16 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Codebases with known uploaded representations, for tests that assert which features
+ * Software systems with known uploaded representations, for tests that assert which features
  * a given set of uploads makes available.
  *
  * <p>{@code codebases/} is gitignored and empty in a fresh clone, so tests cannot depend on
  * whatever a developer happens to have uploaded locally. These fixtures are built in memory
- * instead: a {@link Codebase} holding {@link Representation} objects. Nothing is persisted and
+ * instead: a {@link SoftwareSystem} holding {@link Representation} objects. Nothing is persisted and
  * no database is contacted, so a fixture gives the same answer on every machine, offline.
  *
  * <p>This works because availability is derived from representation <em>types</em> alone —
- * {@link Codebase#getRepresentationGroups()} reads {@code getType()} and compares against
+ * {@link SoftwareSystem#getRepresentationGroups()} reads {@code getType()} and compares against
  * {@link Representation#representationGroupToRepresentations}. The uploaded file contents are
  * never consulted, so the fixtures carry none.
  *
@@ -32,20 +32,20 @@ import java.util.List;
  * withheld path are testable by picking two fixtures:
  *
  * <pre>
- * Codebase offered = CodebaseFixtures.repositoryBased(); // has authorship data
- * Codebase withheld = CodebaseFixtures.accessesBased(); // deliberately does not
+ * SoftwareSystem offered = SoftwareSystemFixtures.repositoryBased(); // has authorship data
+ * SoftwareSystem withheld = SoftwareSystemFixtures.accessesBased(); // deliberately does not
  * </pre>
  *
- * <p>To test a service that looks a codebase up rather than receiving one, stub the repository:
+ * <p>To test a service that looks a software system up rather than receiving one, stub the repository:
  *
  * <pre>
- * when(codebaseRepository.findByName(ACCESSES_BASED_NAME))
- * .thenReturn(CodebaseFixtures.accessesBased());
+ * when(softwareSystemRepository.findByName(ACCESSES_BASED_NAME))
+ * .thenReturn(SoftwareSystemFixtures.accessesBased());
  * </pre>
  *
  * <p>Fixtures are built fresh on every call, so a test may mutate one without affecting another.
  */
-public class CodebaseFixtures {
+public class SoftwareSystemFixtures {
 
 	public static final String EMPTY_NAME = "fixture-empty";
 	public static final String ACCESSES_BASED_NAME = "fixture-accesses-based";
@@ -54,11 +54,11 @@ public class CodebaseFixtures {
 	public static final String STRUCTURE_BASED_NAME = "fixture-structure-based";
 
 	/**
-	 * A codebase with nothing uploaded. Satisfies no representation group, so every feature
+	 * A software system with nothing uploaded. Satisfies no representation group, so every feature
 	 * is withheld — the baseline against which any offered feature is a difference.
 	 */
-	public static Codebase empty() {
-		return codebaseNamed(EMPTY_NAME);
+	public static SoftwareSystem empty() {
+		return softwareSystemNamed(EMPTY_NAME);
 	}
 
 	/**
@@ -67,8 +67,8 @@ public class CodebaseFixtures {
 	 * <p>Deliberately carries no authorship or commit data, so a feature requiring those is
 	 * withheld. This is the counterpart to {@link #repositoryBased()}.
 	 */
-	public static Codebase accessesBased() {
-		return codebaseWith(
+	public static SoftwareSystem accessesBased() {
+		return softwareSystemWith(
 				ACCESSES_BASED_NAME,
 				new IDToEntityRepresentation(),
 				new AccessesRepresentation());
@@ -78,8 +78,8 @@ public class CodebaseFixtures {
 	 * Uploads satisfying {@code Repository Based} — the accesses uploads plus authorship and
 	 * commit data, so a feature requiring version history is offered.
 	 */
-	public static Codebase repositoryBased() {
-		return codebaseWith(
+	public static SoftwareSystem repositoryBased() {
+		return softwareSystemWith(
 				REPOSITORY_BASED_NAME,
 				new IDToEntityRepresentation(),
 				new AccessesRepresentation(),
@@ -88,8 +88,8 @@ public class CodebaseFixtures {
 	}
 
 	/** Uploads satisfying {@code Code Embeddings Based}. */
-	public static Codebase codeEmbeddingsBased() {
-		return codebaseWith(
+	public static SoftwareSystem codeEmbeddingsBased() {
+		return softwareSystemWith(
 				CODE_EMBEDDINGS_BASED_NAME,
 				new IDToEntityRepresentation(),
 				new EntityToIDRepresentation(),
@@ -98,8 +98,8 @@ public class CodebaseFixtures {
 	}
 
 	/** Uploads satisfying {@code Structure Based}. */
-	public static Codebase structureBased() {
-		return codebaseWith(
+	public static SoftwareSystem structureBased() {
+		return softwareSystemWith(
 				STRUCTURE_BASED_NAME,
 				new IDToEntityRepresentation(),
 				new EntityToIDRepresentation(),
@@ -108,7 +108,7 @@ public class CodebaseFixtures {
 	}
 
 	/** Every fixture, for tests asserting that different uploads yield different answers. */
-	public static List<Codebase> all() {
+	public static List<SoftwareSystem> all() {
 		return Arrays.asList(
 				empty(),
 				accessesBased(),
@@ -118,22 +118,22 @@ public class CodebaseFixtures {
 	}
 
 	/**
-	 * A codebase with exactly the given representations, for the case no named fixture covers.
+	 * A software system with exactly the given representations, for the case no named fixture covers.
 	 * Prefer a named fixture where one fits, so that tests share vocabulary.
 	 */
-	public static Codebase codebaseWith(String name, Representation... representations) {
-		Codebase codebase = codebaseNamed(name);
+	public static SoftwareSystem softwareSystemWith(String name, Representation... representations) {
+		SoftwareSystem softwareSystem = softwareSystemNamed(name);
 		for (Representation representation : representations) {
 			representation.setName(name + " & " + representation.getType());
-			representation.setCodebase(codebase);
-			codebase.addRepresentation(representation);
+			representation.setSoftwareSystem(softwareSystem);
+			softwareSystem.addRepresentation(representation);
 		}
-		return codebase;
+		return softwareSystem;
 	}
 
-	private static Codebase codebaseNamed(String name) {
-		return new Codebase(name);
+	private static SoftwareSystem softwareSystemNamed(String name) {
+		return new SoftwareSystem(name);
 	}
 
-	private CodebaseFixtures() {}
+	private SoftwareSystemFixtures() {}
 }

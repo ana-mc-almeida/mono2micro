@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.strategy.domain;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -71,7 +71,7 @@ public class Strategy {
 	private String name;
 	private String algorithmType;
 	@DBRef
-	private Codebase codebase;
+	private SoftwareSystem softwareSystem;
 	@DBRef(lazy = true)
 	private List<Decomposition> decompositions = new ArrayList<>();
 	@DBRef(lazy = true)
@@ -82,7 +82,7 @@ public class Strategy {
 
 	public Strategy() {}
 
-	public Strategy(Codebase codebase, String algorithmType, List<String> strategyTypes) {
+	public Strategy(SoftwareSystem softwareSystem, String algorithmType, List<String> strategyTypes) {
 		StringBuilder shortForm = new StringBuilder();
 		for (String word : strategyTypes.get(0).split(" ")) {
 			shortForm.append(word.charAt(0));
@@ -93,7 +93,7 @@ public class Strategy {
 				shortForm.append(word.charAt(0));
 			}
 		}
-		this.name = codebase.getName() + " - " + shortForm + " Strategy";
+		this.name = softwareSystem.getName() + " - " + shortForm + " Strategy";
 		this.algorithmType = algorithmType;
 		this.strategyTypes = strategyTypes;
 	}
@@ -114,12 +114,12 @@ public class Strategy {
 		this.name = name;
 	}
 
-	public Codebase getCodebase() {
-		return codebase;
+	public SoftwareSystem getSoftwareSystem() {
+		return softwareSystem;
 	}
 
-	public void setCodebase(Codebase codebase) {
-		this.codebase = codebase;
+	public void setSoftwareSystem(SoftwareSystem softwareSystem) {
+		this.softwareSystem = softwareSystem;
 	}
 
 	public List<Decomposition> getDecompositions() {

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.ist.socialsoftware.mono2micro.codebase.CodebaseController;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemController;
 import pt.ist.socialsoftware.mono2micro.representation.service.AccessesRepresentationService;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
@@ -14,7 +14,8 @@ import javax.management.openmbean.KeyAlreadyExistsException;
 @RestController
 @RequestMapping(value = "/mono2micro")
 public class AccessesRepresentationController {
-	private static final Logger logger = LoggerFactory.getLogger(CodebaseController.class);
+	// FIXME (ticket 07): logger copied from SoftwareSystemController; use AccessesRepresentationController.class
+	private static final Logger logger = LoggerFactory.getLogger(SoftwareSystemController.class);
 
 	@Autowired
 	AccessesRepresentationService accessesRepresentationService;
@@ -74,12 +75,14 @@ public class AccessesRepresentationController {
 		}
 	}
 
-	@GetMapping(value = "/representation/{codebaseName}/getIdToEntity")
-	public ResponseEntity<String> getIdToEntity(@PathVariable String codebaseName) {
+	// FIXME (ticket 07): the path variable is a software system name, not a representation name;
+	// move to /softwareSystems/{softwareSystemName}/getIdToEntity
+	@GetMapping(value = "/representation/{softwareSystemName}/getIdToEntity")
+	public ResponseEntity<String> getIdToEntity(@PathVariable String softwareSystemName) {
 		logger.debug("getIdToEntity");
 
 		try {
-			return new ResponseEntity<>(accessesRepresentationService.getIdToEntity(codebaseName), HttpStatus.OK);
+			return new ResponseEntity<>(accessesRepresentationService.getIdToEntity(softwareSystemName), HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();

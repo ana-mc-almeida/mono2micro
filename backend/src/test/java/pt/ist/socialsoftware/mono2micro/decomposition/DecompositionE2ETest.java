@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import pt.ist.socialsoftware.mono2micro.codebase.CodebaseService;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
@@ -85,7 +85,7 @@ class DecompositionE2ETest {
 	@Autowired
 	private TestRestTemplate rest;
 	@Autowired
-	private CodebaseService codebaseService;
+	private SoftwareSystemService softwareSystemService;
 	@Autowired
 	private RepresentationService representationService;
 	@Autowired
@@ -116,23 +116,23 @@ class DecompositionE2ETest {
 
 		for (DecompositionPipeline pipeline : pipelines(caseName)) {
 			// Unique per run, per layer and per strategy: re-uploading a representation type to
-			// an existing codebase throws "Re-sending representations is not allowed."
-			String codebaseName = caseName + "-" + strategyCase.label() + "-"
+			// an existing software system throws "Re-sending representations is not allowed."
+			String softwareSystemName = caseName + "-" + strategyCase.label() + "-"
 					+ pipeline.layer() + "-" + System.currentTimeMillis();
 
-			pipeline.createCodebase(codebaseName);
-			cleanups.add(() -> pipeline.deleteCodebase(codebaseName));
+			pipeline.createSoftwareSystem(softwareSystemName);
+			cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystemName));
 
-			pipeline.addRepresentations(codebaseName, strategyCase);
+			pipeline.addRepresentations(softwareSystemName, strategyCase);
 
 			// Guards a silent failure: RepresentationService returns without doing anything
 			// when both request parameters bind to null, which would otherwise surface several
 			// steps later as an unrelated error.
-			assertThat(pipeline.representationCount(codebaseName))
+			assertThat(pipeline.representationCount(softwareSystemName))
 					.as("representations uploaded via %s", pipeline.layer())
 					.isEqualTo(strategyCase.representations().size());
 
-			String strategyName = pipeline.createStrategy(codebaseName, strategyCase);
+			String strategyName = pipeline.createStrategy(softwareSystemName, strategyCase);
 			String similarityName = pipeline.createSimilarity(strategyName, strategyCase);
 			String decompositionName = pipeline.createDecomposition(similarityName);
 
@@ -147,7 +147,7 @@ class DecompositionE2ETest {
 	}
 
 	@AfterEach
-	void removeCreatedCodebases() {
+	void removeCreatedSoftwareSystems() {
 		for (Runnable cleanup : cleanups) {
 			try {
 				cleanup.run();
@@ -180,7 +180,7 @@ class DecompositionE2ETest {
 		return Arrays.asList(
 				new HttpDecompositionPipeline(rest, port, caseName),
 				new ServiceDecompositionPipeline(
-						codebaseService, representationService, strategyService,
+						softwareSystemService, representationService, strategyService,
 						similarityService, decompositionService, caseName));
 	}
 
@@ -191,7 +191,7 @@ class DecompositionE2ETest {
 	 * missing. No case holds every fixture: {@code quizzes-tutor} has no structure file, the
 	 * structure case has no repository or code-embeddings files, and no case but
 	 * {@code quizzes-tutor} has code embeddings — those are collector output that not every
-	 * codebase can currently produce. Dropping the uncovered combinations from {@link #CASES}
+	 * software system can currently produce. Dropping the uncovered combinations from {@link #CASES}
 	 * would hide that they are uncovered; failing the build for files nobody can obtain would
 	 * make the suite useless.
 	 *

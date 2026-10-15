@@ -3,8 +3,8 @@ package pt.ist.socialsoftware.mono2micro.representation.service;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.codebase.repository.CodebaseRepository;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -20,7 +20,7 @@ import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.I
 public class AccessesRepresentationService {
 
 	@Autowired
-	CodebaseRepository codebaseRepository;
+	SoftwareSystemRepository softwareSystemRepository;
 
 	@Autowired
 	RepresentationRepository representationRepository;
@@ -49,9 +49,9 @@ public class AccessesRepresentationService {
 		representationRepository.save(representation);
 	}
 
-	public String getIdToEntity(String codebaseName) throws IOException {
-		Codebase codebase = codebaseRepository.findByName(codebaseName);
-		Representation representation = codebase.getRepresentationByFileType(ID_TO_ENTITY);
+	public String getIdToEntity(String softwareSystemName) throws IOException {
+		SoftwareSystem softwareSystem = softwareSystemRepository.findByName(softwareSystemName);
+		Representation representation = softwareSystem.getRepresentationByFileType(ID_TO_ENTITY);
 		return IOUtils.toString(gridFsService.getFile(representation.getName()), StandardCharsets.UTF_8);
 	}
 }
