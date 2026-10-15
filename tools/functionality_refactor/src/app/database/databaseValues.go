@@ -1,7 +1,7 @@
 package database
 
 type Decomposition struct {
-	Name                       string                       `bson:"_id,omitempty"`
+	Name                       string                       `bson:"name,omitempty"`
 	Expert                     bool                         `bson:"expert,omitempty"`
 	Metrics                    map[string]float64           `bson:"metrics,omitempty"`
 	Clusters                   map[string]*Cluster          `bson:"clusters,omitempty"`

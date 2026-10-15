@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.decomposition.domain;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
@@ -18,6 +19,7 @@ import java.util.*;
 
 public abstract class Decomposition {
 	@Id
+	String id = new ObjectId().toHexString();
 	String name;
 	String type;
 	boolean expert;
@@ -62,7 +64,17 @@ public abstract class Decomposition {
 
 	public abstract Decomposition snapshotDecomposition(String decompositionName) throws Exception;
 
-	public String getName() { return this.name; }
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
 
 	public void setName(String name) {
 		this.name = name;

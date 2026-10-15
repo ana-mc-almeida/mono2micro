@@ -171,7 +171,7 @@ func (svc *DefaultHandler) ReadDecomposition(ctx context.Context, decompositionN
 	}
 
 	var databaseDecomposition Decomposition
-	err = client.Database(svc.mongodbName).Collection("decomposition").FindOne(ctx, bson.D{{"_id", decompositionName}}).Decode(&databaseDecomposition)
+	err = client.Database(svc.mongodbName).Collection("decomposition").FindOne(ctx, bson.D{{"name", decompositionName}}).Decode(&databaseDecomposition)
 	if err != nil {
 		return nil, err
 	}
