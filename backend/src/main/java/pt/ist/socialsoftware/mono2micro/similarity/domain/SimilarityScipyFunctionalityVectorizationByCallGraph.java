@@ -64,7 +64,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
 	}

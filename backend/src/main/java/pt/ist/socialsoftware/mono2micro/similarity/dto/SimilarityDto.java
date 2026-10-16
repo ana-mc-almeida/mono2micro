@@ -21,6 +21,7 @@ import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy
 })
 public abstract class SimilarityDto {
 	String softwareSystemId;
+	String strategyId;
 	String strategyName;
 	String name;
 	String type;
@@ -47,6 +48,14 @@ public abstract class SimilarityDto {
 
 	public void setStrategyName(String strategyName) {
 		this.strategyName = strategyName;
+	}
+
+	public String getStrategyId() {
+		return strategyId;
+	}
+
+	public void setStrategyId(String strategyId) {
+		this.strategyId = strategyId;
 	}
 
 	public String getSoftwareSystemId() {

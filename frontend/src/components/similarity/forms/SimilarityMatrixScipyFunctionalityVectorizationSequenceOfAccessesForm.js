@@ -27,7 +27,7 @@ export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesFo
         setIsUploaded("Uploading...");
 
         service.createSimilarity({
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             type: SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
             linkageType,
             weightsList

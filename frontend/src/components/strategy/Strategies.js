@@ -163,7 +163,7 @@ export function Strategies() {
     function handleDeleteStrategy(strategy) {
         let toastId = toast.loading("Deleting strategy...", {type: toast.TYPE.INFO});
         const service = new APIService();
-        service.deleteStrategy(strategy.name).then(() => {
+        service.deleteStrategy(strategy.id).then(() => {
             loadStrategies();
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Strategy deleted.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);

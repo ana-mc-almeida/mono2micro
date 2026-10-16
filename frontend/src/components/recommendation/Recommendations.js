@@ -10,7 +10,7 @@ import { StrategyType } from '../../models/strategy/StrategyTypes';
 import { RecommendationType } from '../../models/recommendation/RecommendationTypes';
 
 export const Recommendations = () => {
-    let { softwareSystemId, strategyName } = useParams();
+    let { softwareSystemId, strategyId } = useParams();
 
     const [strategy, setStrategy] = useState(undefined);
     const [decompositions, setDecompositions] = useState([]);
@@ -24,7 +24,7 @@ export const Recommendations = () => {
     function loadStrategy() {
         const toastId = toast.loading("Fetching Strategy...");
         const service = new APIService();
-        service.getStrategy(strategyName).then(response => {
+        service.getStrategy(strategyId).then(response => {
             setStrategy(response);
 
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Loaded Strategy.", isLoading: false});
@@ -36,7 +36,7 @@ export const Recommendations = () => {
         const service = new APIService();
         const toastId = toast.loading("Fetching Decompositions...");
         service.getStrategyDecompositions(
-            strategyName
+            strategyId
         ).then(response => {
             setDecompositions(response);
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decompositions Loaded.", isLoading: false});
@@ -91,7 +91,7 @@ export const Recommendations = () => {
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
                 <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{strategy?.softwareSystemName}</Breadcrumb.Item>
-                <Breadcrumb.Item active>{strategyName}</Breadcrumb.Item>
+                <Breadcrumb.Item active>{strategy?.name}</Breadcrumb.Item>
             </Breadcrumb>
         );
     }

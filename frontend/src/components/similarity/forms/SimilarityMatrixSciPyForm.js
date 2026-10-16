@@ -36,7 +36,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
         setIsUploaded("Uploading...");
 
         service.createSimilarity({
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             type: SIMILARITY_SCIPY_ACCESSES_REPOSITORY,
             weightsList,
             profile,

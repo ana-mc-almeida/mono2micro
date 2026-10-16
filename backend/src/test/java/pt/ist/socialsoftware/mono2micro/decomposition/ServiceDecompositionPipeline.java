@@ -102,24 +102,24 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 
 	@Override
 	public String createStrategy(String softwareSystemId, StrategyCase strategyCase) {
-		return strategyService.createStrategy(softwareSystemId, "SciPy Clustering", strategyCase.strategyTypes()).getName();
+		return strategyService.createStrategy(softwareSystemId, "SciPy Clustering", strategyCase.strategyTypes()).getId();
 	}
 
 	@Override
-	public String createSimilarity(String strategyName, StrategyCase strategyCase) {
-		SimilarityDto dto = similarityDto(strategyName, strategyCase);
+	public String createSimilarity(String strategyId, StrategyCase strategyCase) {
+		SimilarityDto dto = similarityDto(strategyId, strategyCase);
 
 		try {
 			similarityService.createSimilarity(dto);
 		} catch (Exception e) {
-			throw new AssertionError("Could not create similarity for " + strategyName, e);
+			throw new AssertionError("Could not create similarity for " + strategyId, e);
 		}
 
 		// createSimilarity returns void, and a duplicate request is a silent no-op, so the
 		// generated name is read back rather than reconstructed.
-		List<Similarity> similarities = strategyService.getStrategySimilarities(strategyName);
+		List<Similarity> similarities = strategyService.getStrategySimilarities(strategyId);
 		if (similarities.isEmpty())
-			throw new AssertionError("No similarity was created for " + strategyName);
+			throw new AssertionError("No similarity was created for " + strategyId);
 
 		return similarities.get(similarities.size() - 1).getName();
 	}
@@ -133,13 +133,13 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	 * Constructing them directly is also why this implementation never exercises the
 	 * {@code @JsonSubTypes} dispatch that {@link HttpDecompositionPipeline} does.
 	 */
-	private SimilarityDto similarityDto(String strategyName, StrategyCase strategyCase) {
+	private SimilarityDto similarityDto(String strategyId, StrategyCase strategyCase) {
 		Map<String, Object> extra = strategyCase.extraSimilarityFields();
 
 		switch (strategyCase.similarityType()) {
 		case StrategyCase.SIMILARITY_ACCESSES_REPOSITORY: {
 			SimilarityScipyAccessesAndRepositoryDto dto = new SimilarityScipyAccessesAndRepositoryDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setProfile((String) extra.get("profile"));
 			dto.setTracesMaxLimit((Integer) extra.get("tracesMaxLimit"));
@@ -149,7 +149,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		}
 		case StrategyCase.SIMILARITY_STRUCTURE: {
 			SimilarityScipyStructureDto dto = new SimilarityScipyStructureDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setProfile((String) extra.get("profile"));
 			dto.setTraceType(Constants.TraceType.valueOf((String) extra.get("traceType")));
@@ -158,19 +158,19 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		}
 		case StrategyCase.SIMILARITY_CLASS_VECTORIZATION: {
 			SimilarityScipyClassVectorizationDto dto = new SimilarityScipyClassVectorizationDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			return dto;
 		}
 		case StrategyCase.SIMILARITY_ENTITY_VECTORIZATION: {
 			SimilarityScipyEntityVectorizationDto dto = new SimilarityScipyEntityVectorizationDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			return dto;
 		}
 		case StrategyCase.SIMILARITY_FV_CALLGRAPH: {
 			SimilarityScipyFunctionalityVectorizationByCallGraphDto dto = new SimilarityScipyFunctionalityVectorizationByCallGraphDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setDepth((Integer) extra.get("depth"));
 			dto.setWeightsList(weightsList(strategyCase));
@@ -178,7 +178,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		}
 		case StrategyCase.SIMILARITY_FV_SEQUENCE_ACCESSES: {
 			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto = new SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setWeightsList(weightsList(strategyCase));
 			return dto;

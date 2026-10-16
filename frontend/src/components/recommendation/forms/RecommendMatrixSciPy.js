@@ -131,7 +131,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
 
         service.recommendation({
             type: recommendationType,
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             weightsList,
             profile,
             linkageType,

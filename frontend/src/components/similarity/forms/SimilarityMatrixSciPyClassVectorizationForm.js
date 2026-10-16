@@ -22,7 +22,7 @@ export const SimilarityMatrixSciPyClassVectorizationForm = ({softwareSystemId, s
         setIsUploaded("Uploading...");
 
         service.createSimilarity({
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             type: SIMILARITY_SCIPY_CLASS_VECTORIZATION,
             linkageType
         })

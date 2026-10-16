@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StrategyDto {
+	String id;
 	String softwareSystemId;
 	String softwareSystemName;
 	String name;
@@ -16,6 +17,7 @@ public class StrategyDto {
 	List<String> parameterTypes;
 
 	public StrategyDto(Strategy strategy) {
+		this.id = strategy.getId();
 		this.softwareSystemId = strategy.getSoftwareSystem().getId();
 		this.softwareSystemName = strategy.getSoftwareSystem().getName();
 		this.name = strategy.getName();
@@ -30,6 +32,14 @@ public class StrategyDto {
 				}
 			}
 		}
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getSoftwareSystemId() {

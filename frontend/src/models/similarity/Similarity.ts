@@ -1,11 +1,13 @@
 export default abstract class Similarity {
     softwareSystemId?: string;
-    strategyName!: string;
+    strategyId!: string;
+    strategyName?: string;
     type!: string;
     name?: string;
 
     protected constructor(similarity: any) {
         this.softwareSystemId = similarity.softwareSystemId;
+        this.strategyId = similarity.strategyId;
         this.strategyName = similarity.strategyName;
         this.type = similarity.type;
         this.name = similarity.name;

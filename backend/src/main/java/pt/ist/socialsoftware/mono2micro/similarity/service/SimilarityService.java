@@ -32,7 +32,9 @@ public class SimilarityService {
 	GridFsService gridFsService;
 
 	public void createSimilarity(SimilarityDto similarityDto) throws Exception {
-		Strategy strategy = strategyRepository.findByName(similarityDto.getStrategyName());
+		Strategy strategy = strategyRepository.findById(similarityDto.getStrategyId())
+				.orElseThrow(() -> new RuntimeException("No strategy " + similarityDto.getStrategyId() + " found."));
+		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
 		if (strategy.getSimilarities().stream().anyMatch(similarity -> similarity.equalsDto(similarityDto)))
 			return;
 		Similarity similarity = SimilarityFactory.getSimilarity(strategy, similarityDto);

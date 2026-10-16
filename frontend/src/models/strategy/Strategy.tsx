@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import React from "react";
 
 export default class Strategy {
+    id!: string;
     softwareSystemId!: string;
     softwareSystemName!: string;
     name!: string;
@@ -11,6 +12,7 @@ export default class Strategy {
     parameterTypes!: string[];
 
     constructor(strategy: any) {
+        this.id = strategy.id;
         this.softwareSystemId = strategy.softwareSystemId;
         this.softwareSystemName = strategy.softwareSystemName;
         this.name = strategy.name;
@@ -21,20 +23,20 @@ export default class Strategy {
 
     // This function is used to be displayed in the context of the software system
     printCard(handleDeleteStrategy: (strategy: Strategy) => void): JSX.Element {
-        return <Card className={"text-center"} key={this.name} style={{width: '13rem'}}>
+        return <Card className={"text-center"} key={this.id} style={{width: '13rem'}}>
             <Card.Header>{this.name}</Card.Header>
             <Card.Body>
                 <span>{this.algorithmType}<br/></span>
                 {this.strategyTypes.map(rep => <span key={rep}>{rep}<br/></span> )}
                 <Button
-                    href={`/softwareSystems/${this.softwareSystemId}/${this.name}/similarity`}
+                    href={`/softwareSystems/${this.softwareSystemId}/${this.id}/similarity`}
                     className="mb-2"
                 >
                     Manual Setup
                 </Button>
                 <br/>
                 <Button
-                    href={`/softwareSystems/${this.softwareSystemId}/${this.name}/recommendation`}
+                    href={`/softwareSystems/${this.softwareSystemId}/${this.id}/recommendation`}
                     className="mb-2"
                 >
                     Recommendation

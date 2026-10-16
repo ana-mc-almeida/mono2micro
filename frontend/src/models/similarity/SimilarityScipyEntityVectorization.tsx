@@ -27,7 +27,7 @@ export default class SimilarityScipyEntityVectorization extends Similarity {
                 <Card.Text>
                     Linkage Type: {this.linkageType} < br />
                 </Card.Text>
-                <Button href={`/softwareSystems/${this.softwareSystemId}/${this.strategyName}/${this.name}/decomposition`}
+                <Button href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.name}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

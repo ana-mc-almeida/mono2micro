@@ -30,7 +30,7 @@ export const structureViewHelp = (<div>
 </div>);
 
 export const StructureView = () => {
-    let { softwareSystemId, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityName, decompositionName } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [displayStructure, setDisplayStructure] = useState("none");
@@ -86,10 +86,10 @@ export const StructureView = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/similarity`}>
-                    {strategyName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
+                    {decomposition?.strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

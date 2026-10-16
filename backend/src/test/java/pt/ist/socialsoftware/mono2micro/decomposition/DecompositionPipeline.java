@@ -51,11 +51,11 @@ interface DecompositionPipeline {
 	 */
 	void addRepresentations(String softwareSystemId, StrategyCase strategyCase);
 
-	/** Step 3. Returns the strategy name, read back from the created strategy. */
+	/** Step 3. Returns the strategy's id. */
 	String createStrategy(String softwareSystemId, StrategyCase strategyCase);
 
 	/** Step 4. Returns the generated similarity name, read back from the strategy. */
-	String createSimilarity(String strategyName, StrategyCase strategyCase);
+	String createSimilarity(String strategyId, StrategyCase strategyCase);
 
 	/** Step 5. Returns the generated decomposition name, read back from the similarity. */
 	String createDecomposition(String similarityName);

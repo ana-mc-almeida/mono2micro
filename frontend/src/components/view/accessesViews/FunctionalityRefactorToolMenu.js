@@ -106,7 +106,7 @@ const functionalityRedesignColumns = [
 export const FunctionalityRefactorToolMenu = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile, translateEntity } = context;
-    let { softwareSystemId, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityName, decompositionName } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [waitingResponse, setWaitingResponse] = useState(false);
@@ -329,10 +329,10 @@ export const FunctionalityRefactorToolMenu = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/similarity`}>
-                    {strategyName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
+                    {decomposition?.strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyName}/${similarityName}/decomposition`}>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityName}/decomposition`}>
                     {similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

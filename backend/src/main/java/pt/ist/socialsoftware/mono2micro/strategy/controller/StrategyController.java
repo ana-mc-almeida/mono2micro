@@ -26,14 +26,14 @@ public class StrategyController {
 	@Autowired
 	StrategyService strategyService;
 
-	@GetMapping(value = "/strategy/{strategyName}/getStrategy")
+	@GetMapping(value = "/strategy/{strategyId}/getStrategy")
 	public ResponseEntity<StrategyDto> getStrategy(
-			@PathVariable String strategyName
+			@PathVariable String strategyId
 	) {
 		logger.debug("getStrategy");
 		try {
 			return new ResponseEntity<>(
-					new StrategyDto(strategyService.getStrategy(strategyName)),
+					new StrategyDto(strategyService.getStrategy(strategyId)),
 					HttpStatus.OK
 			);
 
@@ -75,14 +75,14 @@ public class StrategyController {
 		}
 	}
 
-	@GetMapping(value = "/strategy/{strategyName}/getStrategyDecompositions")
+	@GetMapping(value = "/strategy/{strategyId}/getStrategyDecompositions")
 	public ResponseEntity<List<DecompositionDto>> getStrategyDecompositions(
-			@PathVariable String strategyName
+			@PathVariable String strategyId
 	) {
 		logger.debug("getStrategyDecompositions");
 		try {
 			return new ResponseEntity<>(
-					DecompositionDtoFactory.getDecompositionDtos(strategyService.getStrategyDecompositions(strategyName)),
+					DecompositionDtoFactory.getDecompositionDtos(strategyService.getStrategyDecompositions(strategyId)),
 					HttpStatus.OK
 			);
 
@@ -92,14 +92,14 @@ public class StrategyController {
 		}
 	}
 
-	@GetMapping(value = "/strategy/{strategyName}/getStrategySimilarities")
+	@GetMapping(value = "/strategy/{strategyId}/getStrategySimilarities")
 	public ResponseEntity<List<SimilarityDto>> getStrategySimilarities(
-			@PathVariable String strategyName
+			@PathVariable String strategyId
 	) {
 		logger.debug("getStrategySimilarities");
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDtos(strategyService.getStrategySimilarities(strategyName)),
+					SimilarityDtoFactory.getSimilarityDtos(strategyService.getStrategySimilarities(strategyId)),
 					HttpStatus.OK
 			);
 
@@ -109,14 +109,14 @@ public class StrategyController {
 		}
 	}
 
-	@DeleteMapping(value = "/strategy/{strategyName}/delete")
+	@DeleteMapping(value = "/strategy/{strategyId}/delete")
 	public ResponseEntity<HttpStatus> deleteStrategy(
-			@PathVariable String strategyName
+			@PathVariable String strategyId
 	) {
 		logger.debug("Delete Strategy");
 
 		try {
-			strategyService.deleteSingleStrategy(strategyName);
+			strategyService.deleteSingleStrategy(strategyId);
 
 			return new ResponseEntity<>(HttpStatus.OK);
 

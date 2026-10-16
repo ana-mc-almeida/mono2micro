@@ -29,7 +29,8 @@ public class RecommendationService {
 	GridFsService gridFsService;
 
 	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
-		Strategy strategy = strategyRepository.findByName(recommendationDto.getStrategyName());
+		Strategy strategy = strategyRepository.findById(recommendationDto.getStrategyId())
+				.orElseThrow(() -> new RuntimeException("No strategy " + recommendationDto.getStrategyId() + " found."));
 		RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategy.getRecommendations().stream()
 				.filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
 

@@ -106,14 +106,14 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 
 		require(response, HttpStatus.CREATED, "create strategy for " + softwareSystemId);
 
-		return response.getBody().path("name").asText();
+		return response.getBody().path("id").asText();
 	}
 
 	@Override
-	public String createSimilarity(String strategyName, StrategyCase strategyCase) {
+	public String createSimilarity(String strategyId, StrategyCase strategyCase) {
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.put("type", strategyCase.similarityType());
-		body.put("strategyName", strategyName);
+		body.put("strategyId", strategyId);
 		body.put("linkageType", "average");
 		body.putAll(strategyCase.extraSimilarityFields());
 
@@ -128,12 +128,12 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				new HttpEntity<>(body, jsonHeaders()),
 				String.class);
 
-		require(response, HttpStatus.CREATED, "create similarity for " + strategyName);
+		require(response, HttpStatus.CREATED, "create similarity for " + strategyId);
 
 		// A duplicate request also returns 201 without creating anything, so the name is read
 		// back rather than assumed.
-		JsonNode similarities = getJson("/strategy/{name}/getStrategySimilarities", strategyName);
-		return onlyName(similarities, "similarity", strategyName);
+		JsonNode similarities = getJson("/strategy/{id}/getStrategySimilarities", strategyId);
+		return onlyName(similarities, "similarity", strategyId);
 	}
 
 	@Override

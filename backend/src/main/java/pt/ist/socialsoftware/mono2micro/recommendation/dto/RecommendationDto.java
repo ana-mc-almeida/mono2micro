@@ -16,6 +16,7 @@ import static pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendat
 })
 public abstract class RecommendationDto {
 	String type;
+	String strategyId;
 	String strategyName;
 	String name;
 	boolean isCompleted;
@@ -26,6 +27,14 @@ public abstract class RecommendationDto {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public String getStrategyId() {
+		return strategyId;
+	}
+
+	public void setStrategyId(String strategyId) {
+		this.strategyId = strategyId;
 	}
 
 	public String getStrategyName() {

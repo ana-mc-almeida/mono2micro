@@ -16,7 +16,7 @@ import { StrategyType } from '../../models/strategy/StrategyTypes';
 
 export const Similarities = () => {
 
-    let { softwareSystemId, strategyName } = useParams();
+    let { softwareSystemId, strategyId } = useParams();
 
     const [strategy, setStrategy] = useState(undefined);
     const [similarities, setSimilarities] = useState([]);
@@ -29,7 +29,7 @@ export const Similarities = () => {
     function loadStrategy() {
         const toastId = toast.loading("Fetching Strategy...");
         const service = new APIService();
-        service.getStrategy(strategyName).then(response => {
+        service.getStrategy(strategyId).then(response => {
             setStrategy(response);
             loadSimilarities();
 
@@ -41,8 +41,8 @@ export const Similarities = () => {
     function loadSimilarities() {
         const toastId = toast.loading("Fetching Similarities...");
         const service = new APIService();
-        console.log('[LOG] - Test -> ' + strategyName);
-        service.getStrategySimilarities(strategyName)
+        console.log('[LOG] - Test -> ' + strategyId);
+        service.getStrategySimilarities(strategyId)
             .then(response => {
                 console.log('[LOG] - ' + response);
                 setSimilarities(response);
@@ -72,7 +72,7 @@ export const Similarities = () => {
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
                 <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{strategy?.softwareSystemName}</Breadcrumb.Item>
-                <Breadcrumb.Item active>{strategyName}</Breadcrumb.Item>
+                <Breadcrumb.Item active>{strategy?.name}</Breadcrumb.Item>
             </Breadcrumb>
         );
     }

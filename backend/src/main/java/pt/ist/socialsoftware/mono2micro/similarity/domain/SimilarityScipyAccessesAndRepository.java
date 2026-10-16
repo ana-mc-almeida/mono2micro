@@ -66,7 +66,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
 				similarityDto.getProfile().equals(this.profile) &&
 				similarityDto.getTracesMaxLimit() == this.tracesMaxLimit &&
 				similarityDto.getTraceType() == this.traceType &&

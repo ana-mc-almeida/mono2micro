@@ -246,23 +246,23 @@ export class APIService {
         return this.axios.get("/strategy/getAlgorithms");
     }
 
-    getStrategySimilarities(strategyName: string) {
-        return this.axios.get("/strategy/" + strategyName + "/getStrategySimilarities").then(
+    getStrategySimilarities(strategyId: string) {
+        return this.axios.get("/strategy/" + strategyId + "/getStrategySimilarities").then(
             response => response.data.map((similarity: any) => SimilarityFactory.getSimilarity(similarity)));
     }
 
-    getStrategyDecompositions(strategyName: string) {
-        return this.axios.get("/strategy/" + strategyName + "/getStrategyDecompositions").then(
+    getStrategyDecompositions(strategyId: string) {
+        return this.axios.get("/strategy/" + strategyId + "/getStrategyDecompositions").then(
             response => response.data.map((decomposition: any) => DecompositionFactory.getDecomposition(decomposition)));
     }
 
-    getStrategy(strategyName: string) {
-        return this.axios.get("/strategy/" + strategyName + "/getStrategy").then(
+    getStrategy(strategyId: string) {
+        return this.axios.get("/strategy/" + strategyId + "/getStrategy").then(
             response => new Strategy(response.data));
     }
 
-    deleteStrategy(strategyName: string) {
-        return this.axios.delete<null>("/strategy/" + strategyName + "/delete");
+    deleteStrategy(strategyId: string) {
+        return this.axios.delete<null>("/strategy/" + strategyId + "/delete");
     }
 
     getEdgeWeights(decompositionName: string, viewType: string) {

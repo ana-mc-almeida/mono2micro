@@ -54,14 +54,14 @@ public class StrategyService {
 		deleteStrategyRecommendations(strategy);
 	}
 
-	public List<Similarity> getStrategySimilarities(String strategyName) {
-		Strategy strategy = strategyRepository.findByName(strategyName);
+	public List<Similarity> getStrategySimilarities(String strategyId) {
+		Strategy strategy = getStrategy(strategyId);
 		return strategy.getSimilarities();
 	}
 
-	public void deleteSingleStrategy(String strategyName) {
-		Strategy strategy = strategyRepository.findByName(strategyName);
-		strategy.getSoftwareSystem().removeStrategy(strategyName);
+	public void deleteSingleStrategy(String strategyId) {
+		Strategy strategy = getStrategy(strategyId);
+		strategy.getSoftwareSystem().removeStrategy(strategy.getName());
 		for (Decomposition decomposition : strategy.getDecompositions())
 			decompositionService.deleteDecomposition(decomposition);
 		removeSpecificStrategyProperties(strategy);
@@ -76,12 +76,12 @@ public class StrategyService {
 		strategyRepository.delete(strategy);
 	}
 
-	public Strategy getStrategy(String strategyName) {
-		return strategyRepository.findByName(strategyName);
+	public Strategy getStrategy(String strategyId) {
+		return strategyRepository.findById(strategyId).orElseThrow(() -> new RuntimeException("No strategy " + strategyId + " found."));
 	}
 
-	public List<Decomposition> getStrategyDecompositions(String strategyName) {
-		Strategy strategy = strategyRepository.findByName(strategyName);
+	public List<Decomposition> getStrategyDecompositions(String strategyId) {
+		Strategy strategy = getStrategy(strategyId);
 		return strategy.getDecompositions();
 	}
 

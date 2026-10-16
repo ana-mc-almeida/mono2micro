@@ -56,7 +56,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyStructureDto similarityDto = (SimilarityScipyStructureDto) dto;
-		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
 				similarityDto.getProfile().equals(this.profile) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
