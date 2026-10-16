@@ -17,6 +17,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto() { this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES; }
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses similarity) {
+		this.id = similarity.getId();
 		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
 		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();

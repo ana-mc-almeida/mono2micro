@@ -44,7 +44,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	}
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	private void computeSequenceOfAccessesFunctionalityVectors(
@@ -381,7 +381,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		matrix.put("accessesFileName", accessesFileName);
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		StringBuilder similarityMatrixName = new StringBuilder(getName());
+		StringBuilder similarityMatrixName = new StringBuilder(getId());
 		for (float weight : weights)
 			similarityMatrixName.append(",").append(getWeightAsString(weight));
 

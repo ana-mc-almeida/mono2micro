@@ -13,7 +13,7 @@ import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "..
 import {SIMILARITY_SCIPY_STRUCTURE} from "../../models/similarity/SimilarityScipyStructure";
 
 export const Decompositions = () => {
-    let { softwareSystemId, strategyId, similarityName } = useParams();
+    let { softwareSystemId, strategyId, similarityId } = useParams();
     const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [similarity, setSimilarity] = useState({});
     const [decompositions, setDecompositions] = useState([]);
@@ -22,7 +22,7 @@ export const Decompositions = () => {
     useEffect(() => {
         const service = new APIService();
         service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
-        service.getSimilarity(similarityName).then(response => {
+        service.getSimilarity(similarityId).then(response => {
             setSimilarity(response);
             loadDecompositions();
         });
@@ -32,7 +32,7 @@ export const Decompositions = () => {
         const service = new APIService();
         const toastId = toast.loading("Fetching Decompositions...");
         service.getDecompositions(
-            similarityName
+            similarityId
         ).then(response => {
             setDecompositions(response);
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decompositions Loaded.", isLoading: false});
@@ -102,7 +102,7 @@ export const Decompositions = () => {
                     {similarity.strategyName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
-                    {similarityName}
+                    {similarity.name}
                 </Breadcrumb.Item>
             </Breadcrumb>
         );

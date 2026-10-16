@@ -42,7 +42,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 	}
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraph(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 	}
 
 	public int getDepth() {
@@ -107,7 +107,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		matrix.put("accessesFileName", accessesInfo.getId());
 
 		JSONObject matrixJSON = new JSONObject(matrix);
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	private void computeMethodCallsFeaturesVectors(HashMap<String, Object> matrix, JSONObject codeEmbeddings) throws JSONException {
@@ -336,7 +336,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		matrix.put("accessesFileName", accessesFileName);
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		StringBuilder similarityMatrixName = new StringBuilder(getName());
+		StringBuilder similarityMatrixName = new StringBuilder(getId());
 		for (float weight : weights)
 			similarityMatrixName.append(",").append(getWeightAsString(weight));
 

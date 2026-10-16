@@ -12,6 +12,7 @@ public abstract class DecompositionDto {
 	String softwareSystemName;
 	String strategyId;
 	String strategyName;
+	String similarityId;
 	String similarityName;
 	String type;
 	Map<String, Object> metrics;
@@ -48,6 +49,14 @@ public abstract class DecompositionDto {
 
 	public void setStrategyId(String strategyId) {
 		this.strategyId = strategyId;
+	}
+
+	public String getSimilarityId() {
+		return similarityId;
+	}
+
+	public void setSimilarityId(String similarityId) {
+		this.similarityId = similarityId;
 	}
 
 	public String getStrategyName() {

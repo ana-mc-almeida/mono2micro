@@ -122,25 +122,23 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		if (!strategyCase.weights().isEmpty())
 			body.put("weightsList", strategyCase.weights());
 
-		ResponseEntity<String> response = rest.exchange(
+		ResponseEntity<JsonNode> response = rest.exchange(
 				base + "/similarity/create",
 				HttpMethod.POST,
 				new HttpEntity<>(body, jsonHeaders()),
-				String.class);
+				JsonNode.class);
 
 		require(response, HttpStatus.CREATED, "create similarity for " + strategyId);
 
-		// A duplicate request also returns 201 without creating anything, so the name is read
-		// back rather than assumed.
-		JsonNode similarities = getJson("/strategy/{id}/getStrategySimilarities", strategyId);
-		return onlyName(similarities, "similarity", strategyId);
+		// A duplicate request also returns 201, with the existing similarity.
+		return response.getBody().path("id").asText();
 	}
 
 	@Override
-	public String createDecomposition(String similarityName) {
+	public String createDecomposition(String similarityId) {
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.put("type", "SciPy Clustering");
-		body.put("similarityName", similarityName);
+		body.put("similarityId", similarityId);
 		body.put("cutType", "N");
 		body.put("cutValue", 3);
 
@@ -152,10 +150,10 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 
 		// 200, not 201: DecompositionController returns OK here while every other create
 		// endpoint in the pipeline returns CREATED.
-		require(response, HttpStatus.OK, "create decomposition for " + similarityName);
+		require(response, HttpStatus.OK, "create decomposition for " + similarityId);
 
-		JsonNode decompositions = getJson("/similarity/{name}/decompositions", similarityName);
-		return onlyName(decompositions, "decomposition", similarityName);
+		JsonNode decompositions = getJson("/similarity/{id}/decompositions", similarityId);
+		return onlyName(decompositions, "decomposition", similarityId);
 	}
 
 	@Override
@@ -279,7 +277,7 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	 *
 	 * <p>The file is {@code {"clusters": {name: [entity id, ...]}}}.
 	 */
-	String createExpertDecomposition(String similarityName, String expertName, byte[] expertFile) {
+	String createExpertDecomposition(String similarityId, String expertName, byte[] expertFile) {
 		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 		form.add("expertName", expertName);
 		form.add("expertFile", filePart(expertFile, expertName + ".json"));
@@ -288,20 +286,20 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 		ResponseEntity<String> response = rest.exchange(
-				base + "/similarity/{name}/createExpertDecomposition",
+				base + "/similarity/{id}/createExpertDecomposition",
 				HttpMethod.POST,
 				new HttpEntity<>(form, headers),
 				String.class,
-				similarityName);
+				similarityId);
 
-		require(response, HttpStatus.OK, "import expert clustering " + expertName + " for " + similarityName);
+		require(response, HttpStatus.OK, "import expert clustering " + expertName + " for " + similarityId);
 
-		for (JsonNode decomposition : getJson("/similarity/{name}/decompositions", similarityName))
+		for (JsonNode decomposition : getJson("/similarity/{id}/decompositions", similarityId))
 			if (decomposition.path("expert").asBoolean() && decomposition.path("name").asText().endsWith(" " + expertName))
 				return decomposition.path("name").asText();
 
 		throw new AssertionError("The expert import of " + expertName + " returned success, but no expert decomposition exists for "
-				+ similarityName + ".");
+				+ similarityId + ".");
 	}
 
 	// Export to Context Mapper.

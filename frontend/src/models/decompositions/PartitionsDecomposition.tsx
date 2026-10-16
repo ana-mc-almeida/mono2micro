@@ -74,7 +74,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityName}/${this.name}/accessesViews`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.name}/accessesViews`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -86,7 +86,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.REPOSITORY_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityName}/${this.name}/repositoryView`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.name}/repositoryView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -98,7 +98,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.STRUCTURE_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityName}/${this.name}/structureView`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.name}/structureView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -110,7 +110,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityName}/${this.name}/functionalityRefactor`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.name}/functionalityRefactor`}
                                 className="mb-2"
                                 variant={"primary"}
                             >

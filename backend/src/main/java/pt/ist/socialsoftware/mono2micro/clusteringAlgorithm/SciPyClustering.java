@@ -62,7 +62,7 @@ public class SciPyClustering extends Clustering {
 
 		decomposition.setName(getDecompositionName(similarity, dto.getCutType(), dto.getCutValue()));
 
-		JSONObject clustersJSON = invokePythonCut(decomposition, similarity.getName(), similarity.getLinkageType(), dto.getCutType(), dto.getCutValue());
+		JSONObject clustersJSON = invokePythonCut(decomposition, similarity.getId(), similarity.getLinkageType(), dto.getCutType(), dto.getCutValue());
 
 		Map<Short, String> idToEntity = similarity.getIDToEntityName();
 		addClustersAndEntities(decomposition, clustersJSON, idToEntity);

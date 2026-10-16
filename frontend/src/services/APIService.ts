@@ -202,17 +202,17 @@ export class APIService {
 
 
     //Similarities
-    deleteSimilarity(similarityName: string) {
-        return this.axios.delete<null>("/similarity/" + similarityName + "/delete");
+    deleteSimilarity(similarityId: string) {
+        return this.axios.delete<null>("/similarity/" + similarityId + "/delete");
     }
 
-    getSimilarity(similarityName: string) {
-        return this.axios.get("/similarity/" + similarityName + "/getSimilarity").then(
+    getSimilarity(similarityId: string) {
+        return this.axios.get("/similarity/" + similarityId + "/getSimilarity").then(
             response => { return SimilarityFactory.getSimilarity(response.data); });
     }
 
     createSimilarity(similarity: Similarity) {
-        return this.axios.post<null>("/similarity/create", similarity);
+        return this.axios.post("/similarity/create", similarity);
     }
 
     getAllowableSoftwareSystemStrategyTypes(softwareSystemId: string) {
@@ -286,7 +286,7 @@ export class APIService {
     }
 
     createExpertDecomposition(
-        similarityName: string,
+        similarityId: string,
         expertName: string,
         expertFile: any
     ) {
@@ -299,16 +299,16 @@ export class APIService {
         data.append('expertName', expertName);
         data.append('expertFile', expertFile);
 
-        return this.axios.post<null>("/similarity/" + similarityName + "/createExpertDecomposition", data, config);
+        return this.axios.post<null>("/similarity/" + similarityId + "/createExpertDecomposition", data, config);
     }
 
     //Decomposition
 
     getDecompositions(
-        similarityName: string
+        similarityId: string
     ) {
         return this.axios.get<Decomposition[]>(
-            "/similarity/" + similarityName + "/decompositions",
+            "/similarity/" + similarityId + "/decompositions",
         ).then(responseList => {
             if (responseList.data.length == 0)
                 return responseList.data;

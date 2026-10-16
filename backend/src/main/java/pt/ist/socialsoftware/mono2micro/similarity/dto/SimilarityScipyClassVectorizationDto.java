@@ -14,6 +14,7 @@ public class SimilarityScipyClassVectorizationDto extends SimilarityDto {
 	public SimilarityScipyClassVectorizationDto() { this.type = SIMILARITY_SCIPY_CLASS_VECTORIZATION; }
 
 	public SimilarityScipyClassVectorizationDto(SimilarityScipyClassVectorization similarity) {
+		this.id = similarity.getId();
 		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
 		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();

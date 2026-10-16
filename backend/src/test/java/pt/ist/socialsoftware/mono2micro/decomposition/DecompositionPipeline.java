@@ -54,11 +54,11 @@ interface DecompositionPipeline {
 	/** Step 3. Returns the strategy's id. */
 	String createStrategy(String softwareSystemId, StrategyCase strategyCase);
 
-	/** Step 4. Returns the generated similarity name, read back from the strategy. */
+	/** Step 4. Returns the similarity's id. */
 	String createSimilarity(String strategyId, StrategyCase strategyCase);
 
 	/** Step 5. Returns the generated decomposition name, read back from the similarity. */
-	String createDecomposition(String similarityName);
+	String createDecomposition(String similarityId);
 
 	/**
 	 * Step 6. The clusters of the finished decomposition, as cluster name → entity names, both

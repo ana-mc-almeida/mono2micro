@@ -6,7 +6,6 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyClassVectorizationDto;
@@ -110,18 +109,11 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		SimilarityDto dto = similarityDto(strategyId, strategyCase);
 
 		try {
-			similarityService.createSimilarity(dto);
+			// A duplicate request returns the existing similarity rather than creating one.
+			return similarityService.createSimilarity(dto).getId();
 		} catch (Exception e) {
 			throw new AssertionError("Could not create similarity for " + strategyId, e);
 		}
-
-		// createSimilarity returns void, and a duplicate request is a silent no-op, so the
-		// generated name is read back rather than reconstructed.
-		List<Similarity> similarities = strategyService.getStrategySimilarities(strategyId);
-		if (similarities.isEmpty())
-			throw new AssertionError("No similarity was created for " + strategyId);
-
-		return similarities.get(similarities.size() - 1).getName();
 	}
 
 	/**
@@ -244,19 +236,18 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public String createDecomposition(String similarityName) {
-		SciPyRequestDto request = new SciPyRequestDto(similarityName, "N", 3);
-		request.setSimilarityName(similarityName);
+	public String createDecomposition(String similarityId) {
+		SciPyRequestDto request = new SciPyRequestDto(similarityId, "N", 3);
 
 		try {
 			decompositionService.createDecomposition(request);
 		} catch (Exception e) {
-			throw new AssertionError("Could not create decomposition for " + similarityName, e);
+			throw new AssertionError("Could not create decomposition for " + similarityId, e);
 		}
 
-		List<Decomposition> decompositions = similarityService.getDecompositions(similarityName);
+		List<Decomposition> decompositions = similarityService.getDecompositions(similarityId);
 		if (decompositions.isEmpty())
-			throw new AssertionError("No decomposition was created for " + similarityName);
+			throw new AssertionError("No decomposition was created for " + similarityId);
 
 		return decompositions.get(decompositions.size() - 1).getName();
 	}

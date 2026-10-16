@@ -54,16 +54,16 @@ public class DecompositionController {
 		}
 	}
 
-	@PostMapping(value = "/similarity/{similarityName}/createExpertDecomposition")
+	@PostMapping(value = "/similarity/{similarityId}/createExpertDecomposition")
 	public ResponseEntity<HttpStatus> createExpertDecomposition(
-			@PathVariable String similarityName,
+			@PathVariable String similarityId,
 			@RequestParam String expertName,
 			@RequestParam Optional<MultipartFile> expertFile
 	) {
 		logger.debug("createExpertDecomposition");
 
 		try {
-			decompositionService.createExpertDecomposition(similarityName, expertName, expertFile);
+			decompositionService.createExpertDecomposition(similarityId, expertName, expertFile);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (KeyAlreadyExistsException e) {

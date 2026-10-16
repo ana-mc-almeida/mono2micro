@@ -43,6 +43,13 @@ public abstract class SimilarityScipy extends Similarity {
 		this.weightsList = weightsList;
 	}
 
+	/** A temporary similarity for a recommendation; its matrices are keyed by the recommendation's id. */
+	// FIXME (ticket 09): recommendations should not need a temporary similarity; remove this constructor once a recommendation finds or creates its Similarity
+	public SimilarityScipy(RecommendMatrixSciPy recommendation) {
+		this(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		this.id = recommendation.getId();
+	}
+
 	public SimilarityScipy(Strategy strategy, String name, RecommendMatrixSciPy recommendation) {
 		super(strategy, name);
 		this.linkageType = recommendation.getLinkageType();
@@ -109,7 +116,7 @@ public abstract class SimilarityScipy extends Similarity {
 		generate(gridFsService, this);
 
 		// 2 - Generate Dendrogram
-		this.dendrogram = new Dendrogram(getName(), getName(), getLinkageType());
+		this.dendrogram = new Dendrogram(getId(), getId(), getLinkageType());
 	}
 
 	@Override

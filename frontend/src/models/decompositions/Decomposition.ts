@@ -3,6 +3,7 @@ export default abstract class Decomposition {
     softwareSystemName: string;
     strategyId: string;
     strategyName: string;
+    similarityId: string;
     similarityName: string;
     name: string;
     type: string;
@@ -16,6 +17,7 @@ export default abstract class Decomposition {
         this.softwareSystemName = decomposition.softwareSystemName;
         this.strategyId = decomposition.strategyId;
         this.strategyName = decomposition.strategyName;
+        this.similarityId = decomposition.similarityId;
         this.similarityName = decomposition.similarityName;
         this.name = decomposition.name;
         this.type = decomposition.type;

@@ -6,8 +6,8 @@ public class SciPyRequestDto extends DecompositionRequest {
 
 	public SciPyRequestDto() {}
 
-	public SciPyRequestDto(String similarityName, String cutType, float cutValue) {
-		this.similarityName = similarityName;
+	public SciPyRequestDto(String similarityId, String cutType, float cutValue) {
+		this.similarityId = similarityId;
 		this.cutType = cutType;
 		this.cutValue = cutValue;
 	}

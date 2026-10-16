@@ -47,7 +47,7 @@ public class DecompositionService {
 	GridFsService gridFsService;
 
 	public void createDecomposition(DecompositionRequest request) throws Exception {
-		Similarity similarity = similarityRepository.findByName(request.getSimilarityName());
+		Similarity similarity = getSimilarity(request.getSimilarityId());
 
 		Clustering clustering = similarity.getClustering();
 		Decomposition decomposition = clustering.generateDecomposition(similarity, request);
@@ -55,8 +55,8 @@ public class DecompositionService {
 		setupDecomposition(decomposition);
 	}
 
-	public void createExpertDecomposition(String similarityName, String expertName, Optional<MultipartFile> expertFile) throws Exception {
-		Similarity similarity = similarityRepository.findByName(similarityName);
+	public void createExpertDecomposition(String similarityId, String expertName, Optional<MultipartFile> expertFile) throws Exception {
+		Similarity similarity = getSimilarity(similarityId);
 		Expert expert = new Expert();
 
 		Decomposition decomposition = expert.generateClusters(similarity, expertName, expertFile);
@@ -187,5 +187,9 @@ public class DecompositionService {
 		decompositionRepository.save(snapshotDecomposition);
 		similarityRepository.save(similarity);
 		strategyRepository.save(similarity.getStrategy());
+	}
+
+	private Similarity getSimilarity(String similarityId) {
+		return similarityRepository.findById(similarityId).orElseThrow(() -> new RuntimeException("No similarity " + similarityId + " found."));
 	}
 }

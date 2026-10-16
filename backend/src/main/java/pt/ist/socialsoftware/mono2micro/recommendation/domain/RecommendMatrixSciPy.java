@@ -230,14 +230,14 @@ public class RecommendMatrixSciPy extends Recommendation {
 				similarity = SimilarityFactory.getSimilarity(getStrategy(), similarityInformation);
 
 				InputStream inputStream = gridFsService.getFile(name.substring(0, name.lastIndexOf(","))); // Gets the previously produced similarity matrix
-				gridFsService.saveFile(inputStream, similarity.getName()); // And saves it with a different name
+				gridFsService.saveFile(inputStream, similarity.getId()); // And saves it under the new similarity's id
 
 				// generate dendrogram image
-				similarity.setDendrogram(new Dendrogram(similarity.getName(), similarity.getName(), similarity.getLinkageType()));
+				similarity.setDendrogram(new Dendrogram(similarity.getId(), similarity.getId(), similarity.getLinkageType()));
 			}
 
 			Decomposition decomposition = clusteringAlgorithm.generateDecomposition(similarity,
-					new SciPyRequestDto(similarity.getName(), "N", Float.parseFloat(properties[properties.length - 1])));
+					new SciPyRequestDto(similarity.getId(), "N", Float.parseFloat(properties[properties.length - 1])));
 			decompositionService.setupDecomposition(decomposition);
 		}
 	}

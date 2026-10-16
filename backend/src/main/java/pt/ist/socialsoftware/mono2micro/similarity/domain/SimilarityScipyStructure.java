@@ -40,7 +40,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 	}
 
 	public SimilarityScipyStructure(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 		this.profile = recommendation.getProfile();
 		this.traceType = recommendation.getTraceType();
 	}
@@ -123,7 +123,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 		}
 
 		JSONObject matrixJSON = getSimilarityMatrixAsJSON(elements, rawMatrix, getWeightsAsArray());
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	public Set<Short> fillElements(GridFsService gridFsService, Similarity similarity) throws IOException {
@@ -230,7 +230,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 
 		JSONObject matrixJSON = getSimilarityMatrixAsJSON(elements, rawMatrix, weightsAsFloats);
 
-		StringBuilder similarityMatrixName = new StringBuilder(getName());
+		StringBuilder similarityMatrixName = new StringBuilder(getId());
 		for (float weight : weights)
 			similarityMatrixName.append(",").append(getWeightAsString(weight));
 

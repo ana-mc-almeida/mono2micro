@@ -44,7 +44,7 @@ export const views = {
 export const AccessesViews = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile } = context;
-    let { softwareSystemId, strategyId, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityId, decompositionName } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [view, setView] = useState(views.CLUSTERS);
@@ -180,8 +180,8 @@ export const AccessesViews = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
                     {decomposition?.strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityName}/decomposition`}>
-                    {similarityName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityId}/decomposition`}>
+                    {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
                     {decompositionName}

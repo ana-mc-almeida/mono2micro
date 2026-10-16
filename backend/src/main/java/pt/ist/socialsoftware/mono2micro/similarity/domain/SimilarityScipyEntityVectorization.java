@@ -35,7 +35,7 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 	}
 
 	public SimilarityScipyEntityVectorization(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	private void computeEntitiesVectors(HashMap<String, Object> matrix, JSONObject codeEmbeddings, Map<String, Short> entityToId) throws JSONException {
@@ -199,8 +199,8 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 		JSONObject matrixJSON = new JSONObject(matrix);
 
 		Set<String> similarityMatrices = new HashSet<>();
-		similarityMatrices.add(getName());
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		similarityMatrices.add(getId());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 
 		return similarityMatrices;
 	}

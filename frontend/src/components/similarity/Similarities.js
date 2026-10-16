@@ -57,7 +57,7 @@ export const Similarities = () => {
         const toastId = toast.loading("Deleting " + similarity.name + "...");
         const service = new APIService();
 
-        service.deleteSimilarity(similarity.name).then(() => {
+        service.deleteSimilarity(similarity.id).then(() => {
             loadSimilarities();
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Similarity deleted.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);

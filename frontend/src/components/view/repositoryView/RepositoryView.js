@@ -30,7 +30,7 @@ export const repositoryViewHelp = (<div>
 </div>);
 
 export const RepositoryView = () => {
-    let { softwareSystemId, strategyId, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityId, decompositionName } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [displayRepository, setDisplayRepository] = useState("none");
@@ -88,8 +88,8 @@ export const RepositoryView = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
                     {decomposition?.strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityName}/decomposition`}>
-                    {similarityName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityId}/decomposition`}>
+                    {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
                     {decompositionName}

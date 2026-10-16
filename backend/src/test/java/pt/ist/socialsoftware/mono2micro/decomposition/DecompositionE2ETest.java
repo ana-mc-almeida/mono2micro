@@ -133,8 +133,8 @@ class DecompositionE2ETest {
 					.isEqualTo(strategyCase.representations().size());
 
 			String strategyId = pipeline.createStrategy(softwareSystemId, strategyCase);
-			String similarityName = pipeline.createSimilarity(strategyId, strategyCase);
-			String decompositionName = pipeline.createDecomposition(similarityName);
+			String similarityId = pipeline.createSimilarity(strategyId, strategyCase);
+			String decompositionName = pipeline.createDecomposition(similarityId);
 
 			Map<String, List<String>> clusters = pipeline.getClusters(decompositionName);
 

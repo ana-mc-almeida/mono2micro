@@ -19,6 +19,7 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 	public SimilarityScipyStructureDto() { this.type = SIMILARITY_SCIPY_STRUCTURE; }
 
 	public SimilarityScipyStructureDto(SimilarityScipyStructure similarity) {
+		this.id = similarity.getId();
 		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
 		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();

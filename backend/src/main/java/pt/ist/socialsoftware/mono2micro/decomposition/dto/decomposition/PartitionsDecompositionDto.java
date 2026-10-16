@@ -13,6 +13,7 @@ public class PartitionsDecompositionDto extends DecompositionDto {
 		this.setSoftwareSystemName(decomposition.getSimilarity().getStrategy().getSoftwareSystem().getName());
 		this.setStrategyId(decomposition.getStrategy().getId());
 		this.setStrategyName(decomposition.getStrategy().getName());
+		this.setSimilarityId(decomposition.getSimilarity().getId());
 		this.setSimilarityName(decomposition.getSimilarity().getName());
 		this.setName(decomposition.getName());
 		this.type = decomposition.getType();
