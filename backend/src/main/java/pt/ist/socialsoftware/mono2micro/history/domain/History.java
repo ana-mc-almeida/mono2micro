@@ -9,7 +9,6 @@ import java.util.List;
 public abstract class History {
 	@Id
 	String id = new ObjectId().toHexString();
-	String name;
 
 	Long currentHistoryOperationDepth;
 
@@ -21,14 +20,6 @@ public abstract class History {
 
 	public void setId(String id) {
 		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public abstract String getType();

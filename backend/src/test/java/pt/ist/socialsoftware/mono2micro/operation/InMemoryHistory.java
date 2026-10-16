@@ -46,7 +46,7 @@ public class InMemoryHistory extends History {
 	 * and in {@code incrementCurrentHistoryDepth}, where {@code ++} unboxes a null {@code Long}.
 	 */
 	public InMemoryHistory() {
-		setName("in-memory-history");
+		setId("in-memory-history");
 		setHistoryOperationsList(new ArrayList<>());
 		setCurrentHistoryOperationDepth(0L);
 	}

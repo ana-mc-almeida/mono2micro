@@ -24,7 +24,7 @@ public class PositionHistoryService {
 	public void saveGraphPositions(Decomposition decomposition, String graphPositions) {
 		PositionHistory history = (PositionHistory) decomposition.getHistory();
 		Long depth = history.getCurrentHistoryOperationDepth();
-		String fileName = history.getName() + "_depth_" + depth;
+		String fileName = history.getId() + "_depth_" + depth;
 
 		gridFsService.replaceFile(new ByteArrayInputStream(graphPositions.getBytes(StandardCharsets.UTF_8)), fileName);
 		history.putDepthGraphPosition(depth, fileName);
