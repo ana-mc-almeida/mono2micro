@@ -106,7 +106,7 @@ const functionalityRedesignColumns = [
 export const FunctionalityRefactorToolMenu = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile, translateEntity } = context;
-    let { softwareSystemId, strategyId, similarityId, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [waitingResponse, setWaitingResponse] = useState(false);
@@ -124,7 +124,7 @@ export const FunctionalityRefactorToolMenu = () => {
 
     useEffect(() => {
         const service = new APIService();
-        service.getDecomposition(decompositionName).then(response => setDecomposition(response));
+        service.getDecomposition(decompositionId).then(response => setDecomposition(response));
         viewSoftwareSystemRefactor();
         service.getIdToEntity(softwareSystemId).then(response => {
             updateEntityTranslationFile(response.data);
@@ -232,7 +232,7 @@ export const FunctionalityRefactorToolMenu = () => {
 
         setWaitingResponse(true);
 
-        service.viewRefactor(decompositionName)
+        service.viewRefactor(decompositionId)
             .then(response => {
                 setWaitingResponse(false);
                 setRefactorizationExists(true);
@@ -257,7 +257,7 @@ export const FunctionalityRefactorToolMenu = () => {
 
         setWaitingResponse(true);
 
-        service.refactorSoftwareSystem(decompositionName,
+        service.refactorSoftwareSystem(decompositionId,
             functionalities, Number(dataDependenceThreshold), minimizeSumOfComplexities, Number(timeoutSecs), newRefactor)
             .then(response => {
                 setWaitingResponse(false);
@@ -336,7 +336,7 @@ export const FunctionalityRefactorToolMenu = () => {
                     {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
-                    {decompositionName}
+                    {decomposition?.name}
                 </Breadcrumb.Item>
             </Breadcrumb>
         );

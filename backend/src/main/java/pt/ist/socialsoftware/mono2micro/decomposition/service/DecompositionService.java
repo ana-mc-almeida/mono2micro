@@ -74,8 +74,8 @@ public class DecompositionService {
 		strategyRepository.save(decomposition.getStrategy());
 	}
 
-	public Decomposition updateDecomposition(String decompositionName) throws Exception {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public Decomposition updateDecomposition(String decompositionId) throws Exception {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		if (decomposition.isOutdated()) {
 			decomposition.update();
 			decomposition.calculateMetrics();
@@ -85,26 +85,26 @@ public class DecompositionService {
 		return decomposition;
 	}
 
-	public Decomposition getDecomposition(String decompositionName) {
-		return decompositionRepository.findByName(decompositionName);
+	public Decomposition getDecomposition(String decompositionId) {
+		return decompositionRepository.getById(decompositionId);
 	}
 
-	public void exportDecompositionToContextMapper(String decompositionName, ZipOutputStream zipOutputStream) throws IOException, JSONException {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public void exportDecompositionToContextMapper(String decompositionId, ZipOutputStream zipOutputStream) throws IOException, JSONException {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 
 		zipOutputStream.putNextEntry(new ZipEntry("m2m_decomposition.json"));
 		zipOutputStream.write(new ContextMapperContractBuilder(decomposition)
 				.addStructureRepresentationData(gridFsService.getFile(
 						decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(STRUCTURE).getId()))
-				.addSagaRefactorizationData(gridFsService.getFile(decompositionName + "_refactorization"))
+				.addSagaRefactorizationData(gridFsService.getFile(decompositionId + "_refactorization"))
 				.buildContract()
 				.getBytes());
 		zipOutputStream.closeEntry();
 		zipOutputStream.close();
 	}
 
-	public void deleteSingleDecomposition(String decompositionName) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public void deleteSingleDecomposition(String decompositionId) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		decomposition.deleteProperties();
 
 		Strategy strategy = decomposition.getStrategy();
@@ -115,62 +115,62 @@ public class DecompositionService {
 		similarityRepository.save(similarity);
 		historyService.deleteHistory(decomposition.getHistory());
 		strategyRepository.save(strategy);
-		decompositionRepository.deleteByName(decomposition.getName());
+		decompositionRepository.deleteById(decomposition.getId());
 	}
 
 	public void deleteDecomposition(Decomposition decomposition) {
 		decomposition.deleteProperties();
 		historyService.deleteHistory(decomposition.getHistory());
-		decompositionRepository.deleteByName(decomposition.getName());
+		decompositionRepository.deleteById(decomposition.getId());
 	}
 
-	public void mergeClustersOperation(String decompositionName, MergeOperation operation) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public void mergeClustersOperation(String decompositionId, MergeOperation operation) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		decomposition.mergeClusters(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
-	public void renameClusterOperation(String decompositionName, RenameOperation operation) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public void renameClusterOperation(String decompositionId, RenameOperation operation) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		decomposition.renameCluster(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
-	public void splitClusterOperation(String decompositionName, SplitOperation operation) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public void splitClusterOperation(String decompositionId, SplitOperation operation) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		decomposition.splitCluster(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
-	public void transferEntitiesOperation(String decompositionName, TransferOperation operation) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public void transferEntitiesOperation(String decompositionId, TransferOperation operation) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		decomposition.transferEntities(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
-	public void formClusterOperation(String decompositionName, FormClusterOperation operation) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public void formClusterOperation(String decompositionId, FormClusterOperation operation) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		decomposition.formCluster(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
-	public String getEdgeWeights(String decompositionName, String representationInfo) throws Exception {
-		Decomposition clusterView = decompositionRepository.findByName(decompositionName);
+	public String getEdgeWeights(String decompositionId, String representationInfo) throws Exception {
+		Decomposition clusterView = decompositionRepository.getById(decompositionId);
 		return clusterView.getEdgeWeights(representationInfo);
 	}
 
-	public String getSearchItems(String decompositionName, String representationInfo) throws Exception {
-		Decomposition clusterView = decompositionRepository.findByName(decompositionName);
+	public String getSearchItems(String decompositionId, String representationInfo) throws Exception {
+		Decomposition clusterView = decompositionRepository.getById(decompositionId);
 		return clusterView.getSearchItems(representationInfo);
 	}
 
-	public void snapshotDecomposition(String decompositionName) throws Exception {
-		Decomposition decomposition = updateDecomposition(decompositionName);
+	public void snapshotDecomposition(String decompositionId) throws Exception {
+		Decomposition decomposition = updateDecomposition(decompositionId);
 		Similarity similarity = decomposition.getSimilarity();
 
 		String snapshotName = decomposition.getName() + " SNAPSHOT";

@@ -43,8 +43,8 @@ public class AccessesDecompositionService {
 	@Autowired
 	GridFsService gridFsService;
 
-	public Map<String, Object> getFunctionalitiesAndFunctionalitiesClusters(String decompositionName) throws Exception {
-		Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
+	public Map<String, Object> getFunctionalitiesAndFunctionalitiesClusters(String decompositionId) throws Exception {
+		Decomposition decomposition = decompositionService.updateDecomposition(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 
 		Map<String, Set<Cluster>> functionalitiesClusters = Utils.getFunctionalitiesClusters(
@@ -66,8 +66,8 @@ public class AccessesDecompositionService {
 		return response;
 	}
 
-	public Map<String, Object> getClustersAndClustersFunctionalities(String decompositionName) throws Exception {
-		Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
+	public Map<String, Object> getClustersAndClustersFunctionalities(String decompositionId) throws Exception {
+		Decomposition decomposition = decompositionService.updateDecomposition(decompositionId);
 
 		Map<String, List<Functionality>> clustersFunctionalities = Utils.getClustersFunctionalities(decomposition);
 
@@ -78,9 +78,9 @@ public class AccessesDecompositionService {
 		return response;
 	}
 
-	public Utils.GetSerializableLocalTransactionsGraphResult getLocalTransactionGraphForFunctionality(String decompositionName, String functionalityName)
+	public Utils.GetSerializableLocalTransactionsGraphResult getLocalTransactionGraphForFunctionality(String decompositionId, String functionalityName)
 			throws JSONException, IOException {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
 		AccessesRepresentation representation = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);

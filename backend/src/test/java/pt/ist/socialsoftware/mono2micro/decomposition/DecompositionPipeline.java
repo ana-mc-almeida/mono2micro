@@ -57,7 +57,7 @@ interface DecompositionPipeline {
 	/** Step 4. Returns the similarity's id. */
 	String createSimilarity(String strategyId, StrategyCase strategyCase);
 
-	/** Step 5. Returns the generated decomposition name, read back from the similarity. */
+	/** Step 5. Returns the generated decomposition's id, read back from the similarity. */
 	String createDecomposition(String similarityId);
 
 	/**
@@ -67,7 +67,7 @@ interface DecompositionPipeline {
 	 * <p>Plain strings rather than the domain's cluster class, so that an assertion on them
 	 * survives that class being renamed or moved.
 	 */
-	Map<String, List<String>> getClusters(String decompositionName);
+	Map<String, List<String>> getClusters(String decompositionId);
 
 	/**
 	 * How many representations the software system currently holds.

@@ -1,6 +1,9 @@
 package database
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type Decomposition struct {
+	ID                         primitive.ObjectID           `bson:"_id,omitempty"`
 	Name                       string                       `bson:"name,omitempty"`
 	Expert                     bool                         `bson:"expert,omitempty"`
 	Metrics                    map[string]float64           `bson:"metrics,omitempty"`
@@ -9,9 +12,9 @@ type Decomposition struct {
 }
 
 type RepresentationInformations struct {
-	Functionalities   map[string]*DBRef `bson:"functionalities,omitempty"`
-	DecompositionName string            `bson:"decompositionName,omitempty"`
-	Name              string            `bson:"_class,omitempty"`
+	Functionalities map[string]*DBRef `bson:"functionalities,omitempty"`
+	DecompositionID string            `bson:"decompositionId,omitempty"`
+	Name            string            `bson:"_class,omitempty"`
 }
 
 type DBRef struct {

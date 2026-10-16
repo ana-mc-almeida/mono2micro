@@ -49,14 +49,14 @@ public class StructureInformation extends RepresentationInformation {
 
 	@Override
 	public void setup(Decomposition decomposition) throws IOException {
-		this.decompositionName = decomposition.getName();
+		this.decompositionId = decomposition.getId();
 		decomposition.addRepresentationInformation(this);
 		setupEntities(decomposition);
 	}
 
 	@Override
 	public void snapshot(Decomposition snapshotDecomposition, Decomposition decomposition) {
-		this.decompositionName = snapshotDecomposition.getName();
+		this.decompositionId = snapshotDecomposition.getId();
 		snapshotDecomposition.addRepresentationInformation(this);
 		StructureInformation structureInformation = (StructureInformation) decomposition.getRepresentationInformationByType(STRUCTURE_TYPE);
 		this.entitiesContained = structureInformation.getEntitiesContained();

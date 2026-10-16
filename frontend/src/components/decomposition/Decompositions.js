@@ -42,10 +42,11 @@ export const Decompositions = () => {
         });
     }
 
-    function handleDeleteDecomposition(decompositionName) {
+    function handleDeleteDecomposition(decomposition) {
+        const decompositionName = decomposition.name;
         const toastId = toast.loading("Deleting " + decompositionName + "...");
         const service = new APIService();
-        service.deleteDecomposition(decompositionName).then(() => {
+        service.deleteDecomposition(decomposition.id).then(() => {
             loadDecompositions();
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decomposition deleted.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
@@ -54,10 +55,11 @@ export const Decompositions = () => {
         });
     }
 
-    function handleExportDecomposition(decompositionName) {
+    function handleExportDecomposition(decomposition) {
+        const decompositionName = decomposition.name;
         const toastId = toast.loading("Exporting " + decompositionName + "...");
         const service = new APIService();
-        service.exportDecomposition(decompositionName).then(response => {
+        service.exportDecomposition(decomposition.id).then(response => {
             downloadDecompositionData(response);
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decomposition exported.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);

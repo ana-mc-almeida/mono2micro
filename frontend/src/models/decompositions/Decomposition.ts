@@ -1,4 +1,5 @@
 export default abstract class Decomposition {
+    id: string;
     softwareSystemId: string;
     softwareSystemName: string;
     strategyId: string;
@@ -13,6 +14,7 @@ export default abstract class Decomposition {
     representationInformations: string[];
 
     protected constructor(decomposition: any) {
+        this.id = decomposition.id;
         this.softwareSystemId = decomposition.softwareSystemId;
         this.softwareSystemName = decomposition.softwareSystemName;
         this.strategyId = decomposition.strategyId;
@@ -29,7 +31,7 @@ export default abstract class Decomposition {
 
     abstract printCard(
         reloadDecompositions: () => void,
-        handleDeleteDecomposition: (collector: string) => void,
-        handleExportDecomposition: (collector: string) => void
+        handleDeleteDecomposition: (decomposition: Decomposition) => void,
+        handleExportDecomposition: (decomposition: Decomposition) => void
     ): JSX.Element;
 }

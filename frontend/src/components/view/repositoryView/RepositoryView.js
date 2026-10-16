@@ -30,7 +30,7 @@ export const repositoryViewHelp = (<div>
 </div>);
 
 export const RepositoryView = () => {
-    let { softwareSystemId, strategyId, similarityId, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [displayRepository, setDisplayRepository] = useState("none");
@@ -54,7 +54,7 @@ export const RepositoryView = () => {
         setNow(10);
 
         const service = new APIService();
-        const response1 = service.getDecomposition(decompositionName).then(response => {
+        const response1 = service.getDecomposition(decompositionId).then(response => {
             setNow(n => n + 30);
             setDecomposition(response);
             setClusters(Object.values(response.clusters));
@@ -63,7 +63,7 @@ export const RepositoryView = () => {
             setCommitsInCommon(representationInfo.commitsInCommon);
             setTotalCommits(representationInfo.totalCommits);
         });
-        const response2 = service.getEdgeWeights(decompositionName, RepresentationType.REPOSITORY_TYPE).then(response => { setNow(n => n + 30); setEdgeWeights(response.data);});
+        const response2 = service.getEdgeWeights(decompositionId, RepresentationType.REPOSITORY_TYPE).then(response => { setNow(n => n + 30); setEdgeWeights(response.data);});
         Promise.all([response1, response2]).then(() => setDisplayRepository("block"));
     }, []);
 
@@ -92,7 +92,7 @@ export const RepositoryView = () => {
                     {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
-                    {decompositionName}
+                    {decomposition?.name}
                 </Breadcrumb.Item>
             </Breadcrumb>
         );
@@ -100,8 +100,8 @@ export const RepositoryView = () => {
 
     function handleUndo() {
         const service = new APIService();
-        service.undoOperation(decompositionName).then(() => {
-            service.getClusters(decompositionName).then(response => {
+        service.undoOperation(decompositionId).then(() => {
+            service.getClusters(decompositionId).then(response => {
                 setClusters(Object.values(response.data));
                 setReloadPositions({});
             });
@@ -111,8 +111,8 @@ export const RepositoryView = () => {
 
     function handleRedo() {
         const service = new APIService();
-        service.redoOperation(decompositionName).then(() => {
-            service.getClusters(decompositionName).then(response => {
+        service.redoOperation(decompositionId).then(() => {
+            service.getClusters(decompositionId).then(response => {
                 setClusters(Object.values(response.data));
                 setReloadPositions({});
             });
@@ -127,7 +127,7 @@ export const RepositoryView = () => {
     function changeSpeedDial() {
         setActions(speedDialActions);
         const service = new APIService();
-        service.canUndoRedo(decompositionName).then(response => {
+        service.canUndoRedo(decompositionId).then(response => {
             setActions(actions => [...actions.filter(action => action.name !== "Undo" && action.name !== "Redo")]);
             if (response.data["undo"])
                 setActions(actions => [...actions, {icon: <Undo/>, name: 'Undo', handler: handleUndo}]);

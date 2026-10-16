@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
  *
  * <p>Each request is the base {@code *Operation} a controller binds from JSON, handed to the
  * same {@code DecompositionService} method the controller calls; undo and redo go through the
- * real {@code HistoryService}. Only the two repositories are mocks: {@code findByName} returns the
+ * real {@code HistoryService}. Only the two repositories are mocks: {@code getById} returns the
  * decomposition under test and every {@code save} does nothing. So a test written against this
  * says what an edit does to a decomposition and never which class did it.
  *
@@ -34,8 +34,8 @@ import static org.mockito.Mockito.when;
  */
 final class ManualEditing {
 
-	/** The name every request addresses. */
-	static final String DECOMPOSITION_NAME = "decomposition-under-test";
+	/** The id every request addresses. */
+	static final String DECOMPOSITION_ID = "decomposition-under-test";
 
 	private final Decomposition decomposition;
 	private final DecompositionService decompositionService = new DecompositionService();
@@ -45,7 +45,7 @@ final class ManualEditing {
 		this.decomposition = decomposition;
 
 		DecompositionRepository decompositionRepository = mock(DecompositionRepository.class);
-		when(decompositionRepository.findByName(DECOMPOSITION_NAME)).thenReturn(decomposition);
+		when(decompositionRepository.getById(DECOMPOSITION_ID)).thenReturn(decomposition);
 		HistoryRepository historyRepository = mock(HistoryRepository.class);
 
 		ReflectionTestUtils.setField(historyService, "decompositionRepository", decompositionRepository);
@@ -59,7 +59,7 @@ final class ManualEditing {
 		request.setCluster1Name(cluster1);
 		request.setCluster2Name(cluster2);
 		request.setNewName(newName);
-		decompositionService.mergeClustersOperation(DECOMPOSITION_NAME, request);
+		decompositionService.mergeClustersOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -69,7 +69,7 @@ final class ManualEditing {
 		request.setOriginalCluster(originalCluster);
 		request.setNewCluster(newCluster);
 		request.setEntities(entities);
-		decompositionService.splitClusterOperation(DECOMPOSITION_NAME, request);
+		decompositionService.splitClusterOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -79,7 +79,7 @@ final class ManualEditing {
 		request.setFromCluster(fromCluster);
 		request.setToCluster(toCluster);
 		request.setEntities(entities);
-		decompositionService.transferEntitiesOperation(DECOMPOSITION_NAME, request);
+		decompositionService.transferEntitiesOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -87,7 +87,7 @@ final class ManualEditing {
 		RenameOperation request = new RenameOperation();
 		request.setClusterName(clusterName);
 		request.setNewClusterName(newClusterName);
-		decompositionService.renameClusterOperation(DECOMPOSITION_NAME, request);
+		decompositionService.renameClusterOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -96,7 +96,7 @@ final class ManualEditing {
 		FormClusterOperation request = new FormClusterOperation();
 		request.setNewCluster(newCluster);
 		request.setEntities(entities);
-		decompositionService.formClusterOperation(DECOMPOSITION_NAME, request);
+		decompositionService.formClusterOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 

@@ -141,11 +141,11 @@ public class FunctionalityService {
 		}).collect(Collectors.toList());
 	}
 
-	public Functionality addCompensating(String decompositionName, String functionalityName, String redesignName, Map<String, Object> data) throws Exception {
+	public Functionality addCompensating(String decompositionId, String functionalityName, String redesignName, Map<String, Object> data) throws Exception {
 		int fromID = (Integer) data.get("fromID");
 		String clusterName = (String) data.get("cluster");
 		ArrayList<Integer> accesses = (ArrayList<Integer>) data.get("entities");
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 
 		Functionality functionality = accessesInformation.getFunctionality(functionalityName);
@@ -159,11 +159,11 @@ public class FunctionalityService {
 		return functionality;
 	}
 
-	public Functionality sequenceChange(String decompositionName, String functionalityName, String redesignName, Map<String, String> data) throws Exception {
+	public Functionality sequenceChange(String decompositionId, String functionalityName, String redesignName, Map<String, String> data) throws Exception {
 		String localTransactionID = data.get("localTransactionID");
 		String newCaller = data.get("newCaller");
 
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		Functionality functionality = accessesInformation.getFunctionality(functionalityName);
 
@@ -176,12 +176,12 @@ public class FunctionalityService {
 		return functionality;
 	}
 
-	public Functionality dcgi(String decompositionName, String functionalityName, String redesignName, Map<String, String> data) throws Exception {
+	public Functionality dcgi(String decompositionId, String functionalityName, String redesignName, Map<String, String> data) throws Exception {
 		String fromClusterName = data.get("fromCluster");
 		String toClusterName = data.get("toCluster");
 		String localTransactions = data.get("localTransactions");
 
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		Functionality functionality = accessesInformation.getFunctionality(functionalityName);
 
@@ -194,10 +194,10 @@ public class FunctionalityService {
 		return functionality;
 	}
 
-	public Functionality pivotTransaction(String decompositionName, String functionalityName, String redesignName, String transactionID,
+	public Functionality pivotTransaction(String decompositionId, String functionalityName, String redesignName, String transactionID,
 			Optional<String> newRedesignName)
 			throws Exception {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		Functionality functionality = accessesInformation.getFunctionality(functionalityName);
@@ -239,9 +239,9 @@ public class FunctionalityService {
 		return functionality;
 	}
 
-	public Functionality changeLTName(String decompositionName, String functionalityName, String redesignName, String transactionID, String newName)
+	public Functionality changeLTName(String decompositionId, String functionalityName, String redesignName, String transactionID, String newName)
 			throws IOException {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		Functionality functionality = accessesInformation.getFunctionality(functionalityName);
 		FunctionalityRedesign functionalityRedesign = getFunctionalityRedesign(functionality, redesignName);
@@ -251,8 +251,8 @@ public class FunctionalityService {
 		return functionality;
 	}
 
-	public Functionality deleteRedesign(String decompositionName, String functionalityName, String redesignName) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public Functionality deleteRedesign(String decompositionId, String functionalityName, String redesignName) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		Functionality functionality = accessesInformation.getFunctionality(functionalityName);
 		functionality.removeFunctionalityRedesign(redesignName);
@@ -261,8 +261,8 @@ public class FunctionalityService {
 		return functionality;
 	}
 
-	public Functionality useForMetrics(String decompositionName, String functionalityName, String redesignName) {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+	public Functionality useForMetrics(String decompositionId, String functionalityName, String redesignName) {
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		Functionality functionality = accessesInformation.getFunctionality(functionalityName);
 		functionality.setFunctionalityRedesignNameUsedForMetrics(redesignName);

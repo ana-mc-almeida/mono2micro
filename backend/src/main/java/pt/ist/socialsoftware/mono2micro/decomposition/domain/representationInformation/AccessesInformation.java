@@ -43,14 +43,14 @@ public class AccessesInformation extends RepresentationInformation {
 
 	@Override
 	public void setup(Decomposition decomposition) throws Exception {
-		this.decompositionName = decomposition.getName();
+		this.decompositionId = decomposition.getId();
 		decomposition.addRepresentationInformation(this);
 		setupFunctionalities(decomposition);
 	}
 
 	@Override
 	public void snapshot(Decomposition snapshotDecomposition, Decomposition decomposition) throws IOException {
-		this.decompositionName = snapshotDecomposition.getName();
+		this.decompositionId = snapshotDecomposition.getId();
 		snapshotDecomposition.addRepresentationInformation(this);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		copyFunctionalities(accessesInformation);
@@ -89,7 +89,7 @@ public class AccessesInformation extends RepresentationInformation {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
 		functionalityService.deleteFunctionalities(getFunctionalities().values());
-		gridFsService.deleteFile(getDecompositionName() + "_refactorization");
+		gridFsService.deleteFile(getDecompositionId() + "_refactorization");
 	}
 
 	public Map<String, Functionality> getFunctionalities() {

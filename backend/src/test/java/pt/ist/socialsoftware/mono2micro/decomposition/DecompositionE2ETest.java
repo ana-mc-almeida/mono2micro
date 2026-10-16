@@ -134,9 +134,9 @@ class DecompositionE2ETest {
 
 			String strategyId = pipeline.createStrategy(softwareSystemId, strategyCase);
 			String similarityId = pipeline.createSimilarity(strategyId, strategyCase);
-			String decompositionName = pipeline.createDecomposition(similarityId);
+			String decompositionId = pipeline.createDecomposition(similarityId);
 
-			Map<String, List<String>> clusters = pipeline.getClusters(decompositionName);
+			Map<String, List<String>> clusters = pipeline.getClusters(decompositionId);
 
 			assertThat(clusters.values())
 					.as("at least one cluster holds entities (via %s)", pipeline.layer())

@@ -23,10 +23,10 @@ export const Main = () => (
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/similarity' element={<Similarities/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/recommendation' element={<Recommendations/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/decomposition' element={<Decompositions/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionName/accessesViews' element={<AccessesViews/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionName/repositoryView' element={<RepositoryView/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionName/structureView' element={<StructureView/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionName/functionalityRefactor' element={<FunctionalityRefactorToolMenu/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/accessesViews' element={<AccessesViews/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/repositoryView' element={<RepositoryView/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/structureView' element={<StructureView/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/functionalityRefactor' element={<FunctionalityRefactorToolMenu/>} />
 
       <Route exact path='/softwareSystems/:softwareSystemId/:representationId/profiles' element={<Profiles/>} />
 

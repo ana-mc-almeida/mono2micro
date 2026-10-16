@@ -19,16 +19,16 @@ public class AccessesController {
 	@Autowired
 	AccessesDecompositionService accessesDecompositionService;
 
-	@GetMapping(value = "/accesses/{decompositionName}/getLocalTransactionsGraphForFunctionality")
+	@GetMapping(value = "/accesses/{decompositionId}/getLocalTransactionsGraphForFunctionality")
 	public ResponseEntity<Utils.GetSerializableLocalTransactionsGraphResult> getLocalTransactionsGraphForFunctionality(
-			@PathVariable String decompositionName,
+			@PathVariable String decompositionId,
 			@RequestParam String functionalityName
 	) {
 		logger.debug("getLocalTransactionsGraphForFunctionality");
 
 		try {
 			return new ResponseEntity<>(
-					accessesDecompositionService.getLocalTransactionGraphForFunctionality(decompositionName, functionalityName),
+					accessesDecompositionService.getLocalTransactionGraphForFunctionality(decompositionId, functionalityName),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -37,16 +37,16 @@ public class AccessesController {
 		}
 	}
 
-	@GetMapping(value = "/accesses/{decompositionName}/getFunctionalitiesAndFunctionalitiesClusters")
+	@GetMapping(value = "/accesses/{decompositionId}/getFunctionalitiesAndFunctionalitiesClusters")
 	public ResponseEntity<Map<String, Object>> getFunctionalitiesAndFunctionalitiesClusters(
-			@PathVariable String decompositionName
+			@PathVariable String decompositionId
 	) {
 		logger.debug("getFunctionalitiesAndFunctionalitiesClusters");
 
 		try {
 
 			return new ResponseEntity<>(
-					accessesDecompositionService.getFunctionalitiesAndFunctionalitiesClusters(decompositionName),
+					accessesDecompositionService.getFunctionalitiesAndFunctionalitiesClusters(decompositionId),
 					HttpStatus.OK
 			);
 
@@ -56,15 +56,15 @@ public class AccessesController {
 		}
 	}
 
-	@GetMapping(value = "/accesses/{decompositionName}/getClustersAndClustersFunctionalities")
+	@GetMapping(value = "/accesses/{decompositionId}/getClustersAndClustersFunctionalities")
 	public ResponseEntity<Map<String, Object>> getClustersAndClustersFunctionalities(
-			@PathVariable String decompositionName
+			@PathVariable String decompositionId
 	) {
 		logger.debug("getClustersAndClustersFunctionalities");
 
 		try {
 			return new ResponseEntity<>(
-					accessesDecompositionService.getClustersAndClustersFunctionalities(decompositionName),
+					accessesDecompositionService.getClustersAndClustersFunctionalities(decompositionId),
 					HttpStatus.OK
 			);
 

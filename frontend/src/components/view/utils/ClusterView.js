@@ -45,7 +45,7 @@ export const ClusterView = (
         setShowModal
 }) => {
     const container = document.getElementById("network");
-    let { decompositionName } = useParams();
+    let { decompositionId } = useParams();
     const [operations, setOperations] = useState([]);
 
     const [graphPositions, setGraphPositions] = useState(undefined);
@@ -79,10 +79,10 @@ export const ClusterView = (
         ]);
     }
 
-    function getGraphPositions(decompositionName) {
+    function getGraphPositions(decompositionId) {
         let toastId = toast.loading("Constructing graph...", {type: toast.TYPE.INFO});
         const service = new APIService();
-        service.getGraphPositions(decompositionName).then(response => {
+        service.getGraphPositions(decompositionId).then(response => {
             restoreGraph(response.data.nodes, response.data.edges);
             setGraphPositions(response.data);
             toast.dismiss(toastId);
@@ -98,7 +98,7 @@ export const ClusterView = (
 
     useEffect(() => {
         if (reloadPositions !== undefined) {
-            getGraphPositions(decompositionName);
+            getGraphPositions(decompositionId);
             setReloadPositions(undefined);
         }
     }, [reloadPositions]);
@@ -146,7 +146,7 @@ export const ClusterView = (
     useEffect(() => {
         if (clusters !== undefined && edgeWeights !== undefined && Object.keys(visGraph).length === 0) { // Only sets up one time
             const service = new APIService();
-            service.getGraphPositions(decompositionName).then(response => {
+            service.getGraphPositions(decompositionId).then(response => {
                 setNow(prev => prev + 10);
                 setGraphPositions(response.data);
                 updateNetwork(response.data);
@@ -169,7 +169,7 @@ export const ClusterView = (
         setNow(prev => prev + 10);
         switch(dialogResponse.type) {
             case DIALOG_TYPE.RENAME:
-                promise = service.renameCluster(decompositionName, {
+                promise = service.renameCluster(decompositionId, {
                     type: OperationTypes.RENAME_OPERATION,
                     clusterName: clickedComponent.node.id,
                     newClusterName: dialogResponse.newName});
@@ -178,11 +178,11 @@ export const ClusterView = (
                     success: {render: "Successfully changed name!", autoClose: 3000},
                     error: { render({data}) {return data.response.status === HttpStatus.UNAUTHORIZED? "This name is already being used by a cluster." : "Failed Renaming."; }, autoClose: 5000}
                 })
-                toastId.then(() => service.getClusters(decompositionName).then(response => setClusters(Object.values(response.data))));
+                toastId.then(() => service.getClusters(decompositionId).then(response => setClusters(Object.values(response.data))));
                 response = handleRename();
                 break;
             case DIALOG_TYPE.TRANSFER:
-                promise = service.transferEntities(decompositionName, {
+                promise = service.transferEntities(decompositionId, {
                     type: OperationTypes.TRANSFER_OPERATION,
                     fromCluster: clickedComponent.node.id,
                     toCluster: clickedComponent.toNode.id,
@@ -192,11 +192,11 @@ export const ClusterView = (
                     success: {render: "Successfully transferred entities!", autoClose: 3000},
                     error: {render: "Failed transferring entities.", autoClose: 5000}
                 })
-                toastId.then(() => service.getClusters(decompositionName).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
+                toastId.then(() => service.getClusters(decompositionId).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
                 response = handleTransfer();
                 break;
             case DIALOG_TYPE.MERGE:
-                promise = service.mergeClusters(decompositionName, {
+                promise = service.mergeClusters(decompositionId, {
                     type: OperationTypes.MERGE_OPERATION,
                     cluster1Name: clickedComponent.node.id,
                     cluster2Name: clickedComponent.toNode.id,
@@ -206,11 +206,11 @@ export const ClusterView = (
                     success: {render: "Successfully merged clusters!", autoClose: 3000},
                     error: {render: "Failed merging clusters.", autoClose: 5000}
                 })
-                toastId.then(() => service.getClusters(decompositionName).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
+                toastId.then(() => service.getClusters(decompositionId).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
                 response = handleMerge();
                 break;
             case DIALOG_TYPE.SPLIT:
-                promise = service.splitCluster(decompositionName, {
+                promise = service.splitCluster(decompositionId, {
                     type: OperationTypes.SPLIT_OPERATION,
                     originalCluster: clickedComponent.node.id,
                     newCluster: dialogResponse.newName,
@@ -220,11 +220,11 @@ export const ClusterView = (
                     success: {render: "Successfully split cluster!", autoClose: 3000},
                     error: {render({data}) { return data.response.status === HttpStatus.UNAUTHORIZED? "This name is already being used by a cluster." : "Failed splitting.";}, autoClose: 5000}
                 });
-                toastId.then(() => service.getClusters(decompositionName).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
+                toastId.then(() => service.getClusters(decompositionId).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
                 response = handleSplit();
                 break;
             case DIALOG_TYPE.FORM_CLUSTER:
-                promise = service.formCluster(decompositionName, {
+                promise = service.formCluster(decompositionId, {
                     type: OperationTypes.FORM_CLUSTER_OPERATION,
                     newCluster: dialogResponse.newName,
                     entities: dialogResponse.elements});
@@ -233,7 +233,7 @@ export const ClusterView = (
                     success: {render: "Successfully formed new cluster!", autoClose: 3000},
                     error: {render({data}) {return data.response.status === HttpStatus.UNAUTHORIZED? "This name is already being used by a cluster." : "Failed forming new cluster.";}, autoClose: 5000}
                 });
-                toastId.then(() => service.getClusters(decompositionName).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
+                toastId.then(() => service.getClusters(decompositionId).then(response => {setClusters(Object.values(response.data)); setOutdated(true);}));
                 response = handleFormCluster();
                 break;
         }
@@ -619,7 +619,7 @@ export const ClusterView = (
 
         const service = new APIService();
 
-        const promise = service.saveGraphPositions(decompositionName, graphPositions);
+        const promise = service.saveGraphPositions(decompositionId, graphPositions);
         toast.promise(promise, {
             pending: "Saving Graph...",
             success: {render: "Successfully Saved Graph Positions!", autoClose: 2000},
@@ -632,7 +632,7 @@ export const ClusterView = (
     function handleSnapshot() {
         const service = new APIService();
 
-        const promise = service.snapshotDecomposition(decompositionName);
+        const promise = service.snapshotDecomposition(decompositionId);
         toast.promise(promise, {
             pending: "Snapshotting decomposition...",
             success: {render: "Successfully snapshot decomposition!", autoClose: 2000},

@@ -110,7 +110,7 @@ export const ComparisonTool = () => {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.analysis(decomposition1.name, decomposition2.name)
+        service.analysis(decomposition1.id, decomposition2.id)
             .then(response => {
                 if (response.status === HttpStatus.OK) {
                     setComparisonData(response.data);
@@ -144,7 +144,7 @@ export const ComparisonTool = () => {
     decompositions.forEach((decomposition) => {
         const dropdownItem = (
             <Dropdown.Item
-                key={decomposition.name}
+                key={decomposition.id}
                 onClick={() => changeDecomposition1(decomposition)}
             >
                 {decomposition.name}
@@ -165,7 +165,7 @@ export const ComparisonTool = () => {
     decompositions.forEach((decomposition) => {
         const dropdownItem = (
             <Dropdown.Item
-                key={decomposition.name}
+                key={decomposition.id}
                 onClick={() => changeDecomposition2(decomposition)}
             >
                 {decomposition.name}

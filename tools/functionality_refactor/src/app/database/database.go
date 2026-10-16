@@ -9,6 +9,7 @@ import (
 	"functionality_refactor/app/refactor/values"
 	"github.com/go-kit/kit/log"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -54,14 +55,14 @@ func (svc *DefaultHandler) CloseDbClient(ctx context.Context, client *mongo.Clie
 	}
 }
 
-func (svc *DefaultHandler) ReadDecompositionRefactorization(ctx context.Context, decompositionName string) (*values.RefactorCodebaseResponse, error) {
+func (svc *DefaultHandler) ReadDecompositionRefactorization(ctx context.Context, decompositionID string) (*values.RefactorCodebaseResponse, error) {
 	client, err := svc.GetDbClient(ctx)
 	defer svc.CloseDbClient(ctx, client)
 	if err != nil {
 		return nil, err
 	}
 
-	refactorizationFileName := fmt.Sprintf(decompositionName + "_refactorization")
+	refactorizationFileName := fmt.Sprintf(decompositionID + "_refactorization")
 
 	bucket, err := gridfs.NewBucket(client.Database(svc.mongodbName))
 	if err != nil {
@@ -80,14 +81,14 @@ func (svc *DefaultHandler) ReadDecompositionRefactorization(ctx context.Context,
 	return &response, nil
 }
 
-func (svc *DefaultHandler) RemoveDecompositionRefactorization(ctx context.Context, decompositionName string) error {
+func (svc *DefaultHandler) RemoveDecompositionRefactorization(ctx context.Context, decompositionID string) error {
 	client, err := svc.GetDbClient(ctx)
 	defer svc.CloseDbClient(ctx, client)
 	if err != nil {
 		return err
 	}
 
-	fileName := decompositionName + "_refactorization"
+	fileName := decompositionID + "_refactorization"
 
 	cursor, err := client.Database(svc.mongodbName).Collection("fs.files").Find(ctx, bson.D{{"filename", fileName}})
 	if err != nil {
@@ -118,7 +119,7 @@ func (svc *DefaultHandler) StoreDecompositionRefactorization(ctx context.Context
 		return err
 	}
 
-	refactorizationFileName := fmt.Sprintf(refactorization.DecompositionName + "_refactorization")
+	refactorizationFileName := fmt.Sprintf(refactorization.DecompositionID + "_refactorization")
 
 	bucket, err := gridfs.NewBucket(client.Database(svc.mongodbName))
 	if err != nil {
@@ -142,18 +143,18 @@ func (svc *DefaultHandler) StoreDecompositionRefactorization(ctx context.Context
 	return nil
 }
 
-func (svc *DefaultHandler) UpdateFunctionalityRefactorization(decompositionName string, functionality *values.Functionality) error {
+func (svc *DefaultHandler) UpdateFunctionalityRefactorization(decompositionID string, functionality *values.Functionality) error {
 	// we lock the mutex so that only one goroutine reads and updates the file at a time
 	fileMutex.Lock()
 	defer fileMutex.Unlock()
 
-	refactorization, err := svc.ReadDecompositionRefactorization(context.TODO(), decompositionName)
+	refactorization, err := svc.ReadDecompositionRefactorization(context.TODO(), decompositionID)
 	if err != nil {
 		return err
 	}
 	refactorization.Functionalities[functionality.Name] = functionality
 
-	if err := svc.RemoveDecompositionRefactorization(context.TODO(), refactorization.DecompositionName); err != nil {
+	if err := svc.RemoveDecompositionRefactorization(context.TODO(), refactorization.DecompositionID); err != nil {
 		return err
 	}
 
@@ -163,15 +164,20 @@ func (svc *DefaultHandler) UpdateFunctionalityRefactorization(decompositionName 
 	return nil
 }
 
-func (svc *DefaultHandler) ReadDecomposition(ctx context.Context, decompositionName string) (*mono2micro.Decomposition, error) {
+func (svc *DefaultHandler) ReadDecomposition(ctx context.Context, decompositionID string) (*mono2micro.Decomposition, error) {
 	client, err := svc.GetDbClient(ctx)
 	defer svc.CloseDbClient(ctx, client)
 	if err != nil {
 		return nil, err
 	}
 
+	objectID, err := primitive.ObjectIDFromHex(decompositionID)
+	if err != nil {
+		return nil, err
+	}
+
 	var databaseDecomposition Decomposition
-	err = client.Database(svc.mongodbName).Collection("decomposition").FindOne(ctx, bson.D{{"name", decompositionName}}).Decode(&databaseDecomposition)
+	err = client.Database(svc.mongodbName).Collection("decomposition").FindOne(ctx, bson.D{{"_id", objectID}}).Decode(&databaseDecomposition)
 	if err != nil {
 		return nil, err
 	}

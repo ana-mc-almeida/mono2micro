@@ -6,7 +6,7 @@ import (
 )
 
 type RefactorCodebaseRequest struct {
-	DecompositionName         string   `json:"decomposition_name,omitempty"`
+	DecompositionID           string   `json:"decomposition_id,omitempty"`
 	FunctionalityNames        []string `json:"functionality_names,omitempty"`
 	DataDependenceThreshold   int      `json:"data_dependence_threshold,omitempty"`
 	MinimizeSumOfComplexities bool     `json:"minimize_sum_of_complexities,omitempty"`
@@ -40,7 +40,7 @@ func (r *RefactorCodebaseRequest) ShouldRefactorFunctionality(functionality *mon
 }
 
 type RefactorCodebaseResponse struct {
-	DecompositionName       string                    `json:"decomposition_name"`
+	DecompositionID         string                    `json:"decomposition_id"`
 	Functionalities         map[string]*Functionality `json:"functionalities"`
 	DataDependenceThreshold int                       `json:"data_dependence_threshold"`
 	Status                  string                    `json:"status"`

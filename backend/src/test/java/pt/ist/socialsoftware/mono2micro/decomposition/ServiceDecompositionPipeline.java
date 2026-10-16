@@ -249,13 +249,13 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		if (decompositions.isEmpty())
 			throw new AssertionError("No decomposition was created for " + similarityId);
 
-		return decompositions.get(decompositions.size() - 1).getName();
+		return decompositions.get(decompositions.size() - 1).getId();
 	}
 
 	@Override
-	public Map<String, List<String>> getClusters(String decompositionName) {
+	public Map<String, List<String>> getClusters(String decompositionId) {
 		Map<String, List<String>> clusters = new TreeMap<>();
-		decompositionService.getDecomposition(decompositionName).getClusters().forEach((name, cluster) -> {
+		decompositionService.getDecomposition(decompositionId).getClusters().forEach((name, cluster) -> {
 			List<String> entities = new ArrayList<>();
 			cluster.getElements().forEach(element -> entities.add(element.getName()));
 			Collections.sort(entities);
