@@ -31,7 +31,7 @@ public class RecommendationFactory {
 			recommendationName = strategy.getName() + " | " + " Recommendation " + ++i;
 		} while (strategy.containsRecommendationName(recommendationName));
 		recommendation.setName(recommendationName);
-		recommendation.setRecommendationResultName(recommendation.getName() + "_recommendationResult");
+		recommendation.setRecommendationResultName(recommendation.getId() + "_recommendationResult");
 		strategy.addRecommendation(recommendation);
 		recommendation.setStrategy(strategy);
 

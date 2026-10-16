@@ -59,9 +59,9 @@ export class APIService {
     }
 
     getRecommendationResult(
-        recommendationName: string
+        recommendationId: string
     ) {
-        return this.axios.get("/recommendation/" + recommendationName + "/getRecommendationResult")
+        return this.axios.get("/recommendation/" + recommendationId + "/getRecommendationResult")
             .then(response => {
                 if (response.data === "")
                     return [];
@@ -70,7 +70,7 @@ export class APIService {
     }
 
     createRecommendationDecompositions(
-        recommendationName: string,
+        recommendationId: string,
         decompositionNames: string[]
     ) {
         const data = new FormData();
@@ -80,7 +80,7 @@ export class APIService {
         // unfortunately, this is needed so that data.append does not interpret the commas as an array separation
         data.append('decompositionNames', "");
 
-        return this.axios.post<null>("/recommendation/" + recommendationName + "/createDecompositions", data);
+        return this.axios.post<null>("/recommendation/" + recommendationId + "/createDecompositions", data);
     }
 
     //Software Systems

@@ -115,7 +115,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
         }
         else setIsSelected("Creating decomposition...");
 
-        service.createRecommendationDecompositions(recommendation.name, selectedDecompositions.selectionContext.selected)
+        service.createRecommendationDecompositions(recommendation.id, selectedDecompositions.selectionContext.selected)
             .then(() => {
                 setUpdateStrategies({});
                 setIsSelected("Decompositions created.");
@@ -140,7 +140,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
         }).then(recommendation => {
                 setRecommendation(recommendation);
 
-                service.getRecommendationResult(recommendation.name).then(list => {
+                service.getRecommendationResult(recommendation.id).then(list => {
                     if (list.length !== 0) {
                         let line = Object.keys(list[0]);
                         setDecompositionInfo(columns.filter(column => line.includes(column.dataField)));

@@ -34,14 +34,14 @@ public class RecommendationController {
 		}
 	}
 
-	@GetMapping(value = "/recommendation/{recommendationName}/getRecommendationResult")
+	@GetMapping(value = "/recommendation/{recommendationId}/getRecommendationResult")
 	public ResponseEntity<String> getRecommendationResult(
-			@PathVariable String recommendationName
+			@PathVariable String recommendationId
 	) {
 		logger.debug("Get recommendation result");
 
 		try {
-			return new ResponseEntity<>(recommendationService.getRecommendationResultFromName(recommendationName), HttpStatus.OK);
+			return new ResponseEntity<>(recommendationService.getRecommendationResult(recommendationId), HttpStatus.OK);
 
 		} catch (NoSuchFileException e) { // Since it is an asynchronous call, the file might not be created yet
 			return new ResponseEntity<>(null, HttpStatus.OK);
@@ -51,15 +51,15 @@ public class RecommendationController {
 		}
 	}
 
-	@PostMapping(value = "/recommendation/{recommendationName}/createDecompositions")
+	@PostMapping(value = "/recommendation/{recommendationId}/createDecompositions")
 	public ResponseEntity<HttpStatus> createDecompositions(
-			@PathVariable String recommendationName,
+			@PathVariable String recommendationId,
 			@RequestParam List<String> decompositionNames
 	) {
 		try {
 			logger.debug("createDecompositions");
 
-			recommendationService.createDecompositions(recommendationName, decompositionNames);
+			recommendationService.createDecompositions(recommendationId, decompositionNames);
 			logger.debug("decomposition creation ended");
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {

@@ -17,6 +17,7 @@ public class RecommendMatrixSciPyDto extends RecommendationDto {
 
 	public RecommendMatrixSciPyDto(RecommendMatrixSciPy recommendation) {
 		this.setType(recommendation.getType());
+		this.setId(recommendation.getId());
 		this.setStrategyId(recommendation.getStrategy().getId());
 		this.setStrategyName(recommendation.getStrategy().getName());
 		this.name = recommendation.getName();

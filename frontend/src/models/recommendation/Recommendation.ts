@@ -1,4 +1,5 @@
 export default class Recommendation {
+    id?: string;
     type!: string;
     strategyId!: string;
     strategyName?: string;
@@ -7,6 +8,7 @@ export default class Recommendation {
 
     constructor(recommendation: any) {
         this.type               = recommendation.type;
+        this.id                 = recommendation.id;
         this.strategyId         = recommendation.strategyId;
         this.strategyName       = recommendation.strategyName;
         this.name               = recommendation.name;

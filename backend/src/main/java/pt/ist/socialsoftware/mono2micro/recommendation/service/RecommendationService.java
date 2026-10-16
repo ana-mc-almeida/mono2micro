@@ -46,8 +46,8 @@ public class RecommendationService {
 		return RecommendationDtoFactory.getRecommendationDto(recommendation);
 	}
 
-	public void createDecompositions(String recommendationName, List<String> decompositionNames) throws Exception {
-		Recommendation recommendation = recommendationRepository.findByName(recommendationName);
+	public void createDecompositions(String recommendationId, List<String> decompositionNames) throws Exception {
+		Recommendation recommendation = getRecommendation(recommendationId);
 		recommendation.createDecompositions(decompositionNames);
 	}
 
@@ -57,8 +57,13 @@ public class RecommendationService {
 		recommendationRepository.delete(recommendation);
 	}
 
-	public String getRecommendationResultFromName(String recommendationName) throws IOException {
-		Recommendation recommendation = recommendationRepository.getRecommendationResultName(recommendationName);
+	public String getRecommendationResult(String recommendationId) throws IOException {
+		Recommendation recommendation = getRecommendation(recommendationId);
 		return IOUtils.toString(gridFsService.getFile(recommendation.getRecommendationResultName()), StandardCharsets.UTF_8);
+	}
+
+	private Recommendation getRecommendation(String recommendationId) {
+		return recommendationRepository.findById(recommendationId)
+				.orElseThrow(() -> new RuntimeException("No recommendation " + recommendationId + " found."));
 	}
 }
