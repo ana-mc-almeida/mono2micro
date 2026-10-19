@@ -36,15 +36,14 @@ public class SimilarityService {
 		Strategy strategy = strategyRepository.findById(similarityDto.getStrategyId())
 				.orElseThrow(() -> new RuntimeException("No strategy " + similarityDto.getStrategyId() + " found."));
 		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
-		for (Similarity existing : strategy.getSimilarities())
+		for (Similarity existing : similarityRepository.findByStrategyId(strategy.getId()))
 			if (existing.equalsDto(similarityDto))
 				return existing;
-		Similarity similarity = SimilarityFactory.getSimilarity(strategy, similarityDto);
+		Similarity similarity = SimilarityFactory.createSimilarity(strategy, similarityDto);
 
 		similarity.generate();
 
 		similarityRepository.save(similarity);
-		strategyRepository.save(strategy);
 		return similarity;
 	}
 
@@ -55,10 +54,6 @@ public class SimilarityService {
 			decompositionService.deleteDecomposition(decomposition);
 
 		similarity.removeProperties();
-
-		Strategy strategy = similarity.getStrategy();
-		strategy.removeSimilarity(similarity.getName());
-		strategyRepository.save(strategy);
 
 		similarityRepository.deleteById(similarityId);
 	}

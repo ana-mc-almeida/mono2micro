@@ -5,10 +5,13 @@ import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
+import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
@@ -22,6 +25,15 @@ public class StrategyService {
 
 	@Autowired
 	StrategyRepository strategyRepository;
+
+	@Autowired
+	DecompositionRepository decompositionRepository;
+
+	@Autowired
+	SimilarityRepository similarityRepository;
+
+	@Autowired
+	RecommendationRepository recommendationRepository;
 
 	@Autowired
 	DecompositionService decompositionService;
@@ -53,8 +65,7 @@ public class StrategyService {
 	}
 
 	public List<Similarity> getStrategySimilarities(String strategyId) {
-		Strategy strategy = getStrategy(strategyId);
-		return strategy.getSimilarities();
+		return similarityRepository.findByStrategyId(strategyId);
 	}
 
 	public void deleteSingleStrategy(String strategyId) {
@@ -62,7 +73,7 @@ public class StrategyService {
 	}
 
 	public void deleteStrategy(Strategy strategy) {
-		for (Decomposition decomposition : strategy.getDecompositions())
+		for (Decomposition decomposition : decompositionRepository.findByStrategyId(strategy.getId()))
 			decompositionService.deleteDecomposition(decomposition);
 		removeSpecificStrategyProperties(strategy);
 		strategyRepository.delete(strategy);
@@ -73,17 +84,16 @@ public class StrategyService {
 	}
 
 	public List<Decomposition> getStrategyDecompositions(String strategyId) {
-		Strategy strategy = getStrategy(strategyId);
-		return strategy.getDecompositions();
+		return decompositionRepository.findByStrategyId(strategyId);
 	}
 
 	private void deleteStrategySimilarities(Strategy strategy) {
-		for (Similarity similarity : strategy.getSimilarities())
+		for (Similarity similarity : similarityRepository.findByStrategyId(strategy.getId()))
 			similarityService.deleteSimilarity(similarity);
 	}
 
 	private void deleteStrategyRecommendations(Strategy strategy) {
-		for (Recommendation recommendation : strategy.getRecommendations())
+		for (Recommendation recommendation : recommendationRepository.findByStrategyId(strategy.getId()))
 			recommendationService.deleteRecommendation(recommendation);
 	}
 }

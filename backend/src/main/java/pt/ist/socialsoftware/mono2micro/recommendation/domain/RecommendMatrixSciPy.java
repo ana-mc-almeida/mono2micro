@@ -195,11 +195,10 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	@Override
-	public void createDecompositions(List<String> decompositionNames) throws Exception {
+	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames) throws Exception {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 		DecompositionService decompositionService = ContextManager.get().getBean(DecompositionService.class);
 
-		List<Similarity> similarities = getStrategy().getSimilarities();
 		SciPyClustering clusteringAlgorithm = new SciPyClustering();
 
 		for (String name : decompositionNames) {
@@ -228,13 +227,14 @@ public class RecommendMatrixSciPy extends Recommendation {
 					.filter(possibleSimilarity -> possibleSimilarity.equalsDto(similarityInformation)).findFirst().orElse(null);
 
 			if (similarity == null) {
-				similarity = SimilarityFactory.getSimilarity(getStrategy(), similarityInformation);
+				similarity = SimilarityFactory.createSimilarity(getStrategy(), similarityInformation);
 
 				InputStream inputStream = gridFsService.getFile(name.substring(0, name.lastIndexOf(","))); // Gets the previously produced similarity matrix
 				gridFsService.saveFile(inputStream, similarity.getId()); // And saves it under the new similarity's id
 
 				// generate dendrogram image
 				similarity.setDendrogram(new Dendrogram(similarity.getId(), similarity.getId(), similarity.getLinkageType()));
+				similarities.add(similarity); // a later candidate with the same weights reuses it
 			}
 
 			Decomposition decomposition = clusteringAlgorithm.generateDecomposition(similarity,

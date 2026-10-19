@@ -34,14 +34,4 @@ public class SimilarityFactory {
 			throw new RuntimeException("The type \"" + similarityDto.getType() + "\" is not a valid similarityDto type.");
 		}
 	}
-
-	public static SimilarityScipy getSimilarity(Strategy strategy, SimilarityDto similarityDto) {
-		SimilarityScipy similarity = (SimilarityScipy) strategy.getSimilarityByName(similarityDto.getName());
-
-		if (similarity == null) {
-			similarity = createSimilarity(strategy, similarityDto);
-		}
-
-		return similarity;
-	}
 }

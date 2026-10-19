@@ -3,6 +3,10 @@ package pt.ist.socialsoftware.mono2micro.recommendation.domain;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.*;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.*;
 
 public class RecommendationFactory {
@@ -20,19 +24,19 @@ public class RecommendationFactory {
 		}
 	}
 
-	public static Recommendation getRecommendation(Strategy strategy, RecommendationDto recommendationDto) {
+	public static Recommendation getRecommendation(Strategy strategy, List<Recommendation> strategyRecommendations, RecommendationDto recommendationDto) {
 		Recommendation recommendation = getRecommendation(recommendationDto);
 		recommendation.setCompleted(false);
 
 		// Get new name
+		Set<String> recommendationNames = strategyRecommendations.stream().map(Recommendation::getName).collect(Collectors.toSet());
 		int i = 0;
 		String recommendationName;
 		do {
 			recommendationName = strategy.getName() + " | " + " Recommendation " + ++i;
-		} while (strategy.containsRecommendationName(recommendationName));
+		} while (recommendationNames.contains(recommendationName));
 		recommendation.setName(recommendationName);
 		recommendation.setRecommendationResultName(recommendation.getId() + "_recommendationResult");
-		strategy.addRecommendation(recommendation);
 		recommendation.setStrategy(strategy);
 
 		return recommendation;

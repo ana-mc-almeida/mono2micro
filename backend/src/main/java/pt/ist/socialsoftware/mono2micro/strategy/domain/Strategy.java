@@ -5,9 +5,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,12 +71,6 @@ public class Strategy {
 	private String algorithmType;
 	@DBRef
 	private SoftwareSystem softwareSystem;
-	@DBRef(lazy = true)
-	private List<Decomposition> decompositions = new ArrayList<>();
-	@DBRef(lazy = true)
-	private List<Similarity> similarities = new ArrayList<>();
-	@DBRef(lazy = true)
-	private List<Recommendation> recommendations = new ArrayList<>();
 	private List<String> strategyTypes;
 
 	public Strategy() {}
@@ -130,70 +121,6 @@ public class Strategy {
 
 	public void setSoftwareSystem(SoftwareSystem softwareSystem) {
 		this.softwareSystem = softwareSystem;
-	}
-
-	public List<Decomposition> getDecompositions() {
-		return decompositions;
-	}
-
-	public Decomposition getDecompositionByName(String decompositionName) {
-		return this.decompositions.stream().filter(decomposition -> decomposition.getName().equals(decompositionName)).findFirst().orElse(null);
-	}
-
-	public void setDecompositions(List<Decomposition> decompositions) {
-		this.decompositions = decompositions;
-	}
-
-	public synchronized void addDecomposition(Decomposition decomposition) {
-		this.decompositions.add(decomposition);
-	}
-
-	public synchronized void removeDecomposition(String decompositionName) {
-		this.decompositions = this.decompositions.stream().filter(decomposition -> !decomposition.getName().equals(decompositionName))
-				.collect(Collectors.toList());
-	}
-
-	public List<Similarity> getSimilarities() {
-		return similarities;
-	}
-
-	public void setSimilarities(List<Similarity> similarities) {
-		this.similarities = similarities;
-	}
-
-	public void addSimilarity(Similarity similarity) {
-		getSimilarities().add(similarity);
-	}
-
-	public void removeSimilarity(String similarityName) {
-		setSimilarities(getSimilarities().stream().filter(similarity -> !similarity.getName().equals(similarityName)).collect(Collectors.toList()));
-	}
-
-	public boolean containsSimilarityName(String name) {
-		return this.similarities.stream().anyMatch(similarity -> similarity.getName().equals(name));
-	}
-
-	public Similarity getSimilarityByName(String name) {
-		return this.similarities.stream()
-				.filter(similarity -> similarity.getName().equals(name))
-				.findAny()
-				.orElse(null);
-	}
-
-	public List<Recommendation> getRecommendations() {
-		return recommendations;
-	}
-
-	public void setRecommendations(List<Recommendation> recommendations) {
-		this.recommendations = recommendations;
-	}
-
-	public boolean containsRecommendationName(String name) {
-		return this.recommendations.stream().anyMatch(recommendation -> recommendation.getName().equals(name));
-	}
-
-	public void addRecommendation(Recommendation recommendation) {
-		getRecommendations().add(recommendation);
 	}
 
 	public List<String> getStrategyTypes() {

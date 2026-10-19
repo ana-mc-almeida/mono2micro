@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
 import java.util.List;
@@ -66,5 +67,5 @@ public abstract class Recommendation {
 
 	public abstract void generateRecommendation(RecommendationRepository recommendationRepository);
 
-	public abstract void createDecompositions(List<String> decompositionNames) throws Exception;
+	public abstract void createDecompositions(List<Similarity> strategySimilarities, List<String> decompositionNames) throws Exception;
 }

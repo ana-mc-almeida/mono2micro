@@ -41,7 +41,6 @@ public abstract class Decomposition {
 		this.similarity = similarity;
 		similarity.addDecomposition(this);
 		this.strategy = similarity.getStrategy();
-		strategy.addDecomposition(this);
 	}
 
 	public abstract void setup() throws Exception;

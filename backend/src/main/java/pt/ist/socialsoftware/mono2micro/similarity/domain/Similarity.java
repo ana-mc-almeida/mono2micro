@@ -27,7 +27,6 @@ public abstract class Similarity {
 
 	public Similarity(Strategy strategy, String name) {
 		this.strategy = strategy;
-		strategy.addSimilarity(this);
 		this.name = name;
 		setDecompositions(new ArrayList<>());
 	}

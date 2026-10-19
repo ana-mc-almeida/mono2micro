@@ -18,8 +18,6 @@ import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
 import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
 import pt.ist.socialsoftware.mono2micro.utils.export.ContextMapperContractBuilder;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
@@ -32,9 +30,6 @@ import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.
 
 @Service
 public class DecompositionService {
-	@Autowired
-	StrategyRepository strategyRepository;
-
 	@Autowired
 	SimilarityRepository similarityRepository;
 
@@ -72,7 +67,6 @@ public class DecompositionService {
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 		similarityRepository.save(decomposition.getSimilarity());
-		strategyRepository.save(decomposition.getStrategy());
 	}
 
 	public Decomposition updateDecomposition(String decompositionId) throws Exception {
@@ -108,14 +102,11 @@ public class DecompositionService {
 		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		decomposition.deleteProperties();
 
-		Strategy strategy = decomposition.getStrategy();
-		strategy.removeDecomposition(decomposition.getName());
 		Similarity similarity = decomposition.getSimilarity();
 		similarity.removeDecomposition(decomposition.getName());
 
 		similarityRepository.save(similarity);
 		historyService.deleteHistory(decomposition.getHistory());
-		strategyRepository.save(strategy);
 		decompositionRepository.deleteById(decomposition.getId());
 	}
 
@@ -187,7 +178,6 @@ public class DecompositionService {
 
 		decompositionRepository.save(snapshotDecomposition);
 		similarityRepository.save(similarity);
-		strategyRepository.save(similarity.getStrategy());
 	}
 
 	private Similarity getSimilarity(String similarityId) {

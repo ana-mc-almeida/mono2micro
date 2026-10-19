@@ -10,6 +10,7 @@ import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationFact
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
 
@@ -26,20 +27,23 @@ public class RecommendationService {
 	RecommendationRepository recommendationRepository;
 
 	@Autowired
+	SimilarityRepository similarityRepository;
+
+	@Autowired
 	GridFsService gridFsService;
 
 	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
 		Strategy strategy = strategyRepository.findById(recommendationDto.getStrategyId())
 				.orElseThrow(() -> new RuntimeException("No strategy " + recommendationDto.getStrategyId() + " found."));
-		RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategy.getRecommendations().stream()
+		List<Recommendation> strategyRecommendations = recommendationRepository.findByStrategyId(strategy.getId());
+		RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategyRecommendations.stream()
 				.filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
 
 		Recommendation recommendation;
 		// Create from scratch
 		if (existingRecommendation == null) {
-			recommendation = RecommendationFactory.getRecommendation(strategy, recommendationDto);
+			recommendation = RecommendationFactory.getRecommendation(strategy, strategyRecommendations, recommendationDto);
 			recommendationRepository.save(recommendation);
-			strategyRepository.save(strategy);
 		} else return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
 
 		recommendation.generateRecommendation(recommendationRepository);
@@ -48,7 +52,7 @@ public class RecommendationService {
 
 	public void createDecompositions(String recommendationId, List<String> decompositionNames) throws Exception {
 		Recommendation recommendation = getRecommendation(recommendationId);
-		recommendation.createDecompositions(decompositionNames);
+		recommendation.createDecompositions(similarityRepository.findByStrategyId(recommendation.getStrategy().getId()), decompositionNames);
 	}
 
 	public void deleteRecommendation(Recommendation recommendation) {

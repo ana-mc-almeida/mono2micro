@@ -10,12 +10,11 @@ import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.dto.SoftwareSystemDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.strategy.dto.StrategyDto;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +27,9 @@ public class SoftwareSystemController {
 
 	@Autowired
 	SoftwareSystemService softwareSystemService;
+
+	@Autowired
+	DecompositionRepository decompositionRepository;
 
 	@GetMapping(value = "/softwareSystems")
 	public ResponseEntity<List<SoftwareSystemDto>> getSoftwareSystems() {
@@ -118,8 +120,7 @@ public class SoftwareSystemController {
 		try {
 			List<DecompositionDto> decompositionDtos = DecompositionDtoFactory.getDecompositionDtos(
 					softwareSystemService.getSoftwareSystemStrategies(softwareSystemId).stream()
-							.map(Strategy::getDecompositions)
-							.flatMap(Collection::stream)
+							.flatMap(strategy -> decompositionRepository.findByStrategyId(strategy.getId()).stream())
 							.collect(Collectors.toList())
 			);
 			return new ResponseEntity<>(decompositionDtos, HttpStatus.OK);
