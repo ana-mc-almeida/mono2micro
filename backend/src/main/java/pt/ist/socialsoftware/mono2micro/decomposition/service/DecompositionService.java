@@ -19,7 +19,7 @@ import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 import pt.ist.socialsoftware.mono2micro.utils.export.ContextMapperContractBuilder;
-import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -38,6 +38,9 @@ public class DecompositionService {
 
 	@Autowired
 	HistoryService historyService;
+
+	@Autowired
+	RepresentationRepository representationRepository;
 
 	@Autowired
 	GridFsService gridFsService;
@@ -90,7 +93,9 @@ public class DecompositionService {
 		zipOutputStream.putNextEntry(new ZipEntry("m2m_decomposition.json"));
 		zipOutputStream.write(new ContextMapperContractBuilder(decomposition)
 				.addStructureRepresentationData(gridFsService.getFile(
-						Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), STRUCTURE).getId()))
+						representationRepository.findBySoftwareSystemIdAndType(decomposition.getStrategy().getSoftwareSystem().getId(), STRUCTURE)
+								.orElseThrow(() -> new RuntimeException("No representation with type " + STRUCTURE))
+								.getId()))
 				.addSagaRefactorizationData(gridFsService.getFile(decompositionId + "_refactorization"))
 				.buildContract()
 				.getBytes());

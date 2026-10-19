@@ -16,6 +16,7 @@ import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dom
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 
@@ -38,6 +39,9 @@ public class FunctionalityService {
 
 	@Autowired
 	FunctionalityRepository functionalityRepository;
+
+	@Autowired
+	RepresentationRepository representationRepository;
 
 	@Autowired
 	GridFsService gridFsService;
@@ -216,7 +220,9 @@ public class FunctionalityService {
 			functionality.addFunctionalityRedesign(functionalityRedesign.getName(), functionality.getId() + functionalityRedesign.getName());
 			functionality.setFunctionalityRedesignNameUsedForMetrics(functionalityRedesign.getName());
 
-			Representation representation = Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
+			Representation representation = representationRepository
+					.findBySoftwareSystemIdAndType(similarity.getStrategy().getSoftwareSystem().getId(), ACCESSES)
+					.orElseThrow(() -> new RuntimeException("No representation with type " + ACCESSES));
 
 			DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)
 					.createLocalTransactionGraphFromScratch(
