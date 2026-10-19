@@ -17,6 +17,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyFunctional
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
@@ -101,8 +102,9 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeMethodCallsFeaturesVectors(matrix, codeEmbeddings);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
 		matrix.put("translationFileName", idToEntity.getId());
 		matrix.put("accessesFileName", accessesInfo.getId());
 
@@ -272,9 +274,10 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			int totalNumberOfWeights
 	) throws Exception {
 		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getSoftwareSystem()
-				.getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+				ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];
 		weights[0] = INTERVAL;

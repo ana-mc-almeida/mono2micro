@@ -1,9 +1,13 @@
 package pt.ist.socialsoftware.mono2micro.fixtures;
 
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
+import org.springframework.test.util.ReflectionTestUtils;
+import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.Fixture;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,47 +32,47 @@ public class SoftwareSystemFixturesTest {
 
 	@Test
 	public void emptySoftwareSystemHasNoUploadsAndSatisfiesNoGroup() {
-		SoftwareSystem softwareSystem = SoftwareSystemFixtures.empty();
+		Fixture fixture = SoftwareSystemFixtures.empty();
 
-		assertThat(softwareSystem.getRepresentations()).isEmpty();
-		assertThat(softwareSystem.getRepresentationGroups()).isEmpty();
+		assertThat(fixture.getRepresentations()).isEmpty();
+		assertThat(groups(fixture)).isEmpty();
 	}
 
 	@Test
 	public void accessesBasedSatisfiesAccessesGroupOnly() {
-		SoftwareSystem softwareSystem = SoftwareSystemFixtures.accessesBased();
+		Fixture fixture = SoftwareSystemFixtures.accessesBased();
 
-		assertThat(uploadedTypes(softwareSystem)).containsExactlyInAnyOrder(ID_TO_ENTITY, ACCESSES);
-		assertThat(softwareSystem.getRepresentationGroups()).containsExactly(ACCESSES_TYPE);
+		assertThat(uploadedTypes(fixture)).containsExactlyInAnyOrder(ID_TO_ENTITY, ACCESSES);
+		assertThat(groups(fixture)).containsExactly(ACCESSES_TYPE);
 	}
 
 	@Test
 	public void repositoryBasedSatisfiesRepositoryGroup() {
-		SoftwareSystem softwareSystem = SoftwareSystemFixtures.repositoryBased();
+		Fixture fixture = SoftwareSystemFixtures.repositoryBased();
 
-		assertThat(uploadedTypes(softwareSystem))
+		assertThat(uploadedTypes(fixture))
 				.containsExactlyInAnyOrder(ID_TO_ENTITY, ACCESSES, AUTHOR, COMMIT);
-		assertThat(softwareSystem.getRepresentationGroups())
+		assertThat(groups(fixture))
 				.containsExactlyInAnyOrder(ACCESSES_TYPE, REPOSITORY_TYPE);
 	}
 
 	@Test
 	public void codeEmbeddingsBasedSatisfiesCodeEmbeddingsGroup() {
-		SoftwareSystem softwareSystem = SoftwareSystemFixtures.codeEmbeddingsBased();
+		Fixture fixture = SoftwareSystemFixtures.codeEmbeddingsBased();
 
-		assertThat(uploadedTypes(softwareSystem))
+		assertThat(uploadedTypes(fixture))
 				.containsExactlyInAnyOrder(ID_TO_ENTITY, ENTITY_TO_ID, ACCESSES, CODE_EMBEDDINGS);
-		assertThat(softwareSystem.getRepresentationGroups())
+		assertThat(groups(fixture))
 				.containsExactlyInAnyOrder(ACCESSES_TYPE, CODE_EMBEDDINGS_TYPE);
 	}
 
 	@Test
 	public void structureBasedSatisfiesStructureGroup() {
-		SoftwareSystem softwareSystem = SoftwareSystemFixtures.structureBased();
+		Fixture fixture = SoftwareSystemFixtures.structureBased();
 
-		assertThat(uploadedTypes(softwareSystem))
+		assertThat(uploadedTypes(fixture))
 				.containsExactlyInAnyOrder(ID_TO_ENTITY, ENTITY_TO_ID, ACCESSES, STRUCTURE);
-		assertThat(softwareSystem.getRepresentationGroups())
+		assertThat(groups(fixture))
 				.containsExactlyInAnyOrder(ACCESSES_TYPE, STRUCTURE_TYPE);
 	}
 
@@ -79,11 +83,11 @@ public class SoftwareSystemFixturesTest {
 	 */
 	@Test
 	public void repositoryDataIsWhatSeparatesTheTwoContrastingFixtures() {
-		SoftwareSystem offered = SoftwareSystemFixtures.repositoryBased();
-		SoftwareSystem withheld = SoftwareSystemFixtures.accessesBased();
+		Fixture offered = SoftwareSystemFixtures.repositoryBased();
+		Fixture withheld = SoftwareSystemFixtures.accessesBased();
 
-		assertThat(offered.getRepresentationGroups()).contains(REPOSITORY_TYPE);
-		assertThat(withheld.getRepresentationGroups()).doesNotContain(REPOSITORY_TYPE);
+		assertThat(groups(offered)).contains(REPOSITORY_TYPE);
+		assertThat(groups(withheld)).doesNotContain(REPOSITORY_TYPE);
 
 		assertThat(uploadedTypes(offered)).contains(AUTHOR, COMMIT);
 		assertThat(uploadedTypes(withheld)).doesNotContain(AUTHOR, COMMIT);
@@ -106,49 +110,62 @@ public class SoftwareSystemFixturesTest {
 	/** Mutating one fixture must not leak into the next test that asks for the same one. */
 	@Test
 	public void fixturesAreBuiltFreshOnEveryCall() {
-		SoftwareSystem first = SoftwareSystemFixtures.accessesBased();
-		first.removeRepresentation(first.getRepresentations().get(0).getName());
+		Fixture first = SoftwareSystemFixtures.accessesBased();
+		first.getRepresentations().remove(0);
 		assertThat(first.getRepresentations()).hasSize(1);
 
 		assertThat(SoftwareSystemFixtures.accessesBased().getRepresentations()).hasSize(2);
 	}
 
 	@Test
-	public void fixtureNamesAreDistinct() {
-		List<String> names = SoftwareSystemFixtures.all().stream()
-				.map(SoftwareSystem::getName)
+	public void fixtureNamesAndIdsAreDistinct() {
+		List<String> names = Arrays.stream(SoftwareSystemFixtures.all())
+				.map(fixture -> fixture.getSoftwareSystem().getName())
+				.collect(Collectors.toList());
+		List<String> ids = Arrays.stream(SoftwareSystemFixtures.all())
+				.map(Fixture::getId)
 				.collect(Collectors.toList());
 
 		assertThat(names).doesNotHaveDuplicates();
+		assertThat(ids).doesNotHaveDuplicates();
 	}
 
+	/** References go from child to parent (D-016): each representation knows its software system. */
 	@Test
 	public void representationsKnowTheSoftwareSystemTheyBelongTo() {
-		SoftwareSystem softwareSystem = SoftwareSystemFixtures.repositoryBased();
+		Fixture fixture = SoftwareSystemFixtures.repositoryBased();
 
-		for (Representation representation : softwareSystem.getRepresentations()) {
-			assertThat(representation.getSoftwareSystem()).isSameAs(softwareSystem);
-			assertThat(representation.getName()).contains(softwareSystem.getName());
+		for (Representation representation : fixture.getRepresentations()) {
+			assertThat(representation.getSoftwareSystem()).isSameAs(fixture.getSoftwareSystem());
+			assertThat(representation.getName()).contains(fixture.getSoftwareSystem().getName());
 		}
 	}
 
 	@Test
-	public void lookupByFileTypeFindsAnUploadedRepresentation() {
-		SoftwareSystem softwareSystem = SoftwareSystemFixtures.repositoryBased();
+	public void lookupByTypeFindsAnUploadedRepresentation() {
+		Fixture fixture = SoftwareSystemFixtures.repositoryBased();
+		RepresentationRepository repository = SoftwareSystemFixtures.repositoryServing(fixture);
 
-		assertThat(softwareSystem.getRepresentationByFileType(AUTHOR)).isNotNull();
-		assertThat(softwareSystem.getRepresentationByFileType(STRUCTURE)).isNull();
+		assertThat(repository.findBySoftwareSystemIdAndType(fixture.getId(), AUTHOR)).isPresent();
+		assertThat(repository.findBySoftwareSystemIdAndType(fixture.getId(), STRUCTURE)).isEmpty();
 	}
 
-	private static List<String> uploadedTypes(SoftwareSystem softwareSystem) {
-		return softwareSystem.getRepresentations().stream()
+	private static List<String> uploadedTypes(Fixture fixture) {
+		return fixture.getRepresentations().stream()
 				.map(Representation::getType)
 				.collect(Collectors.toList());
 	}
 
-	private static List<SoftwareSystem> fixturesSatisfying(String group) {
-		return SoftwareSystemFixtures.all().stream()
-				.filter(softwareSystem -> softwareSystem.getRepresentationGroups().contains(group))
+	/** The representation groups the software system satisfies, as the software system service derives them. */
+	private static List<String> groups(Fixture fixture) {
+		SoftwareSystemService softwareSystemService = new SoftwareSystemService();
+		ReflectionTestUtils.setField(softwareSystemService, "representationRepository", SoftwareSystemFixtures.repositoryServing(fixture));
+		return softwareSystemService.getSoftwareSystemRepresentationGroups(fixture.getId());
+	}
+
+	private static List<Fixture> fixturesSatisfying(String group) {
+		return Arrays.stream(SoftwareSystemFixtures.all())
+				.filter(fixture -> groups(fixture).contains(group))
 				.collect(Collectors.toList());
 	}
 }

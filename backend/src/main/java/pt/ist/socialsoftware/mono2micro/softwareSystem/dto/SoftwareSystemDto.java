@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.softwareSystem.dto;
 
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
 
@@ -13,10 +14,10 @@ public class SoftwareSystemDto {
 
 	private List<RepresentationDto> representations;
 
-	public SoftwareSystemDto(SoftwareSystem softwareSystem) {
+	public SoftwareSystemDto(SoftwareSystem softwareSystem, List<Representation> representations) {
 		this.id = softwareSystem.getId();
 		this.name = softwareSystem.getName();
-		this.representations = RepresentationDtoFactory.getFactory().getRepresentationDtos(softwareSystem.getRepresentations());
+		this.representations = RepresentationDtoFactory.getFactory().getRepresentationDtos(representations);
 	}
 
 	public String getId() {

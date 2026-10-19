@@ -3,8 +3,6 @@ package pt.ist.socialsoftware.mono2micro.representation.service;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
-import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -18,9 +16,6 @@ import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.I
 
 @Service
 public class AccessesRepresentationService {
-
-	@Autowired
-	SoftwareSystemRepository softwareSystemRepository;
 
 	@Autowired
 	RepresentationRepository representationRepository;
@@ -50,9 +45,8 @@ public class AccessesRepresentationService {
 	}
 
 	public String getIdToEntity(String softwareSystemId) throws IOException {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
-				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
-		Representation representation = softwareSystem.getRepresentationByFileType(ID_TO_ENTITY);
+		Representation representation = representationRepository.findBySoftwareSystemIdAndType(softwareSystemId, ID_TO_ENTITY)
+				.orElseThrow(() -> new RuntimeException("No " + ID_TO_ENTITY + " representation in software system " + softwareSystemId + "."));
 		return IOUtils.toString(gridFsService.getFile(representation.getId()), StandardCharsets.UTF_8);
 	}
 }

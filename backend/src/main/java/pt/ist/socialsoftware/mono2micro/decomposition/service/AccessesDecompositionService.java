@@ -18,6 +18,7 @@ import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.utils.Utils;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -83,7 +84,8 @@ public class AccessesDecompositionService {
 		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
-		AccessesRepresentation representation = (AccessesRepresentation) similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
+		AccessesRepresentation representation = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(),
+				ACCESSES);
 
 		DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)
 				.createLocalTransactionGraphFromScratch(

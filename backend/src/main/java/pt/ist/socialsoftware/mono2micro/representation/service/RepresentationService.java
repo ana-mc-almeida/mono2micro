@@ -42,7 +42,9 @@ public class RepresentationService {
 		if (representationTypes == null || representations == null || representationTypes.size() != representations.size())
 			throw new RuntimeException("Number of representations is different from the number of representation types.");
 
-		List<String> availableRepresentationsTypes = softwareSystem.getRepresentations().stream().map(Representation::getType).collect(Collectors.toList());
+		// A software system holds at most one collected representation per kind.
+		List<String> availableRepresentationsTypes = representationRepository.findBySoftwareSystemId(softwareSystemId).stream().map(Representation::getType)
+				.collect(Collectors.toList());
 
 		for (String representationType : representationTypes)
 			if (availableRepresentationsTypes.contains(representationType))
@@ -53,17 +55,13 @@ public class RepresentationService {
 			byte[] representationFileStream = ((MultipartFile) representations.get(i)).getBytes();
 			Representation representation = RepresentationFactory.getRepresentation(representationType);
 			String fileName = representation.init(softwareSystem, representationFileStream);
-			softwareSystem.addRepresentation(representation);
 			gridFsService.saveFile(new ByteArrayInputStream(representationFileStream), fileName);
 			representationRepository.save(representation);
 		}
-		softwareSystemRepository.save(softwareSystem);
 	}
 
 	public Representation getSoftwareSystemRepresentation(String softwareSystemId, String representationType) {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
-				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
-		return softwareSystem.getRepresentations().stream().filter(representation -> representation.getType().equals(representationType)).findFirst()
+		return representationRepository.findBySoftwareSystemIdAndType(softwareSystemId, representationType)
 				.orElseThrow(() -> new RuntimeException("No representation with type" + representationType));
 	}
 
@@ -83,7 +81,6 @@ public class RepresentationService {
 		Representation representation = representationRepository.findById(representationId)
 				.orElseThrow(() -> new RuntimeException("No representation " + representationId));
 		SoftwareSystem softwareSystem = representation.getSoftwareSystem();
-		softwareSystem.removeRepresentation(representation.getName());
 		ArrayList<Strategy> strategies = new ArrayList<>();
 		for (Strategy strategy : softwareSystem.getStrategies()) {
 			boolean deleted = false;

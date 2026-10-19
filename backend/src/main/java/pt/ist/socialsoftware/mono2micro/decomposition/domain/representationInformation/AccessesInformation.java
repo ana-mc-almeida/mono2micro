@@ -25,6 +25,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.FunctionalityTracesIterator;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -121,7 +122,7 @@ public class AccessesInformation extends RepresentationInformation {
 		FunctionalityRepository functionalityRepository = ContextManager.get().getBean(FunctionalityRepository.class);
 
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
-		AccessesRepresentation accesses = (AccessesRepresentation) decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
+		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), ACCESSES);
 		InputStream inputStream = gridFsService.getFile(accesses.getId());
 		Set<String> profileFunctionalities = accesses.getProfile(similarity.getProfile());
 

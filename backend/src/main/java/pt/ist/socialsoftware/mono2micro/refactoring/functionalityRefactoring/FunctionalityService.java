@@ -216,7 +216,7 @@ public class FunctionalityService {
 			functionality.addFunctionalityRedesign(functionalityRedesign.getName(), functionality.getId() + functionalityRedesign.getName());
 			functionality.setFunctionalityRedesignNameUsedForMetrics(functionalityRedesign.getName());
 
-			Representation representation = similarity.getStrategy().getSoftwareSystem().getRepresentationByFileType(ACCESSES);
+			Representation representation = Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
 
 			DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)
 					.createLocalTransactionGraphFromScratch(

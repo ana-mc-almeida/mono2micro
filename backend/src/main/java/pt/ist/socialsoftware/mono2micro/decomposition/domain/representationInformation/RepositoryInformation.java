@@ -16,6 +16,7 @@ import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorR
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -124,8 +125,10 @@ public class RepositoryInformation extends RepresentationInformation {
 
 	private void setupAuthorsAndCommits(Decomposition decomposition) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		AuthorRepresentation authorRepresentation = (AuthorRepresentation) decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(AUTHOR);
-		CommitRepresentation commitRepresentation = (CommitRepresentation) decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(COMMIT);
+		AuthorRepresentation authorRepresentation = (AuthorRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(),
+				AUTHOR);
+		CommitRepresentation commitRepresentation = (CommitRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(),
+				COMMIT);
 		Map<Short, ArrayList<String>> localAuthors = new ObjectMapper().readValue(gridFsService.getFileAsString(authorRepresentation.getId()),
 				new TypeReference<Map<Short, ArrayList<String>>>() {});
 		Map<String, Map<String, Integer>> commits = new ObjectMapper().readValue(gridFsService.getFileAsString(commitRepresentation.getId()),

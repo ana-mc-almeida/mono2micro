@@ -15,6 +15,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 
@@ -144,8 +145,9 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	}
 
 	public Set<Short> fillElements(GridFsService gridFsService, Similarity similarity) throws IOException {
-		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) similarity.getStrategy().getSoftwareSystem()
-				.getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) Representation.ofSoftwareSystem(
+				similarity.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
 		Map<Short, String> idToEntity = new ObjectMapper().readValue(
 				gridFsService.getFileAsString(idToEntityRepresentation.getId()),
 				new TypeReference<Map<Short, String>>() {}

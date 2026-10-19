@@ -5,17 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
-import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.ACCESSES_BASED_NAME;
 import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.EMPTY_NAME;
 import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.REPOSITORY_BASED_NAME;
@@ -34,38 +28,36 @@ import static pt.ist.socialsoftware.mono2micro.representation.domain.Representat
 public class SoftwareSystemServiceAvailabilityTest {
 
 	@Mock
-	private SoftwareSystemRepository softwareSystemRepository;
+	private RepresentationRepository representationRepository;
 
 	@InjectMocks
 	private SoftwareSystemService softwareSystemService;
 
-	/** The fixtures by name, so a test can name the software system it asks about. */
-	private final Map<String, SoftwareSystem> softwareSystems = new HashMap<>();
-
 	@BeforeEach
 	public void givenTheFixtureSoftwareSystemsExist() {
 		MockitoAnnotations.initMocks(this);
-		givenTheRepositoryFinds(SoftwareSystemFixtures.empty());
-		givenTheRepositoryFinds(SoftwareSystemFixtures.accessesBased());
-		givenTheRepositoryFinds(SoftwareSystemFixtures.repositoryBased());
+		SoftwareSystemFixtures.stubbed(representationRepository,
+				SoftwareSystemFixtures.empty(),
+				SoftwareSystemFixtures.accessesBased(),
+				SoftwareSystemFixtures.repositoryBased());
 	}
 
 	@Test
 	public void uploadsCarryingAuthorshipDataMakeTheRepositoryStrategyAvailable() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(REPOSITORY_BASED_NAME)))
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(REPOSITORY_BASED_NAME))
 				.contains(Strategy.REPOSITORY_STRATEGY);
 	}
 
 	@Test
 	public void uploadsWithoutAuthorshipDataWithholdTheRepositoryStrategy() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(ACCESSES_BASED_NAME)))
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(ACCESSES_BASED_NAME))
 				.contains(Strategy.ACCESSES_STRATEGY)
 				.doesNotContain(Strategy.REPOSITORY_STRATEGY);
 	}
 
 	@Test
 	public void aSoftwareSystemWithNoUploadsIsOfferedNothing() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(EMPTY_NAME))).isEmpty();
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(EMPTY_NAME)).isEmpty();
 	}
 
 	/**
@@ -75,22 +67,13 @@ public class SoftwareSystemServiceAvailabilityTest {
 	 */
 	@Test
 	public void twoSoftwareSystemsWithDifferentUploadsGetDifferentOffers() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(REPOSITORY_BASED_NAME)))
-				.isNotEqualTo(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(idOf(ACCESSES_BASED_NAME)));
+		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(REPOSITORY_BASED_NAME))
+				.isNotEqualTo(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(ACCESSES_BASED_NAME));
 	}
 
 	@Test
 	public void representationGroupsAreDerivedFromTheSameUploads() {
-		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(idOf(ACCESSES_BASED_NAME)))
+		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(ACCESSES_BASED_NAME))
 				.containsExactly(ACCESSES_TYPE);
-	}
-
-	private void givenTheRepositoryFinds(SoftwareSystem softwareSystem) {
-		softwareSystems.put(softwareSystem.getName(), softwareSystem);
-		when(softwareSystemRepository.findById(softwareSystem.getId())).thenReturn(Optional.of(softwareSystem));
-	}
-
-	private String idOf(String softwareSystemName) {
-		return softwareSystems.get(softwareSystemName).getId();
 	}
 }

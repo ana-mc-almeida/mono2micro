@@ -35,7 +35,9 @@ public class SoftwareSystemController {
 
 		try {
 			return new ResponseEntity<>(
-					softwareSystemService.getSoftwareSystems().stream().map(SoftwareSystemDto::new).collect(Collectors.toList()),
+					softwareSystemService.getSoftwareSystems().stream()
+							.map(softwareSystem -> new SoftwareSystemDto(softwareSystem, softwareSystemService.getRepresentations(softwareSystem.getId())))
+							.collect(Collectors.toList()),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -52,7 +54,8 @@ public class SoftwareSystemController {
 
 		try {
 			return new ResponseEntity<>(
-					new SoftwareSystemDto(softwareSystemService.getSoftwareSystem(softwareSystemId)),
+					new SoftwareSystemDto(softwareSystemService.getSoftwareSystem(softwareSystemId),
+							softwareSystemService.getRepresentations(softwareSystemId)),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -149,7 +152,8 @@ public class SoftwareSystemController {
 
 		try {
 			SoftwareSystem softwareSystem = softwareSystemService.createSoftwareSystem(softwareSystemName);
-			return new ResponseEntity<>(new SoftwareSystemDto(softwareSystem), HttpStatus.CREATED);
+			return new ResponseEntity<>(new SoftwareSystemDto(softwareSystem, softwareSystemService.getRepresentations(softwareSystem.getId())),
+					HttpStatus.CREATED);
 
 		} catch (KeyAlreadyExistsException e) {
 			e.printStackTrace();

@@ -21,6 +21,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityReposito
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
 import pt.ist.socialsoftware.mono2micro.utils.export.ContextMapperContractBuilder;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -95,7 +96,7 @@ public class DecompositionService {
 		zipOutputStream.putNextEntry(new ZipEntry("m2m_decomposition.json"));
 		zipOutputStream.write(new ContextMapperContractBuilder(decomposition)
 				.addStructureRepresentationData(gridFsService.getFile(
-						decomposition.getStrategy().getSoftwareSystem().getRepresentationByFileType(STRUCTURE).getId()))
+						Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), STRUCTURE).getId()))
 				.addSagaRefactorizationData(gridFsService.getFile(decompositionId + "_refactorization"))
 				.buildContract()
 				.getBytes());

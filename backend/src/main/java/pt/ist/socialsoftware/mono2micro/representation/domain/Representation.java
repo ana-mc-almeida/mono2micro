@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
+import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 import java.util.*;
@@ -46,6 +48,16 @@ public abstract class Representation {
 
 	@JsonIgnore
 	public abstract String getType();
+
+	/**
+	 * The representation of the given kind that a software system collected, or null if it has none. A software system
+	 * holds at most one per kind, and keeps no list of them: this is a repository query (D-016).
+	 */
+	public static Representation ofSoftwareSystem(SoftwareSystem softwareSystem, String type) {
+		return ContextManager.get().getBean(RepresentationRepository.class)
+				.findBySoftwareSystemIdAndType(softwareSystem.getId(), type)
+				.orElse(null);
+	}
 
 	public String getId() {
 		return id;

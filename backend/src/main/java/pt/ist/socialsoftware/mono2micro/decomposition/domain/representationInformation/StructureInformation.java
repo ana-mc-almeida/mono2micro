@@ -30,6 +30,7 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.SimilarityStructureIterator;
 
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,8 +118,9 @@ public class StructureInformation extends RepresentationInformation {
 
 	private void setupEntities(Decomposition decomposition) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		StructureRepresentation structureRepresentation = (StructureRepresentation) decomposition.getStrategy().getSoftwareSystem()
-				.getRepresentationByFileType(STRUCTURE);
+		StructureRepresentation structureRepresentation = (StructureRepresentation) Representation.ofSoftwareSystem(
+				decomposition.getStrategy().getSoftwareSystem(),
+				STRUCTURE);
 		Map<String, Object> jsonData = new ObjectMapper().readValue(
 				gridFsService.getFileAsString(structureRepresentation.getId()),
 				new TypeReference<Map<String, Object>>() {}
@@ -128,8 +130,9 @@ public class StructureInformation extends RepresentationInformation {
 
 		/* Filter out all the primitive types */
 		SimilarityScipyStructure s = (SimilarityScipyStructure) decomposition.getSimilarity();
-		StructureRepresentation structure = (StructureRepresentation) decomposition.getSimilarity().getStrategy().getSoftwareSystem()
-				.getRepresentationByFileType(STRUCTURE);
+		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(
+				decomposition.getSimilarity().getStrategy().getSoftwareSystem(),
+				STRUCTURE);
 		Set<String> entities = structure.getProfile(s.getProfile());
 		filterEntities(entitiesContainedMap, entities);
 

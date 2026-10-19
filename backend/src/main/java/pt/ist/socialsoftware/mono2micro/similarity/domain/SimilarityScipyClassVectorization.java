@@ -16,6 +16,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAn
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -209,7 +210,7 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getSoftwareSystem().getRepresentationByFileType(ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}

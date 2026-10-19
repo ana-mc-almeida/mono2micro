@@ -21,6 +21,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyStructureD
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.WeightsFactory;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,8 +146,8 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	public Set<Short> fillElements(GridFsService gridFsService) throws IOException {
-		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) getStrategy().getSoftwareSystem()
-				.getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
 		Map<Short, String> idToEntity = new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntityRepresentation.getId()),
 				new TypeReference<Map<Short, String>>() {});
 		return new TreeSet<>(idToEntity.keySet());
@@ -161,7 +162,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	public Map<Short, String> getIDToEntityName(GridFsService gridFsService) throws IOException {
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getSoftwareSystem().getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 

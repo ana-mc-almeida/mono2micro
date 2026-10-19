@@ -4,7 +4,6 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
 import java.util.*;
@@ -16,15 +15,12 @@ public class SoftwareSystem {
 	private String id = new ObjectId().toHexString();
 	private String name;
 	@DBRef(lazy = true)
-	private List<Representation> representations;
-	@DBRef(lazy = true)
 	private List<Strategy> strategies;
 
 	public SoftwareSystem() {}
 
 	public SoftwareSystem(String name) {
 		this.name = name;
-		representations = new ArrayList<>();
 		strategies = new ArrayList<>();
 	}
 
@@ -42,38 +38,6 @@ public class SoftwareSystem {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public List<String> getRepresentationGroups() {
-		Set<String> representationTypes = representations.stream()
-				.map(representation -> representation.getType())
-				.collect(Collectors.toSet());
-
-		return Representation.representationGroupToRepresentations.entrySet().stream()
-				.filter(entry -> representationTypes.containsAll(entry.getValue()))
-				.map(Map.Entry::getKey)
-				.collect(Collectors.toList());
-	}
-
-	public List<Representation> getRepresentations() {
-		return representations;
-	}
-
-	public Representation getRepresentationByFileType(String type) {
-		return this.representations.stream().filter(representation -> representation.getType().equals(type)).findFirst().orElse(null);
-	}
-
-	public void setRepresentations(List<Representation> representations) {
-		this.representations = representations;
-	}
-
-	public void addRepresentation(Representation representation) {
-		this.representations.add(representation);
-	}
-
-	public void removeRepresentation(String representationName) {
-		this.representations = this.representations.stream().filter(representation -> !representation.getName().equals(representationName))
-				.collect(Collectors.toList());
 	}
 
 	public List<Strategy> getStrategies() {

@@ -9,6 +9,7 @@ import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
@@ -18,6 +19,7 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +34,9 @@ public class SoftwareSystemService {
 	@Autowired
 	SoftwareSystemRepository softwareSystemRepository;
 
+	@Autowired
+	RepresentationRepository representationRepository;
+
 	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
 		if (softwareSystemRepository.existsByName(softwareSystemName))
 			throw new KeyAlreadyExistsException();
@@ -43,8 +48,12 @@ public class SoftwareSystemService {
 	}
 
 	public List<String> getSoftwareSystemRepresentationGroups(String softwareSystemId) {
-		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
-		return softwareSystem.getRepresentationGroups();
+		Set<String> representationTypes = representationKinds(softwareSystemId);
+
+		return Representation.representationGroupToRepresentations.entrySet().stream()
+				.filter(entry -> representationTypes.containsAll(entry.getValue()))
+				.map(Map.Entry::getKey)
+				.collect(Collectors.toList());
 	}
 
 	public List<SoftwareSystem> getSoftwareSystems() {
@@ -57,8 +66,11 @@ public class SoftwareSystemService {
 	}
 
 	public List<RepresentationDto> getRepresentationTypes(String softwareSystemId) {
-		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
-		return RepresentationDtoFactory.getFactory().getRepresentationDtos(softwareSystem.getRepresentations());
+		return RepresentationDtoFactory.getFactory().getRepresentationDtos(getRepresentations(softwareSystemId));
+	}
+
+	public List<Representation> getRepresentations(String softwareSystemId) {
+		return representationRepository.findBySoftwareSystemId(softwareSystemId);
 	}
 
 	public List<Strategy> getSoftwareSystemStrategies(String softwareSystemId) {
@@ -67,25 +79,24 @@ public class SoftwareSystemService {
 	}
 
 	public List<String> getAllowableSoftwareSystemStrategyTypes(String softwareSystemId) {
-		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
 		return AvailabilityCheck.derive(
 				SelfRegistration.prototypes(SimilarityKind.class).values(),
-				availabilityContextOf(softwareSystem)).availableNames();
+				AvailabilityContext.ofRepresentationKinds(representationKinds(softwareSystemId))).availableNames();
 	}
 
 	public void deleteSoftwareSystem(String softwareSystemId) {
 		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
 		for (Strategy strategy : softwareSystem.getStrategies())
 			strategyService.deleteStrategy(strategy);
-		for (Representation representation : softwareSystem.getRepresentations())
+		for (Representation representation : representationRepository.findBySoftwareSystemId(softwareSystemId))
 			representationService.deleteRepresentation(representation.getId());
 		softwareSystemRepository.delete(softwareSystem);
 	}
 
 	/** The context the shared check reads: the kinds of the representations this software system has collected (D-022). */
-	private AvailabilityContext availabilityContextOf(SoftwareSystem softwareSystem) {
-		return AvailabilityContext.ofRepresentationKinds(softwareSystem.getRepresentations().stream()
+	private Set<String> representationKinds(String softwareSystemId) {
+		return representationRepository.findBySoftwareSystemId(softwareSystemId).stream()
 				.map(Representation::getType)
-				.collect(Collectors.toSet()));
+				.collect(Collectors.toSet());
 	}
 }
