@@ -20,4 +20,8 @@ public interface RepresentationRepository extends MongoRepository<Representation
 				.filter(representation -> representation.getType().equals(type))
 				.findFirst();
 	}
+
+	default Representation getById(String id) {
+		return findById(id).orElseThrow(() -> new RuntimeException("No representation " + id + " found."));
+	}
 }

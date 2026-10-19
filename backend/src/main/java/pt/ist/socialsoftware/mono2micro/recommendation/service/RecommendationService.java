@@ -33,8 +33,7 @@ public class RecommendationService {
 	GridFsService gridFsService;
 
 	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
-		Strategy strategy = strategyRepository.findById(recommendationDto.getStrategyId())
-				.orElseThrow(() -> new RuntimeException("No strategy " + recommendationDto.getStrategyId() + " found."));
+		Strategy strategy = strategyRepository.getById(recommendationDto.getStrategyId());
 		List<Recommendation> strategyRecommendations = recommendationRepository.findByStrategyId(strategy.getId());
 		RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategyRecommendations.stream()
 				.filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
@@ -51,7 +50,7 @@ public class RecommendationService {
 	}
 
 	public void createDecompositions(String recommendationId, List<String> decompositionNames) throws Exception {
-		Recommendation recommendation = getRecommendation(recommendationId);
+		Recommendation recommendation = getRecommendationById(recommendationId);
 		recommendation.createDecompositions(similarityRepository.findByStrategyId(recommendation.getStrategy().getId()), decompositionNames);
 	}
 
@@ -62,12 +61,11 @@ public class RecommendationService {
 	}
 
 	public String getRecommendationResult(String recommendationId) throws IOException {
-		Recommendation recommendation = getRecommendation(recommendationId);
+		Recommendation recommendation = getRecommendationById(recommendationId);
 		return IOUtils.toString(gridFsService.getFile(recommendation.getRecommendationResultName()), StandardCharsets.UTF_8);
 	}
 
-	private Recommendation getRecommendation(String recommendationId) {
-		return recommendationRepository.findById(recommendationId)
-				.orElseThrow(() -> new RuntimeException("No recommendation " + recommendationId + " found."));
+	private Recommendation getRecommendationById(String recommendationId) {
+		return recommendationRepository.getById(recommendationId);
 	}
 }

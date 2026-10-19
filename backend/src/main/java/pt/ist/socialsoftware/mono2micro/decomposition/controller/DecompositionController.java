@@ -84,7 +84,7 @@ public class DecompositionController {
 
 		try {
 			return new ResponseEntity<>(
-					DecompositionDtoFactory.getDecompositionDto(decompositionService.getDecomposition(decompositionId)),
+					DecompositionDtoFactory.getDecompositionDto(decompositionService.getDecompositionById(decompositionId)),
 					HttpStatus.OK
 			);
 
@@ -101,7 +101,7 @@ public class DecompositionController {
 		logger.debug("getClusters");
 
 		try {
-			return new ResponseEntity<>(decompositionService.getDecomposition(decompositionId).getClusters(), HttpStatus.OK);
+			return new ResponseEntity<>(decompositionService.getDecompositionById(decompositionId).getClusters(), HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();

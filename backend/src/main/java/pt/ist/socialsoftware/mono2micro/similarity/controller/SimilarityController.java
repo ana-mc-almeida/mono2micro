@@ -49,7 +49,7 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDto(similarityService.getSimilarity(similarityId)),
+					SimilarityDtoFactory.getSimilarityDto(similarityService.getSimilarityById(similarityId)),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {

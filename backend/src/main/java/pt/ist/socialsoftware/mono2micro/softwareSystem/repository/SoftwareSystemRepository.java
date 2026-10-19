@@ -12,4 +12,8 @@ public interface SoftwareSystemRepository extends MongoRepository<SoftwareSystem
 
 	@Query(value = "{}", fields = "{'_id': 1, 'name': 1, 'isEmpty': 1}") // Will only get id, name and if it contains strategies
 	List<SoftwareSystem> getSoftwareSystems();
+
+	default SoftwareSystem getById(String id) {
+		return findById(id).orElseThrow(() -> new RuntimeException("No software system " + id + " found."));
+	}
 }

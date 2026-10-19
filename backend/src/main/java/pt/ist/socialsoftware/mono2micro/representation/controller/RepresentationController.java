@@ -63,7 +63,8 @@ public class RepresentationController {
 		logger.debug("getRepresentation");
 
 		try {
-			return new ResponseEntity<>(RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentation(representationId)),
+			return new ResponseEntity<>(
+					RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentationById(representationId)),
 					HttpStatus.OK);
 
 		} catch (Exception e) {

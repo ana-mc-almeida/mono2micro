@@ -64,9 +64,8 @@ public class SoftwareSystemService {
 		return softwareSystemRepository.getSoftwareSystems();
 	}
 
-	public SoftwareSystem getSoftwareSystem(String softwareSystemId) {
-		return softwareSystemRepository.findById(softwareSystemId)
-				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
+	public SoftwareSystem getSoftwareSystemById(String softwareSystemId) {
+		return softwareSystemRepository.getById(softwareSystemId);
 	}
 
 	public List<RepresentationDto> getRepresentationTypes(String softwareSystemId) {
@@ -88,7 +87,7 @@ public class SoftwareSystemService {
 	}
 
 	public void deleteSoftwareSystem(String softwareSystemId) {
-		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
+		SoftwareSystem softwareSystem = getSoftwareSystemById(softwareSystemId);
 		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(softwareSystemId))
 			strategyService.deleteStrategy(strategy);
 		for (Representation representation : representationRepository.findBySoftwareSystemId(softwareSystemId))

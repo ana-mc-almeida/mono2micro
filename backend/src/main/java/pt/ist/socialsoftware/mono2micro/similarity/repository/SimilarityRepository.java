@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface SimilarityRepository extends MongoRepository<Similarity, String> {
 	List<Similarity> findByStrategyId(String strategyId);
+
+	default Similarity getById(String id) {
+		return findById(id).orElseThrow(() -> new RuntimeException("No similarity " + id + " found."));
+	}
 }

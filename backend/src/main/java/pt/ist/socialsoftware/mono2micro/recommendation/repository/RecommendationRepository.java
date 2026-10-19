@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface RecommendationRepository extends MongoRepository<Recommendation, String> {
 	List<Recommendation> findByStrategyId(String strategyId);
+
+	default Recommendation getById(String id) {
+		return findById(id).orElseThrow(() -> new RuntimeException("No recommendation " + id + " found."));
+	}
 }

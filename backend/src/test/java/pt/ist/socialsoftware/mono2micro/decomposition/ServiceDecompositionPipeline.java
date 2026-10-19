@@ -256,7 +256,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	@Override
 	public Map<String, List<String>> getClusters(String decompositionId) {
 		Map<String, List<String>> clusters = new TreeMap<>();
-		decompositionService.getDecomposition(decompositionId).getClusters().forEach((name, cluster) -> {
+		decompositionService.getDecompositionById(decompositionId).getClusters().forEach((name, cluster) -> {
 			List<String> entities = new ArrayList<>();
 			cluster.getElements().forEach(element -> entities.add(element.getName()));
 			Collections.sort(entities);

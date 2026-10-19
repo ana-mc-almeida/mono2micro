@@ -37,8 +37,7 @@ public class SimilarityService {
 
 	/** Returns the new similarity, or the existing one equal to the request. */
 	public Similarity createSimilarity(SimilarityDto similarityDto) throws Exception {
-		Strategy strategy = strategyRepository.findById(similarityDto.getStrategyId())
-				.orElseThrow(() -> new RuntimeException("No strategy " + similarityDto.getStrategyId() + " found."));
+		Strategy strategy = strategyRepository.getById(similarityDto.getStrategyId());
 		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
 		for (Similarity existing : similarityRepository.findByStrategyId(strategy.getId()))
 			if (existing.equalsDto(similarityDto))
@@ -52,7 +51,7 @@ public class SimilarityService {
 	}
 
 	public void deleteSingleSimilarity(String similarityId) {
-		Similarity similarity = getSimilarity(similarityId);
+		Similarity similarity = getSimilarityById(similarityId);
 
 		for (Decomposition decomposition : decompositionRepository.findBySimilarityId(similarityId))
 			decompositionService.deleteDecomposition(decomposition);
@@ -71,12 +70,12 @@ public class SimilarityService {
 		return decompositionRepository.findBySimilarityId(similarityId);
 	}
 
-	public Similarity getSimilarity(String similarityId) {
-		return similarityRepository.findById(similarityId).orElseThrow(() -> new RuntimeException("No similarity " + similarityId + " found."));
+	public Similarity getSimilarityById(String similarityId) {
+		return similarityRepository.getById(similarityId);
 	}
 
 	public byte[] getDendrogramImage(String similarityId) throws IOException {
-		Similarity similarity = getSimilarity(similarityId);
+		Similarity similarity = getSimilarityById(similarityId);
 		InputStream inputStream = gridFsService.getFile(similarity.getId() + "_image");
 		return IOUtils.toByteArray(inputStream);
 	}

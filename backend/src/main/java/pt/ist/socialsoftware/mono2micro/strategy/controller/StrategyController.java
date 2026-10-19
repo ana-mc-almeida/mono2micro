@@ -33,7 +33,7 @@ public class StrategyController {
 		logger.debug("getStrategy");
 		try {
 			return new ResponseEntity<>(
-					new StrategyDto(strategyService.getStrategy(strategyId)),
+					new StrategyDto(strategyService.getStrategyById(strategyId)),
 					HttpStatus.OK
 			);
 

@@ -36,8 +36,7 @@ public class RepresentationService {
 
 	public void addRepresentations(String softwareSystemId, String representationInfoType, List<String> representationTypes, List<Object> representations)
 			throws Exception {
-		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
-				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
+		SoftwareSystem softwareSystem = softwareSystemRepository.getById(softwareSystemId);
 
 		if (representationTypes == null && representations == null) { // representations already added
 			return;
@@ -68,21 +67,18 @@ public class RepresentationService {
 				.orElseThrow(() -> new RuntimeException("No representation with type" + representationType));
 	}
 
-	public Representation getRepresentation(String representationId) {
-		return representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+	public Representation getRepresentationById(String representationId) {
+		return representationRepository.getById(representationId);
 	}
 
 	public void deleteRepresentation(String representationId) {
-		Representation representation = representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId));
+		Representation representation = getRepresentationById(representationId);
 		gridFsService.deleteFile(representation.getId());
 		representationRepository.deleteById(representationId);
 	}
 
 	public void deleteSingleRepresentation(String representationId) {
-		Representation representation = representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId));
+		Representation representation = getRepresentationById(representationId);
 		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(representation.getSoftwareSystem().getId())) {
 			for (String strategyType : strategy.getStrategyTypes()) {
 				if (Strategy.strategiesToRepresentations.get(strategyType).contains(representation.getType())) {

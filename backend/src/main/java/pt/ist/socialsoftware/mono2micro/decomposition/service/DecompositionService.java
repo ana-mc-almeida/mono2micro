@@ -47,7 +47,7 @@ public class DecompositionService {
 	GridFsService gridFsService;
 
 	public void createDecomposition(DecompositionRequest request) throws Exception {
-		createDecomposition(getSimilarity(request.getSimilarityId()), request);
+		createDecomposition(similarityRepository.getById(request.getSimilarityId()), request);
 	}
 
 	public void createDecomposition(Similarity similarity, DecompositionRequest request) throws Exception {
@@ -59,7 +59,7 @@ public class DecompositionService {
 	}
 
 	public void createExpertDecomposition(String similarityId, String expertName, Optional<MultipartFile> expertFile) throws Exception {
-		Similarity similarity = getSimilarity(similarityId);
+		Similarity similarity = similarityRepository.getById(similarityId);
 		Expert expert = new Expert();
 
 		Decomposition decomposition = expert.generateClusters(similarity, expertName, expertFile,
@@ -78,7 +78,7 @@ public class DecompositionService {
 	}
 
 	public Decomposition updateDecomposition(String decompositionId) throws Exception {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
+		Decomposition decomposition = getDecompositionById(decompositionId);
 		if (decomposition.isOutdated()) {
 			decomposition.update();
 			decomposition.calculateMetrics();
@@ -88,12 +88,12 @@ public class DecompositionService {
 		return decomposition;
 	}
 
-	public Decomposition getDecomposition(String decompositionId) {
+	public Decomposition getDecompositionById(String decompositionId) {
 		return decompositionRepository.getById(decompositionId);
 	}
 
 	public void exportDecompositionToContextMapper(String decompositionId, ZipOutputStream zipOutputStream) throws IOException, JSONException {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
+		Decomposition decomposition = getDecompositionById(decompositionId);
 
 		zipOutputStream.putNextEntry(new ZipEntry("m2m_decomposition.json"));
 		zipOutputStream.write(new ContextMapperContractBuilder(decomposition)
@@ -109,7 +109,7 @@ public class DecompositionService {
 	}
 
 	public void deleteSingleDecomposition(String decompositionId) {
-		deleteDecomposition(decompositionRepository.getById(decompositionId));
+		deleteDecomposition(getDecompositionById(decompositionId));
 	}
 
 	public void deleteDecomposition(Decomposition decomposition) {
@@ -119,47 +119,47 @@ public class DecompositionService {
 	}
 
 	public void mergeClustersOperation(String decompositionId, MergeOperation operation) {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
+		Decomposition decomposition = getDecompositionById(decompositionId);
 		decomposition.mergeClusters(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void renameClusterOperation(String decompositionId, RenameOperation operation) {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
+		Decomposition decomposition = getDecompositionById(decompositionId);
 		decomposition.renameCluster(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void splitClusterOperation(String decompositionId, SplitOperation operation) {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
+		Decomposition decomposition = getDecompositionById(decompositionId);
 		decomposition.splitCluster(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void transferEntitiesOperation(String decompositionId, TransferOperation operation) {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
+		Decomposition decomposition = getDecompositionById(decompositionId);
 		decomposition.transferEntities(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void formClusterOperation(String decompositionId, FormClusterOperation operation) {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
+		Decomposition decomposition = getDecompositionById(decompositionId);
 		decomposition.formCluster(operation);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public String getEdgeWeights(String decompositionId, String representationInfo) throws Exception {
-		Decomposition clusterView = decompositionRepository.getById(decompositionId);
+		Decomposition clusterView = getDecompositionById(decompositionId);
 		return clusterView.getEdgeWeights(representationInfo);
 	}
 
 	public String getSearchItems(String decompositionId, String representationInfo) throws Exception {
-		Decomposition clusterView = decompositionRepository.getById(decompositionId);
+		Decomposition clusterView = getDecompositionById(decompositionId);
 		return clusterView.getSearchItems(representationInfo);
 	}
 
@@ -179,9 +179,5 @@ public class DecompositionService {
 		Decomposition snapshotDecomposition = decomposition.snapshotDecomposition(snapshotName);
 
 		decompositionRepository.save(snapshotDecomposition);
-	}
-
-	private Similarity getSimilarity(String similarityId) {
-		return similarityRepository.findById(similarityId).orElseThrow(() -> new RuntimeException("No similarity " + similarityId + " found."));
 	}
 }

@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface StrategyRepository extends MongoRepository<Strategy, String> {
 	List<Strategy> findBySoftwareSystemId(String softwareSystemId);
+
+	default Strategy getById(String id) {
+		return findById(id).orElseThrow(() -> new RuntimeException("No strategy " + id + " found."));
+	}
 }

@@ -56,7 +56,7 @@ public class SoftwareSystemController {
 
 		try {
 			return new ResponseEntity<>(
-					new SoftwareSystemDto(softwareSystemService.getSoftwareSystem(softwareSystemId),
+					new SoftwareSystemDto(softwareSystemService.getSoftwareSystemById(softwareSystemId),
 							softwareSystemService.getRepresentations(softwareSystemId)),
 					HttpStatus.OK
 			);

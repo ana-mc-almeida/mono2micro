@@ -24,22 +24,19 @@ public class AccessesRepresentationService {
 	GridFsService gridFsService;
 
 	public void addAccessesProfile(String representationId, String profile) {
-		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.getById(representationId);
 		representation.addProfile(profile, new HashSet<>());
 		representationRepository.save(representation);
 	}
 
 	public void moveAccessesFunctionalities(String representationId, String[] functionalities, String targetProfile) {
-		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.getById(representationId);
 		representation.moveFunctionalities(functionalities, targetProfile);
 		representationRepository.save(representation);
 	}
 
 	public void deleteAccessesProfile(String representationId, String profile) {
-		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.findById(representationId)
-				.orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository.getById(representationId);
 		representation.deleteProfile(profile);
 		representationRepository.save(representation);
 	}
