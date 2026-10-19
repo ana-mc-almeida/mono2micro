@@ -13,6 +13,7 @@ import pt.ist.socialsoftware.mono2micro.representation.repository.Representation
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
+import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
 import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
@@ -36,6 +37,9 @@ public class SoftwareSystemService {
 
 	@Autowired
 	RepresentationRepository representationRepository;
+
+	@Autowired
+	StrategyRepository strategyRepository;
 
 	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
 		if (softwareSystemRepository.existsByName(softwareSystemName))
@@ -74,8 +78,7 @@ public class SoftwareSystemService {
 	}
 
 	public List<Strategy> getSoftwareSystemStrategies(String softwareSystemId) {
-		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
-		return softwareSystem.getStrategies();
+		return strategyRepository.findBySoftwareSystemId(softwareSystemId);
 	}
 
 	public List<String> getAllowableSoftwareSystemStrategyTypes(String softwareSystemId) {
@@ -86,7 +89,7 @@ public class SoftwareSystemService {
 
 	public void deleteSoftwareSystem(String softwareSystemId) {
 		SoftwareSystem softwareSystem = getSoftwareSystem(softwareSystemId);
-		for (Strategy strategy : softwareSystem.getStrategies())
+		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(softwareSystemId))
 			strategyService.deleteStrategy(strategy);
 		for (Representation representation : representationRepository.findBySoftwareSystemId(softwareSystemId))
 			representationService.deleteRepresentation(representation.getId());

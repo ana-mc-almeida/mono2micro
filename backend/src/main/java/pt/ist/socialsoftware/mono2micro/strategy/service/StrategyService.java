@@ -36,16 +36,14 @@ public class StrategyService {
 	public Strategy createStrategy(String softwareSystemId, String algorithmType, List<String> strategyTypes) {
 		SoftwareSystem softwareSystem = softwareSystemRepository.findById(softwareSystemId)
 				.orElseThrow(() -> new RuntimeException("No software system " + softwareSystemId + " found."));
-		for (Strategy strategy : softwareSystem.getStrategies())
+		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(softwareSystemId))
 			if (strategy.getAlgorithmType().equals(algorithmType) &&
 					strategy.getStrategyTypes().size() == strategyTypes.size() &&
 					strategy.getStrategyTypes().containsAll(strategyTypes)) // strategy already exists
 				return strategy;
 		Strategy strategy = new Strategy(softwareSystem, algorithmType, strategyTypes);
 		strategy.setSoftwareSystem(softwareSystem);
-		softwareSystem.addStrategy(strategy);
 		strategyRepository.save(strategy);
-		softwareSystemRepository.save(softwareSystem);
 		return strategy;
 	}
 
@@ -60,13 +58,7 @@ public class StrategyService {
 	}
 
 	public void deleteSingleStrategy(String strategyId) {
-		Strategy strategy = getStrategy(strategyId);
-		strategy.getSoftwareSystem().removeStrategy(strategy.getName());
-		for (Decomposition decomposition : strategy.getDecompositions())
-			decompositionService.deleteDecomposition(decomposition);
-		removeSpecificStrategyProperties(strategy);
-		strategyRepository.delete(strategy);
-		softwareSystemRepository.save(strategy.getSoftwareSystem());
+		deleteStrategy(getStrategy(strategyId));
 	}
 
 	public void deleteStrategy(Strategy strategy) {

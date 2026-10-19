@@ -10,10 +10,10 @@ import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.RepresentationFactory;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
+import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
 import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +24,9 @@ public class RepresentationService {
 
 	@Autowired
 	StrategyService strategyService;
+
+	@Autowired
+	StrategyRepository strategyRepository;
 
 	@Autowired
 	RepresentationRepository representationRepository;
@@ -80,24 +83,16 @@ public class RepresentationService {
 	public void deleteSingleRepresentation(String representationId) {
 		Representation representation = representationRepository.findById(representationId)
 				.orElseThrow(() -> new RuntimeException("No representation " + representationId));
-		SoftwareSystem softwareSystem = representation.getSoftwareSystem();
-		ArrayList<Strategy> strategies = new ArrayList<>();
-		for (Strategy strategy : softwareSystem.getStrategies()) {
-			boolean deleted = false;
+		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(representation.getSoftwareSystem().getId())) {
 			for (String strategyType : strategy.getStrategyTypes()) {
 				if (Strategy.strategiesToRepresentations.get(strategyType).contains(representation.getType())) {
 					strategyService.deleteStrategy(strategy);
-					deleted = true;
 					break;
 				}
 			}
-			if (!deleted)
-				strategies.add(strategy);
 		}
 
-		softwareSystem.setStrategies(strategies);
 		gridFsService.deleteFile(representation.getId());
-		softwareSystemRepository.save(softwareSystem);
 		representationRepository.deleteById(representationId);
 	}
 }
