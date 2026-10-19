@@ -278,6 +278,20 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	 * <p>The file is {@code {"clusters": {name: [entity id, ...]}}}.
 	 */
 	String createExpertDecomposition(String similarityId, String expertName, byte[] expertFile) {
+		ResponseEntity<String> response = importExpertClustering(similarityId, expertName, expertFile);
+
+		require(response, HttpStatus.OK, "import expert clustering " + expertName + " for " + similarityId);
+
+		for (JsonNode decomposition : getDecompositions(similarityId))
+			if (decomposition.path("expert").asBoolean() && decomposition.path("name").asText().endsWith(" " + expertName))
+				return decomposition.path("id").asText();
+
+		throw new AssertionError("The expert import of " + expertName + " returned success, but no expert decomposition exists for "
+				+ similarityId + ".");
+	}
+
+	/** Uploads an expert clustering and returns the response as it is, for tests of a refused import. */
+	ResponseEntity<String> importExpertClustering(String similarityId, String expertName, byte[] expertFile) {
 		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 		form.add("expertName", expertName);
 		form.add("expertFile", filePart(expertFile, expertName + ".json"));
@@ -285,21 +299,16 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-		ResponseEntity<String> response = rest.exchange(
+		return rest.exchange(
 				base + "/similarity/{id}/createExpertDecomposition",
 				HttpMethod.POST,
 				new HttpEntity<>(form, headers),
 				String.class,
 				similarityId);
+	}
 
-		require(response, HttpStatus.OK, "import expert clustering " + expertName + " for " + similarityId);
-
-		for (JsonNode decomposition : getJson("/similarity/{id}/decompositions", similarityId))
-			if (decomposition.path("expert").asBoolean() && decomposition.path("name").asText().endsWith(" " + expertName))
-				return decomposition.path("id").asText();
-
-		throw new AssertionError("The expert import of " + expertName + " returned success, but no expert decomposition exists for "
-				+ similarityId + ".");
+	JsonNode getDecompositions(String similarityId) {
+		return getJson("/similarity/{id}/decompositions", similarityId);
 	}
 
 	// Export to Context Mapper.

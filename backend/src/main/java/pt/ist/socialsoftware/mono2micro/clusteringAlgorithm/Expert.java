@@ -31,9 +31,10 @@ public class Expert {
 
 		Map<Short, String> idToEntity;
 
-		if (decompositionNames.contains(expertName))
+		String name = similarity.getName() + " " + expertName;
+		if (decompositionNames.contains(name))
 			throw new KeyAlreadyExistsException();
-		decomposition.setName(similarity.getName() + " " + expertName);
+		decomposition.setName(name);
 		decomposition.setExpert(true);
 
 		idToEntity = similarity.getIDToEntityName();

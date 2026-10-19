@@ -335,6 +335,23 @@ class PipelineCharacterizationE2ETest {
 		Golden.assertMatches("metrics/" + CASE + "/accesses/expert-decomposition.json", metricsOf(decomposition));
 	}
 
+	@Test
+	@DisplayName("A second expert import under the same name is refused")
+	void expertImportTwice() {
+		Built built = build(CASE, StrategyCase.accesses());
+		built.pipeline.createExpertDecomposition(built.similarity, "Expert", expertClustering(built));
+
+		// Before ids, the second import overwrote the first, because the name was the _id.
+		assertThat(built.pipeline.importExpertClustering(built.similarity, "Expert", expertClustering(built)).getStatusCode())
+				.isEqualTo(HttpStatus.UNAUTHORIZED);
+
+		int experts = 0;
+		for (JsonNode decomposition : built.pipeline.getDecompositions(built.similarity))
+			if (decomposition.path("expert").asBoolean())
+				experts++;
+		assertThat(experts).isEqualTo(1);
+	}
+
 	// Export to Context Mapper.
 
 	@Test
