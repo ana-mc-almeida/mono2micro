@@ -69,7 +69,7 @@ public class Strategy {
 	private String id = new ObjectId().toHexString();
 	private String name;
 	private String algorithmType;
-	@DBRef
+	@DBRef(lazy = true)
 	private SoftwareSystem softwareSystem;
 	private List<String> strategyTypes;
 

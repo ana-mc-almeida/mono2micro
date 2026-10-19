@@ -13,7 +13,7 @@ public abstract class Similarity {
 	@Id
 	protected String id = new ObjectId().toHexString();
 	protected String name;
-	@DBRef
+	@DBRef(lazy = true)
 	private Strategy strategy;
 
 	public Similarity() {}

@@ -14,7 +14,7 @@ public abstract class Recommendation {
 	@Id
 	String id = new ObjectId().toHexString();
 	String name;
-	@DBRef
+	@DBRef(lazy = true)
 	Strategy strategy;
 	String recommendationResultName;
 	boolean isCompleted; // true when all the decompositions are calculated
