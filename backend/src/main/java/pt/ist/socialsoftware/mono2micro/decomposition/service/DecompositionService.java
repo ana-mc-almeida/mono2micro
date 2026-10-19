@@ -23,6 +23,7 @@ import pt.ist.socialsoftware.mono2micro.representation.repository.Representation
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -46,10 +47,13 @@ public class DecompositionService {
 	GridFsService gridFsService;
 
 	public void createDecomposition(DecompositionRequest request) throws Exception {
-		Similarity similarity = getSimilarity(request.getSimilarityId());
+		createDecomposition(getSimilarity(request.getSimilarityId()), request);
+	}
 
+	public void createDecomposition(Similarity similarity, DecompositionRequest request) throws Exception {
 		Clustering clustering = similarity.getClustering();
-		Decomposition decomposition = clustering.generateDecomposition(similarity, request);
+		Decomposition decomposition = clustering.generateDecomposition(similarity, request,
+				decompositionRepository.findNamesBySimilarityId(similarity.getId()));
 
 		setupDecomposition(decomposition);
 	}
@@ -58,7 +62,8 @@ public class DecompositionService {
 		Similarity similarity = getSimilarity(similarityId);
 		Expert expert = new Expert();
 
-		Decomposition decomposition = expert.generateClusters(similarity, expertName, expertFile);
+		Decomposition decomposition = expert.generateClusters(similarity, expertName, expertFile,
+				decompositionRepository.findNamesBySimilarityId(similarityId));
 
 		setupDecomposition(decomposition);
 	}
@@ -104,15 +109,7 @@ public class DecompositionService {
 	}
 
 	public void deleteSingleDecomposition(String decompositionId) {
-		Decomposition decomposition = decompositionRepository.getById(decompositionId);
-		decomposition.deleteProperties();
-
-		Similarity similarity = decomposition.getSimilarity();
-		similarity.removeDecomposition(decomposition.getName());
-
-		similarityRepository.save(similarity);
-		historyService.deleteHistory(decomposition.getHistory());
-		decompositionRepository.deleteById(decomposition.getId());
+		deleteDecomposition(decompositionRepository.getById(decompositionId));
 	}
 
 	public void deleteDecomposition(Decomposition decomposition) {
@@ -168,21 +165,20 @@ public class DecompositionService {
 
 	public void snapshotDecomposition(String decompositionId) throws Exception {
 		Decomposition decomposition = updateDecomposition(decompositionId);
-		Similarity similarity = decomposition.getSimilarity();
+		Set<String> decompositionNames = decompositionRepository.findNamesBySimilarityId(decomposition.getSimilarity().getId());
 
 		String snapshotName = decomposition.getName() + " SNAPSHOT";
-		if (similarity.getDecompositionByName(snapshotName) != null) {
+		if (decompositionNames.contains(snapshotName)) {
 			int i = 1;
 			do {
 				i++;
-			} while (similarity.getDecompositionByName(snapshotName + "(" + i + ")") != null);
+			} while (decompositionNames.contains(snapshotName + "(" + i + ")"));
 			snapshotName = snapshotName + "(" + i + ")";
 		}
 
 		Decomposition snapshotDecomposition = decomposition.snapshotDecomposition(snapshotName);
 
 		decompositionRepository.save(snapshotDecomposition);
-		similarityRepository.save(similarity);
 	}
 
 	private Similarity getSimilarity(String similarityId) {

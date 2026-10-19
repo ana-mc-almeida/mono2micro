@@ -38,7 +38,6 @@ public class PartitionsDecomposition extends Decomposition {
 		this.name = snapshotName;
 		this.strategy = decomposition.getStrategy();
 		this.similarity = decomposition.getSimilarity();
-		decomposition.getSimilarity().addDecomposition(this);
 		this.metrics = decomposition.getMetrics();
 		this.outdated = decomposition.isOutdated();
 		this.expert = decomposition.isExpert();

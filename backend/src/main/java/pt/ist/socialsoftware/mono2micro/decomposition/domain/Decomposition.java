@@ -39,7 +39,6 @@ public abstract class Decomposition {
 
 	public Decomposition(Similarity similarity) {
 		this.similarity = similarity;
-		similarity.addDecomposition(this);
 		this.strategy = similarity.getStrategy();
 	}
 

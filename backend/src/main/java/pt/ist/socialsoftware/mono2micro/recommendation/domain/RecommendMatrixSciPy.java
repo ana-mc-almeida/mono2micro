@@ -199,8 +199,6 @@ public class RecommendMatrixSciPy extends Recommendation {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 		DecompositionService decompositionService = ContextManager.get().getBean(DecompositionService.class);
 
-		SciPyClustering clusteringAlgorithm = new SciPyClustering();
-
 		for (String name : decompositionNames) {
 			String[] properties = name.split(",");
 
@@ -237,9 +235,8 @@ public class RecommendMatrixSciPy extends Recommendation {
 				similarities.add(similarity); // a later candidate with the same weights reuses it
 			}
 
-			Decomposition decomposition = clusteringAlgorithm.generateDecomposition(similarity,
+			decompositionService.createDecomposition(similarity,
 					new SciPyRequestDto(similarity.getId(), "N", Float.parseFloat(properties[properties.length - 1])));
-			decompositionService.setupDecomposition(decomposition);
 		}
 	}
 

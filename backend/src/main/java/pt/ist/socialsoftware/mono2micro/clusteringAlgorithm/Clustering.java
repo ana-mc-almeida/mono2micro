@@ -11,10 +11,11 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class Clustering implements VariableFeature {
-	public abstract Decomposition generateDecomposition(Similarity similarity, DecompositionRequest request) throws Exception;
+	public abstract Decomposition generateDecomposition(Similarity similarity, DecompositionRequest request, Set<String> decompositionNames) throws Exception;
 
 	public abstract String getType();
 

@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -24,6 +25,9 @@ public class SimilarityService {
 
 	@Autowired
 	SimilarityRepository similarityRepository;
+
+	@Autowired
+	DecompositionRepository decompositionRepository;
 
 	@Autowired
 	DecompositionService decompositionService;
@@ -50,7 +54,7 @@ public class SimilarityService {
 	public void deleteSingleSimilarity(String similarityId) {
 		Similarity similarity = getSimilarity(similarityId);
 
-		for (Decomposition decomposition : similarity.getDecompositions())
+		for (Decomposition decomposition : decompositionRepository.findBySimilarityId(similarityId))
 			decompositionService.deleteDecomposition(decomposition);
 
 		similarity.removeProperties();
@@ -64,8 +68,7 @@ public class SimilarityService {
 	}
 
 	public List<Decomposition> getDecompositions(String similarityId) {
-		Similarity similarity = getSimilarity(similarityId);
-		return similarity.getDecompositions();
+		return decompositionRepository.findBySimilarityId(similarityId);
 	}
 
 	public Similarity getSimilarity(String similarityId) {

@@ -249,7 +249,8 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		if (decompositions.isEmpty())
 			throw new AssertionError("No decomposition was created for " + similarityId);
 
-		return decompositions.get(decompositions.size() - 1).getId();
+		// The query has no order. ObjectIds sort by creation, so the greatest is the newest.
+		return decompositions.stream().map(Decomposition::getId).max(String::compareTo).get();
 	}
 
 	@Override

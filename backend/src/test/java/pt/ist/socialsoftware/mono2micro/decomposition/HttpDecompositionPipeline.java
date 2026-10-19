@@ -395,7 +395,12 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 			throw new AssertionError("No " + what + " was created for " + parent
 					+ ". The request returned success, but nothing exists.");
 
-		return array.get(array.size() - 1).path("id").asText();
+		// The query has no order. ObjectIds sort by creation, so the greatest is the newest.
+		String newest = "";
+		for (JsonNode element : array)
+			if (element.path("id").asText().compareTo(newest) > 0)
+				newest = element.path("id").asText();
+		return newest;
 	}
 
 	private void require(ResponseEntity<?> response, HttpStatus expected, String what) {
