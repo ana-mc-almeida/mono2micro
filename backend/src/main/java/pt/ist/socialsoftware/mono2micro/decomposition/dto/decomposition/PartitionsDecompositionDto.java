@@ -9,9 +9,8 @@ public class PartitionsDecompositionDto extends DecompositionDto {
 
 	public PartitionsDecompositionDto(PartitionsDecomposition decomposition) {
 		this.setId(decomposition.getId());
-		// FIXME: decomposition.getStrategy() is the same strategy; the hop through the similarity is unnecessary
-		this.setSoftwareSystemId(decomposition.getSimilarity().getStrategy().getSoftwareSystem().getId());
-		this.setSoftwareSystemName(decomposition.getSimilarity().getStrategy().getSoftwareSystem().getName());
+		this.setSoftwareSystemId(decomposition.getStrategy().getSoftwareSystem().getId());
+		this.setSoftwareSystemName(decomposition.getStrategy().getSoftwareSystem().getName());
 		this.setStrategyId(decomposition.getStrategy().getId());
 		this.setStrategyName(decomposition.getStrategy().getName());
 		this.setSimilarityId(decomposition.getSimilarity().getId());
