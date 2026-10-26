@@ -1,21 +1,33 @@
 package pt.ist.socialsoftware.mono2micro.feature;
 
+import java.util.stream.Stream;
+
 /**
- * One thing a {@link VariableFeature} needs before the tool can offer it, named in the tool's own
- * terms ("has an Accesses representation", "Similarity kind in {…}").
+ * One thing a {@link VariableFeature} needs before the tool can offer it. A requirement points at a feature or at a family, never at the data
+ * behind it, so meeting one is a lookup in the context's set of present features (D-025 point 4).
  *
- * <p>A requirement is an object rather than a string so that the shared check never needs a branch
- * per kind of requirement: a new kind is one new class (D-019). A requirement lives with the module
- * whose data it reads, such as {@code HasRepresentation} in {@code representation/}, so this package
- * never imports any module of the tool (D-022).
+ * <p>The kinds of requirement are all in this package: {@link Requires#of} names a feature or a family, and {@link Requires#anyOf} is a
+ * disjunction over either. The constructor is package-private, so a module declares requirements but writes no requirement classes: a new kind
+ * of data is one new {@link FeatureFamily}, not one new requirement.
  */
-public interface Requirement {
+public abstract class Requirement {
+
+	Requirement() {
+	}
 
 	/**
-	 * What the derivation record reports when this requirement fails. It is in tool terms; the model
-	 * feature each requirement corresponds to is recorded outside the code (D-019 point 2).
+	 * What the derivation record reports when this requirement fails: "requires" and what it names, worded with the label of the named family
+	 * (D-025 point 6). The name is generated, never written by the feature.
 	 */
-	String name();
+	public final String name(FeatureFamilies families) {
+		return "requires " + target(families);
+	}
 
-	boolean isMetBy(AvailabilityContext context);
+	/** What this requirement names, as a noun phrase such as "an Accesses representation". */
+	abstract String target(FeatureFamilies families);
+
+	public abstract boolean isMetBy(AvailabilityContext context);
+
+	/** Every class this requirement names, so the boot check can verify that each is a feature or a family (D-025 point 7). */
+	abstract Stream<Class<?>> targets();
 }

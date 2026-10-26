@@ -13,16 +13,16 @@ import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDt
 import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
+import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
-import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKindIn;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
 
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.*;
 import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
 
 @JsonTypeName(SciPyClustering.SCIPY)
@@ -42,14 +42,7 @@ public class SciPyClustering extends Clustering {
 
 	@Override
 	public List<Requirement> requirements() {
-		return Collections.singletonList(new SimilarityKindIn(Arrays.asList(
-				ACCESSES_STRATEGY,
-				REPOSITORY_STRATEGY,
-				STRUCTURE_STRATEGY,
-				CLASS_VECTORIZATION_STRATEGY,
-				ENTITY_VECTORIZATION_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY)));
+		return Collections.singletonList(Requires.of(SimilarityKind.class));
 	}
 
 	@Override

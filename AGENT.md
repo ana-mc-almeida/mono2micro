@@ -29,14 +29,16 @@ resulting decision in `../implementation/docs/decisions.md`.
 
 Defined in `docker-compose.yml`:
 
-| Service                  | Port  | Stack                     | Role                                                                                  |
-| ------------------------ | ----- | ------------------------- | ------------------------------------------------------------------------------------- |
-| `mongo`                  | 27017 | MongoDB                   | All persisted state; GridFS for large artifacts                                       |
-| `mongo-express`          | 8081  | —                         | Database admin UI                                                                     |
-| `backend`                | 8080  | Spring Boot 2.1.2, Java 8 | Orchestration, metrics, operations. Context path `/mono2micro`. **Does not cluster.** |
-| `scripts`                | 5002  | FastAPI / Python          | The actual clustering (SciPy) + code2vec                                              |
-| `functionality_refactor` | 5001  | Go 1.14                   | Heuristic functionality refactoring                                                   |
-| `frontend`               | 3000  | React 17 + TypeScript     | UI                                                                                    |
+<!-- prettier-ignore-start -->
+| Service | Port | Stack | Role |
+| ------- | ---- | ----- | ---- |
+| `mongo` | 27017 | MongoDB | All persisted state; GridFS for large artifacts |
+| `mongo-express` | 8081 | — | Database admin UI |
+| `backend` | 8080 | Spring Boot 2.1.2, Java 8 | Orchestration, metrics, operations. Context path `/mono2micro`. **Does not cluster.** |
+| `scripts` | 5002 | FastAPI / Python | The actual clustering (SciPy) + code2vec |
+| `functionality_refactor` | 5001 | Go 1.14 | Heuristic functionality refactoring |
+| `frontend` | 3000 | React 17 + TypeScript | UI |
+<!-- prettier-ignore-end -->
 
 The **8 collectors are not services** — run-once programs that emit JSON, uploaded
 through the frontend.
@@ -49,8 +51,8 @@ is wrong.
 
 ```bash
 docker-compose build && docker-compose up
-docker-compose up --no-deps -d --build backend     # rebuild backend only
-docker-compose build --no-cache && docker-compose up --build   # clean rebuild
+docker-compose up --no-deps -d --build backend      # rebuild backend only
+docker-compose build --no-cache && docker-compose up --build    # clean rebuild
 ```
 
 UI at http://localhost:3000, mongo-express at http://localhost:8081.
@@ -70,9 +72,9 @@ cd frontend && npm install --legacy-peer-deps && npm start          # :3000
 
 # functionality_refactor (Go)
 cd tools/functionality_refactor/src
-make test          # unit + integration
-make unit-test     # -tags=unit
-make lint          # go fmt, go vet, golangci-lint
+make test           # unit + integration
+make unit-test      # -tags=unit
+make lint           # go fmt, go vet, golangci-lint
 make build
 ```
 
@@ -144,14 +146,16 @@ make build
 - **`backend/Makefile`** wraps the long stack commands; `mvn test` is deliberately
   _not_ wrapped, since it already does the right thing offline in ~2s.
 
-  | Target                  | Runs                                                       |
-  | ----------------------- | ---------------------------------------------------------- |
-  | `make coverage`         | full suite, then the gate — the CI `e2e` + `coverage` jobs |
-  | `make coverage-gate`    | the gate alone, on the last run's `jacoco.exec`; no tests  |
-  | `make test-all`         | full suite, no gate                                        |
-  | `make test-summary`     | per-case pass/skip/fail                                    |
-  | `make coverage-summary` | percentages + worst packages                               |
-  | `make coverage-report`  | `coverage`, then both summaries even if the gate fires     |
+<!-- prettier-ignore-start -->
+| Target | Runs |
+| ----------------------- | ---------------------------------------------------------- |
+| `make coverage` | full suite, then the gate — the CI `e2e` + `coverage` jobs |
+| `make coverage-gate` | the gate alone, on the last run's `jacoco.exec`; no tests |
+| `make test-all` | full suite, no gate |
+| `make test-summary` | per-case pass/skip/fail |
+| `make coverage-summary` | percentages + worst packages |
+| `make coverage-report` | `coverage`, then both summaries even if the gate fires |
+<!-- prettier-ignore-end -->
 
   The env vars default to the values the e2e job sets and are overridable:
   `make coverage MONGO_DB=mongodb://otherhost:27017`.
@@ -290,7 +294,8 @@ Fixture offered  = SoftwareSystemFixtures.repositoryBased();  // has authorship 
 Fixture withheld = SoftwareSystemFixtures.accessesBased();    // deliberately does not
 ```
 
-Availability is derived from representation **types** alone, so a fixture is plain objects:
+Availability is derived from which representations a software system holds, by class and
+never by content, so a fixture is plain objects:
 nothing is persisted and no database is contacted. Tests using them run in milliseconds,
 offline, with the same result on any machine. For a service that looks representations up,
 stub the repository with `SoftwareSystemFixtures.stubbed(repository, fixtures...)` rather than
@@ -364,21 +369,23 @@ representation of some kind calls `RepresentationRepository.findBySoftwareSystem
 domain code still calls `Representation.ofSoftwareSystem(softwareSystem, kind)`, which goes
 through `ContextManager` until ticket 18 removes it.
 
-| Concept                       | Location                                                 | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ----------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **SoftwareSystem**            | `<pkg>/softwareSystem/`                                  | Top-level container `{id, name}`; REST under `/softwareSystems`. Not `System`, because of `java.lang.System`                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **Representation**            | `<pkg>/representation/`                                  | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based`                                                                                                                                                                                                                                                                                 |
-| **Strategy**                  | `<pkg>/strategy/domain/`                                 | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations                                                                                                                                                                                                                                                                                                                                                                  |
-| **Similarity**                | `<pkg>/similarity/domain/`                               | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **Weights**                   | `<pkg>/similarity/domain/similarityMatrix/weights/`      | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100`                                                                                                                                                                                                                                                                                                                                                                                  |
-| **Clustering**                | `<pkg>/clusteringAlgorithm/`                             | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **Decomposition**             | `<pkg>/decomposition/domain/`                            | Abstract; one subclass `PartitionsDecomposition`. `metrics` is a `Map<String,Object>` keyed by metric type                                                                                                                                                                                                                                                                                                                                                                                                         |
-| **Cluster / Element**         | `<pkg>/cluster/`, `<pkg>/granularity/`                   | `Partition` adds `couplingDependencies` — the cross-cluster reaches that become distributed transactions. `DomainEntity` is the only `Element`                                                                                                                                                                                                                                                                                                                                                                     |
-| **RepresentationInformation** | `<pkg>/decomposition/domain/representationInformation/`  | Per-group decomposition state **and the metric registry**                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **Metrics**                   | `<pkg>/qualityAssessment/metrics/`                       | `singleDecomposition/` (Cohesion, Complexity, Coupling, Performance, TSR), with `functionality/` and `functionalityRedesign/` under it                                                                                                                                                                                                                                                                                                                                                                             |
-| **Operation**                 | `<pkg>/operation/`                                       | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/`                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **comparisonTool**            | `<pkg>/qualityAssessment/metrics/severalDecompositions/` | MoJoFM and Purity; vendored MoJo in `mojo/`                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **VariableFeature**           | `<pkg>/feature/`                                         | A feature's named `requirements()` (and an always-empty `excludes()`), read by the one `AvailabilityCheck` into a derivation record (D-019). Implemented by the 7 Similarity kinds (`<pkg>/similarity/kind/`, D-021) and `Clustering`. A feature's name is its `@JsonTypeName`; `utils/SelfRegistration` scans for it. `feature/` imports no module (D-022): requirements live with the data they read (`representation/HasRepresentation`, `similarity/kind/SimilarityKindIn`), and the caller builds the context |
+<!-- prettier-ignore-start -->
+| Concept | Location | Notes |
+| ------- | -------- | ----- |
+| **SoftwareSystem** | `<pkg>/softwareSystem/` | Top-level container `{id, name}`; REST under `/softwareSystems`. Not `System`, because of `java.lang.System` |
+| **Representation** | `<pkg>/representation/` | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
+| **Strategy** | `<pkg>/strategy/domain/` | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations |
+| **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves |
+| **Weights** | `<pkg>/similarity/domain/similarityMatrix/weights/` | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100` |
+| **Clustering** | `<pkg>/clusteringAlgorithm/` | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions |
+| **Decomposition** | `<pkg>/decomposition/domain/` | Abstract; one subclass `PartitionsDecomposition`. `metrics` is a `Map<String,Object>` keyed by metric type |
+| **Cluster / Element** | `<pkg>/cluster/`, `<pkg>/granularity/` | `Partition` adds `couplingDependencies` — the cross-cluster reaches that become distributed transactions. `DomainEntity` is the only `Element` |
+| **RepresentationInformation** | `<pkg>/decomposition/domain/representationInformation/` | Per-group decomposition state **and the metric registry** |
+| **Metrics** | `<pkg>/qualityAssessment/metrics/` | `singleDecomposition/` (Cohesion, Complexity, Coupling, Performance, TSR), with `functionality/` and `functionalityRedesign/` under it |
+| **Operation** | `<pkg>/operation/` | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/` |
+| **comparisonTool** | `<pkg>/qualityAssessment/metrics/severalDecompositions/` | MoJoFM and Purity; vendored MoJo in `mojo/` |
+| **VariableFeature** | `<pkg>/feature/` | A feature's `requirements()` and an always-empty `excludes()`, read by the one `AvailabilityCheck` into a derivation record (D-019, D-025). The context is the set of present features: built once per software system by asking each family which of its features the system holds, and extended by `withInput`, which asks the families again for an input; every requirement is then a lookup in that set. A requirement has three shapes, all built in `feature/`: `Requires.of(FeatureClass.class)` (that feature), `Requires.of(MemberType.class)` (some feature of that family, as SciPy's `Requires.of(SimilarityKind.class)`), and `Requires.anyOf(...)` over either. Its record line is generated from the family's label. Every feature belongs to one `FeatureFamily`, which lives with the data and decides presence: `representation/RepresentationKindFamily`, `similarity/kind/SimilarityKindFamily` (shares IDToEntity and Accesses), `clusteringAlgorithm/ClusteringAlgorithmFamily`. A feature's id is its class and its name its `@JsonTypeName`; `utils/SelfRegistration` scans features and families. `feature/` imports no module (D-022), and `FeatureRegistrationCheck` fails the boot when the families do not add up |
+<!-- prettier-ignore-end -->
 
 ## Extension points
 
@@ -397,8 +404,10 @@ The Python side documents its own seam in `scripts/main.py:20`:
 
 1. Subclass `<pkg>/clusteringAlgorithm/Clustering.java` — implement
    `generateDecomposition` and `getType`, annotate it `@JsonTypeName` with the same type
-   string (the scan refuses an unnamed one at startup), and declare the Similarity kinds
-   it accepts in `requirements()` as a `SimilarityKindIn`.
+   string (the scan refuses an unnamed one at startup), and declare what it needs in
+   `requirements()`. `Requires.of(SimilarityKind.class)` accepts every kind, as SciPy
+   does; a kind's class, or a `Requires.anyOf` of several, accepts only those.
+   `ClusteringAlgorithmFamily` claims the new class without an edit.
 2. Register in `ClusteringFactory` — **both** the `switch` **and** the
    `algorithmTypes` list. The frontend reads that list via
    `GET /mono2micro/clustering/{algorithmType}/getAlgorithmSupportedStrategyTypes`.
@@ -422,7 +431,8 @@ must know the key to display it.
 
 ### New representation
 
-New subclass in `<pkg>/representation/analytical/domain/` with a type constant → case in
+New subclass in `<pkg>/representation/analytical/domain/` with a type constant, annotated
+`@JsonTypeName` with it so `RepresentationKindFamily` finds it → case in
 `RepresentationFactory` → entry in `Representation.representationGroupToRepresentations`
 → matching `RepresentationInformation` subclass + factory case → frontend
 `models/representation/files/` + `RepresentationFactory.ts`.
@@ -438,8 +448,9 @@ The type string is duplicated across five registries and mirrored in TypeScript:
 5. `<pkg>/recommendation/domain/RecommendationsType.java` + `RecommendationFactory`
 6. `<pkg>/strategy/domain/Strategy.java` — constant + entries in **both** static maps
    (`strategiesToRepresentations` now feeds only the representation delete cascade)
-7. `<pkg>/similarity/kind/XxxKind.java` — `@JsonTypeName` + `requirements()`, and add the
-   kind to `SciPyClustering.requirements()`
+7. `<pkg>/similarity/kind/XxxKind.java` — `@JsonTypeName` + `requirements()` for what it
+   needs beyond the IDToEntity and Accesses representations its family shares.
+   `SimilarityKindFamily` finds it, and SciPy accepts it with no edit
 8. If new weight dimensions: `.../weights/XxxWeights.java` + `@JsonSubTypes` in
    `Weights.java` + `WeightsFactory` case
 9. Frontend: `models/similarity/` + `SimilarityFactory.ts`, `StrategyTypes.ts`,

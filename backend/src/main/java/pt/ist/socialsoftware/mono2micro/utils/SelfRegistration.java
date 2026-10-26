@@ -6,12 +6,16 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * The one self-registration scan: a family's members are found on the classpath, not listed in a
@@ -26,6 +30,7 @@ public final class SelfRegistration {
 	private static final String BASE_PACKAGE = "pt.ist.socialsoftware.mono2micro";
 
 	private static final Map<Class<?>, SortedMap<String, ?>> PROTOTYPES = new ConcurrentHashMap<>();
+	private static final Map<Class<?>, List<?>> INSTANCES = new ConcurrentHashMap<>();
 
 	private SelfRegistration() {
 	}
@@ -43,6 +48,23 @@ public final class SelfRegistration {
 	}
 
 	/**
+	 * One instance of every concrete class assignable to {@code type}, in class-name order, for types whose members need no name, such as the
+	 * feature families.
+	 */
+	public static <T> List<T> instances(Class<T> type) {
+		return INSTANCES.computeIfAbsent(type, SelfRegistration::scanInstances).stream()
+				.map(type::cast)
+				.collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+	}
+
+	private static <T> List<T> scanInstances(Class<T> type) {
+		List<T> instances = new ArrayList<>();
+		for (Class<? extends T> member : types(type))
+			instances.add(instantiate(member));
+		return Collections.unmodifiableList(instances);
+	}
+
+	/**
 	 * The name of a member, read from the nearest {@code @JsonTypeName} up its class hierarchy.
 	 *
 	 * <p>Looking up the hierarchy lets a runtime subclass, such as a proxy or a mock, answer with
@@ -57,22 +79,47 @@ public final class SelfRegistration {
 		return findName(member).isPresent();
 	}
 
+	/**
+	 * The nearest class up {@code type}'s hierarchy that declares a {@code @JsonTypeName}, so a runtime subclass resolves to the member it
+	 * stands for, as in {@link #nameOf(Object)}.
+	 *
+	 * @throws IllegalStateException
+	 * if no class up the hierarchy declares one
+	 */
+	public static Class<?> namedType(Class<?> type) {
+		return findNamedType(type).orElseThrow(() -> new IllegalStateException(type.getName() + " has no @JsonTypeName"));
+	}
+
+	/** Whether some class up {@code type}'s hierarchy declares a {@code @JsonTypeName}, as {@link #namedType} needs. */
+	public static boolean hasNamedType(Class<?> type) {
+		return findNamedType(type).isPresent();
+	}
+
 	private static Optional<String> findName(Object member) {
-		for (Class<?> type = member.getClass(); type != null; type = type.getSuperclass()) {
-			JsonTypeName name = type.getDeclaredAnnotation(JsonTypeName.class);
-			if (name != null)
-				return Optional.of(name.value());
-		}
+		return findNamedType(member.getClass()).map(type -> type.getDeclaredAnnotation(JsonTypeName.class).value());
+	}
+
+	private static Optional<Class<?>> findNamedType(Class<?> start) {
+		for (Class<?> type = start; type != null; type = type.getSuperclass())
+			if (type.getDeclaredAnnotation(JsonTypeName.class) != null)
+				return Optional.of(type);
 		return Optional.empty();
 	}
 
-	private static <T> SortedMap<String, T> scan(Class<T> family) {
+	/** Every concrete class assignable to {@code type}, in class-name order. */
+	public static <T> List<Class<? extends T>> types(Class<T> type) {
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-		scanner.addIncludeFilter(new AssignableTypeFilter(family));
+		scanner.addIncludeFilter(new AssignableTypeFilter(type));
+		List<Class<? extends T>> types = new ArrayList<>();
+		for (BeanDefinition candidate : scanner.findCandidateComponents(BASE_PACKAGE))
+			types.add(load(candidate.getBeanClassName(), type));
+		types.sort(Comparator.comparing(Class::getName));
+		return types;
+	}
 
+	private static <T> SortedMap<String, T> scan(Class<T> family) {
 		SortedMap<String, T> members = new TreeMap<>();
-		for (BeanDefinition candidate : scanner.findCandidateComponents(BASE_PACKAGE)) {
-			Class<? extends T> type = load(candidate.getBeanClassName(), family);
+		for (Class<? extends T> type : types(family)) {
 			JsonTypeName name = type.getDeclaredAnnotation(JsonTypeName.class);
 			if (name == null)
 				throw new IllegalStateException(type.getName() + " is a " + family.getSimpleName() + " without a @JsonTypeName");

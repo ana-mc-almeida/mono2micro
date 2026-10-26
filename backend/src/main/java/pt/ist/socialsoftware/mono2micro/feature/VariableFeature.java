@@ -15,21 +15,25 @@ import java.util.Set;
  * if/else chains in the frontend. Each declaration now lives in the class that owns it, and is
  * read at runtime by the check (D-019).
  *
- * <h2>Requirements are in tool terms</h2>
+ * <h2>Requirements name features</h2>
  *
- * <p>A requirement is named in the tool's own vocabulary ("has an Accesses representation",
- * "Similarity kind in {…}"), because that is what can be checked against a real software system. The
- * model feature each requirement corresponds to is recorded outside the code, in the thesis
- * repository, and the correspondence test reads it there in both directions: model to tool gives
- * a coverage figure, and tool to model is an assertion (D-003, D-019 point 2).
+ * <p>A requirement names a feature or a family by its class, as in
+ * {@code Requires.of(AccessesRepresentation.class)} or {@code Requires.of(SimilarityKind.class)}, and
+ * never the data behind it (D-025 point 4). Its line in the derivation record is generated from that
+ * target and its family's label ("requires an Accesses representation", "requires a Similarity kind
+ * as input"), so a feature writes no message of its own (D-025 point 6). The model feature each
+ * requirement corresponds to is recorded outside the code, in the thesis repository, and the
+ * correspondence test reads it there in both directions: model to tool gives a coverage figure, and
+ * tool to model is an assertion (D-003, D-019 point 2).
  *
  * <p>The list is a conjunction: every requirement must be met. A disjunction is one requirement,
  * {@link AnyOf}, so the check never has to know about it.
  *
  * <h2>Identity</h2>
  *
- * <p>A feature's name is its {@code @JsonTypeName}, which is also its JSON type, registry key and
- * frontend lookup key. There is deliberately no separate name method, so nothing can drift. The
+ * <p>A feature's id is its class ({@link FeatureId}), and its name is the class's
+ * {@code @JsonTypeName}, which is also its JSON type, registry key and frontend lookup key. There is
+ * deliberately no separate name method, so nothing can drift. The
  * self-registration scan keeps one prototype of each feature class, built with its no-arg
  * constructor, and asks it for its requirements.
  *
@@ -57,8 +61,10 @@ public interface VariableFeature {
 	 * ever found. <strong>A non-empty return is a finding about the model, not a bug in the
 	 * code.</strong> It means the tool has an incompatibility the model does not express, which is
 	 * evidence the model is incomplete. A future session should report it, not delete it.
+	 *
+	 * <p>The {@link AvailabilityCheck} evaluates it: the feature is withheld while a feature it excludes is present (D-025 point 4).
 	 */
-	default Set<String> excludes() {
+	default Set<FeatureId> excludes() {
 		return Collections.emptySet();
 	}
 }

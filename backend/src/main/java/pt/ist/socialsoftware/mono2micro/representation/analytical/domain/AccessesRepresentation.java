@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.representation.analytical.domain;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import org.json.JSONObject;
@@ -10,6 +11,7 @@ import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
 
 @Document("representation")
+@JsonTypeName(AccessesRepresentation.ACCESSES)
 public class AccessesRepresentation extends Representation {
 
 	public static final String ACCESSES = "Accesses";

@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.representation.analytical.domain;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import org.json.JSONArray;
@@ -11,6 +12,7 @@ import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
 
 @Document("representation")
+@JsonTypeName(StructureRepresentation.STRUCTURE)
 public class StructureRepresentation extends Representation {
 	public static final String STRUCTURE = "Structure";
 	private Map<String, Set<String>> profiles = new HashMap<>();
