@@ -115,8 +115,8 @@ class DecompositionE2ETest {
 		requireFixtures(caseName, strategyCase);
 
 		for (DecompositionPipeline pipeline : pipelines(caseName)) {
-			// Unique per run, per layer and per strategy: re-uploading a representation type to
-			// an existing software system throws "Re-sending representations is not allowed."
+			// Unique per run, per layer and per strategy: a second software system with the same
+			// name is refused.
 			String softwareSystemName = caseName + "-" + strategyCase.label() + "-"
 					+ pipeline.layer() + "-" + System.currentTimeMillis();
 
