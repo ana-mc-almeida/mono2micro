@@ -28,8 +28,8 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.FunctionalityTracesIterator;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -124,17 +124,17 @@ public class AccessesInformation extends RepresentationInformation {
 
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
 		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), ACCESSES);
-		InputStream inputStream = gridFsService.getFile(accesses.getId());
-		Profile profile = similarity.getProfile(); // null: every functionality (D-017)
+		byte[] accessesFile = IOUtils.toByteArray(gridFsService.getFile(accesses.getId()));
+		Set<String> profileFunctionalities = Profile.unitsOf(similarity.getProfile(), accesses, accessesFile);
 
-		FunctionalityTracesIterator iter = new FunctionalityTracesIterator(inputStream, similarity.getTracesMaxLimit());
+		FunctionalityTracesIterator iter = new FunctionalityTracesIterator(new ByteArrayInputStream(accessesFile), similarity.getTracesMaxLimit());
 		Map<String, DirectedAcyclicGraph<LocalTransaction, DefaultEdge>> localTransactionsGraphs = new HashMap<>();
 		List<Functionality> newFunctionalities = new ArrayList<>();
 
 		Iterator<String> availableFunctionalities = iter.getFunctionalitiesNames();
 		while (availableFunctionalities.hasNext()) {
 			String functionalityName = availableFunctionalities.next();
-			if ((profile != null && !profile.getUnits().contains(functionalityName)) || this.functionalityExists(functionalityName))
+			if (!profileFunctionalities.contains(functionalityName) || this.functionalityExists(functionalityName))
 				continue;
 
 			iter.getFunctionalityWithName(functionalityName);
