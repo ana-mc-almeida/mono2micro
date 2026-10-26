@@ -57,12 +57,25 @@ public final class SelfRegistration {
 		return findName(member).isPresent();
 	}
 
+	/**
+	 * The nearest class up {@code type}'s hierarchy that declares a {@code @JsonTypeName}, so a runtime subclass resolves to the member it
+	 * stands for, as in {@link #nameOf(Object)}.
+	 *
+	 * @throws IllegalStateException
+	 * if no class up the hierarchy declares one
+	 */
+	public static Class<?> namedType(Class<?> type) {
+		return findNamedType(type).orElseThrow(() -> new IllegalStateException(type.getName() + " has no @JsonTypeName"));
+	}
+
 	private static Optional<String> findName(Object member) {
-		for (Class<?> type = member.getClass(); type != null; type = type.getSuperclass()) {
-			JsonTypeName name = type.getDeclaredAnnotation(JsonTypeName.class);
-			if (name != null)
-				return Optional.of(name.value());
-		}
+		return findNamedType(member.getClass()).map(type -> type.getDeclaredAnnotation(JsonTypeName.class).value());
+	}
+
+	private static Optional<Class<?>> findNamedType(Class<?> start) {
+		for (Class<?> type = start; type != null; type = type.getSuperclass())
+			if (type.getDeclaredAnnotation(JsonTypeName.class) != null)
+				return Optional.of(type);
 		return Optional.empty();
 	}
 

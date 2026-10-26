@@ -1,0 +1,52 @@
+package pt.ist.socialsoftware.mono2micro.feature;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+/**
+ * Every {@link FeatureFamily} of the tool, and the one place an {@link AvailabilityContext} is built from (D-025 point 2). It holds no rule of
+ * its own: building a context asks each family which of its features are present, and keeps only the answers.
+ */
+public final class FeatureFamilies {
+
+	private final List<FeatureFamily<?>> families;
+
+	public FeatureFamilies(Collection<? extends FeatureFamily<?>> families) {
+		this.families = Collections.unmodifiableList(new ArrayList<>(families));
+	}
+
+	public List<FeatureFamily<?>> getFamilies() {
+		return families;
+	}
+
+	/** The family that owns {@code feature}, if any does. */
+	public Optional<FeatureFamily<?>> familyOf(FeatureId feature) {
+		return families.stream().filter(family -> family.features().contains(feature)).findFirst();
+	}
+
+	/** The family whose member type is {@code memberType}, if one is registered. */
+	public Optional<FeatureFamily<?>> familyWithMemberType(Class<?> memberType) {
+		return families.stream().filter(family -> family.getMemberType().equals(memberType)).findFirst();
+	}
+
+	/** The context of a software system that holds {@code holdings}, such as its collected representations: each family is asked once. */
+	public AvailabilityContext contextFor(Collection<?> holdings) {
+		Set<FeatureId> present = new HashSet<>();
+		for (FeatureFamily<?> family : families)
+			present.addAll(family.presentInSystem(holdings));
+		return new AvailabilityContext(this, present);
+	}
+
+	/** {@code context} with the features {@code input} makes present: each family is asked again, for the input. */
+	AvailabilityContext withInput(AvailabilityContext context, Object input) {
+		Set<FeatureId> present = new HashSet<>(context.getPresent());
+		for (FeatureFamily<?> family : families)
+			present.addAll(family.presentInInput(input));
+		return new AvailabilityContext(this, present);
+	}
+}
