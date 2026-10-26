@@ -7,6 +7,7 @@ import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord.FeatureAvailabi
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -37,6 +38,15 @@ public class AvailabilityCheckTest {
 		}
 	}
 
+	/** Only a test can declare an exclusion: every feature of the tool excludes nothing (D-025 point 9). */
+	@JsonTypeName("Excludes structure")
+	class ExcludesStructure implements VariableFeature {
+		@Override
+		public Set<FeatureId> excludes() {
+			return Collections.singleton(FeatureId.of(TestFamilies.StructureUpload.class));
+		}
+	}
+
 	@Test
 	public void everyFeatureAppearsWithWhatItFailed() {
 		DerivationRecord record = AvailabilityCheck.derive(
@@ -55,5 +65,23 @@ public class AvailabilityCheckTest {
 				Arrays.asList(new NeedsAccesses(), new NeedsBoth()), test.systemHolding(test.new AccessesUpload()));
 
 		assertThat(record.availableNames()).containsExactly("Needs accesses");
+	}
+
+	@Test
+	public void aFeatureIsWithheldWhenAFeatureItExcludesIsPresent() {
+		DerivationRecord record = AvailabilityCheck.derive(
+				Collections.singletonList(new ExcludesStructure()), test.systemHolding(test.new StructureUpload()));
+
+		assertThat(record.getFeatures())
+				.extracting(FeatureAvailability::isAvailable, FeatureAvailability::getFailedRequirements)
+				.containsExactly(tuple(false, Collections.singletonList("excludes Structure")));
+	}
+
+	@Test
+	public void aFeatureIsOfferedWhenNoFeatureItExcludesIsPresent() {
+		DerivationRecord record = AvailabilityCheck.derive(
+				Collections.singletonList(new ExcludesStructure()), test.systemHolding(test.new AccessesUpload()));
+
+		assertThat(record.availableNames()).containsExactly("Excludes structure");
 	}
 }

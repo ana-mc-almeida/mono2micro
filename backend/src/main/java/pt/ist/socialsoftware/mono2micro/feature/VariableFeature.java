@@ -57,8 +57,10 @@ public interface VariableFeature {
 	 * ever found. <strong>A non-empty return is a finding about the model, not a bug in the
 	 * code.</strong> It means the tool has an incompatibility the model does not express, which is
 	 * evidence the model is incomplete. A future session should report it, not delete it.
+	 *
+	 * <p>The {@link AvailabilityCheck} evaluates it: the feature is withheld while a feature it excludes is present (D-025 point 4).
 	 */
-	default Set<String> excludes() {
+	default Set<FeatureId> excludes() {
 		return Collections.emptySet();
 	}
 }

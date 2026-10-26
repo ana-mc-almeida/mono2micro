@@ -10,7 +10,8 @@ import java.util.stream.Collectors;
 
 /**
  * The one availability check every family goes through: a feature is available exactly when each
- * of its {@link VariableFeature#requirements()}, and each requirement its family shares, is met by the context.
+ * of its {@link VariableFeature#requirements()}, and each requirement its family shares, is met by the context, and no feature it
+ * {@link VariableFeature#excludes()} is present.
  *
  * <p>It knows nothing about any family or any kind of requirement, which is what keeps it one
  * check rather than one per hierarchy.
@@ -22,13 +23,21 @@ public final class AvailabilityCheck {
 
 	public static DerivationRecord derive(Collection<? extends VariableFeature> features, AvailabilityContext context) {
 		return new DerivationRecord(features.stream()
-				.map(feature -> new FeatureAvailability(
-						SelfRegistration.nameOf(feature),
-						requirementsOf(feature, context.getFamilies()).stream()
-								.filter(requirement -> !requirement.isMetBy(context))
-								.map(Requirement::name)
-								.collect(Collectors.toList())))
+				.map(feature -> new FeatureAvailability(SelfRegistration.nameOf(feature), failuresOf(feature, context)))
 				.collect(Collectors.toList()));
+	}
+
+	/** The names of the requirements the feature fails, then of the present features it excludes. */
+	private static List<String> failuresOf(VariableFeature feature, AvailabilityContext context) {
+		List<String> failures = requirementsOf(feature, context.getFamilies()).stream()
+				.filter(requirement -> !requirement.isMetBy(context))
+				.map(Requirement::name)
+				.collect(Collectors.toList());
+		feature.excludes().stream()
+				.filter(context::isPresent)
+				.map(excluded -> "excludes " + excluded.getName())
+				.forEach(failures::add);
+		return failures;
 	}
 
 	/** The requirements its family shares, then the feature's own (D-025 point 5). */
