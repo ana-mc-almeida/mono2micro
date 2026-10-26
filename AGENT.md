@@ -365,10 +365,11 @@ SoftwareSystem
 The tree reads parent → child, but each arrow is stored the other way, as a `@DBRef` on the
 child. References to concrete types (`SoftwareSystem`, `Strategy`, `Profile`) are lazy;
 references to abstract types (`Decomposition.similarity`, `Profile.representation`) stay
-eager, because a lazy proxy subclasses the declared type and cannot be downcast (D-024). A service that needs a software system's
-representation of some kind calls `RepresentationRepository.findBySoftwareSystemIdAndType`;
-domain code still calls `Representation.ofSoftwareSystem(softwareSystem, kind)`, which goes
-through `ContextManager` until ticket 18 removes it.
+eager, because a lazy proxy subclasses the declared type and cannot be downcast (D-024).
+A service that needs a software system's representation of some kind calls
+`RepresentationRepository.findBySoftwareSystemIdAndType`; domain code still calls
+`Representation.ofSoftwareSystem(softwareSystem, kind)`, which goes through
+`ContextManager` until ticket 18 removes it.
 
 <!-- prettier-ignore-start -->
 | Concept | Location | Notes |
