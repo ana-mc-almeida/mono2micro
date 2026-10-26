@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -178,6 +180,32 @@ class ProfileE2ETest {
 		pipeline.createProfile(accesses, "Quizzes");
 
 		assertThat(pipeline.getRepresentation(accesses).has("profiles")).isFalse();
+	}
+
+	@Test
+	@DisplayName("A move leaves an existing decomposition's metrics unchanged")
+	void moveLeavesMetricsUnchanged() {
+		List<String> selected = strings(pipeline.getProfiles(accesses).path("unassigned")).subList(0, 20);
+		pipeline.moveUnits(accesses, selected, pipeline.createProfile(accesses, "Quizzes"));
+		String decomposition = pipeline.createDecomposition(scopedSimilarity(profileId("Quizzes")));
+		JsonNode metrics = pipeline.getDecomposition(decomposition).path("metrics");
+		Map<String, JsonNode> functionalityMetrics = functionalityMetrics(decomposition);
+
+		pipeline.moveUnits(accesses, selected.subList(0, 5), null);
+
+		assertThat(pipeline.updateDecomposition(decomposition).path("metrics")).isEqualTo(metrics);
+		assertThat(functionalityMetrics(decomposition)).isEqualTo(functionalityMetrics);
+	}
+
+	/**
+	 * Functionality name → its metrics. Not the whole response: its {@code functionalitiesClusters} are hash sets, so
+	 * two reads of an unchanged decomposition can list them in different orders.
+	 */
+	private Map<String, JsonNode> functionalityMetrics(String decomposition) {
+		Map<String, JsonNode> metrics = new TreeMap<>();
+		pipeline.getFunctionalities(decomposition).path("functionalities")
+				.forEach(functionality -> metrics.put(functionality.path("name").asText(), functionality.path("metrics")));
+		return metrics;
 	}
 
 	@Test
