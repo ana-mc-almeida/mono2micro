@@ -1,9 +1,12 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.FieldDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
@@ -14,6 +17,7 @@ import pt.ist.socialsoftware.mono2micro.utils.SimilarityStructureIterator;
 import pt.ist.socialsoftware.mono2micro.utils.Pair;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -110,17 +114,23 @@ public class StructureWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		SimilarityScipyStructure s = (SimilarityScipyStructure) similarity;
-		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), STRUCTURE);
-		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getId()), structure.getProfile(s.getProfile()), getWeights());
+		fillMatrixFromStructure(gridFsService, similarity.getStrategy().getSoftwareSystem(), s.getProfile(), rawMatrix, fillFromIndex);
 	}
 
 	@Override
 	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
-				STRUCTURE);
-		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getId()), structure.getProfile(r.getProfile()), getWeights());
+		fillMatrixFromStructure(gridFsService, recommendation.getStrategy().getSoftwareSystem(), r.getProfile(), rawMatrix, fillFromIndex);
+	}
+
+	/** Fills from the software system's Structure file, on the profile's entities; a null profile means all of them (D-017). */
+	private void fillMatrixFromStructure(GridFsService gridFsService, SoftwareSystem softwareSystem, Profile profile, float[][][] rawMatrix,
+			int fillFromIndex) throws IOException, JSONException {
+		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(softwareSystem, STRUCTURE);
+		byte[] structureFile = IOUtils.toByteArray(gridFsService.getFile(structure.getId()));
+		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, new ByteArrayInputStream(structureFile), Profile.unitsOf(profile, structure, structureFile),
+				getWeights());
 	}
 
 	public static void fillRawMatrixFromStructures(

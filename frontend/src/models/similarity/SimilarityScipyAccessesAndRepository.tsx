@@ -11,7 +11,8 @@ const SIMILARITY_SCIPY_ACCESSES_REPOSITORY = 'SIMILARITY_SCIPY_ACCESSES_REPOSITO
 export {SIMILARITY_SCIPY_ACCESSES_REPOSITORY};
 
 export default class SimilarityScipyAccessesAndRepository extends Similarity {
-    profile: string;
+    profileId: string | null;
+    profileName: string | null;
     linkageType: string;
     tracesMaxLimit: number;
     traceType: TraceType;
@@ -20,7 +21,8 @@ export default class SimilarityScipyAccessesAndRepository extends Similarity {
     constructor(similarity: any) {
         super(similarity);
         // Initializes default values if no previous value is provided
-        this.profile =              similarity.profile                 ||     "Generic";
+        this.profileId =            similarity.profileId               ||     null;
+        this.profileName =          similarity.profileName             ||     null;
         this.linkageType =          similarity.linkageType             ||     "average";
         this.tracesMaxLimit =       similarity.tracesMaxLimit          ||     0;
         this.traceType =            similarity.traceType               ||     TraceType.ALL;
@@ -36,7 +38,7 @@ export default class SimilarityScipyAccessesAndRepository extends Similarity {
             <Card.Body>
                 <Card.Title>{this.name}</Card.Title>
                 <Card.Text>
-                    Profile: {this.profile} <br />
+                    Profile: {this.profileName === null ? "No profile" : this.profileName} <br />
                     AmountOfTraces: {this.tracesMaxLimit} <br />
                     Type of traces: {this.traceType} <br />
                     Linkage Type: {this.linkageType} < br />

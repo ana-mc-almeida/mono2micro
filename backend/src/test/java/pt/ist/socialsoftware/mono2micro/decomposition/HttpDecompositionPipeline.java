@@ -134,6 +134,19 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return response.getBody().path("id").asText();
 	}
 
+	/** The status of a Similarity request, for a test that expects it refused. */
+	HttpStatus requestSimilarity(String strategyId, StrategyCase strategyCase) {
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("type", strategyCase.similarityType());
+		body.put("strategyId", strategyId);
+		body.put("linkageType", "average");
+		body.putAll(strategyCase.extraSimilarityFields());
+		if (!strategyCase.weights().isEmpty())
+			body.put("weightsList", strategyCase.weights());
+
+		return rest.exchange(base + "/similarity/create", HttpMethod.POST, new HttpEntity<>(body, jsonHeaders()), String.class).getStatusCode();
+	}
+
 	@Override
 	public String createDecomposition(String similarityId) {
 		Map<String, Object> body = new LinkedHashMap<>();
@@ -262,6 +275,14 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return getJson("/accesses/{id}/getFunctionalitiesAndFunctionalitiesClusters", decompositionId);
 	}
 
+	/** The names of the decomposition's functionalities, sorted. */
+	List<String> functionalityNames(String decompositionId) {
+		List<String> names = new ArrayList<>();
+		getFunctionalities(decompositionId).path("functionalities").forEach(functionality -> names.add(functionality.path("name").asText()));
+		Collections.sort(names);
+		return names;
+	}
+
 	/** MoJo and Purity of the second decomposition against the first, under {@code analysisList}. */
 	JsonNode compare(String decomposition1Id, String decomposition2Id) {
 		ResponseEntity<JsonNode> response = rest.postForEntity(
@@ -341,6 +362,43 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				String.class);
 
 		require(response, HttpStatus.OK, "refactor the functionalities of " + decompositionId);
+	}
+
+	String representationId(String softwareSystemId, String representationType) {
+		return getJson("/softwareSystems/{id}/representation/{type}/getSoftwareSystemRepresentation", softwareSystemId, representationType)
+				.path("id").asText();
+	}
+
+	JsonNode getRepresentation(String representationId) {
+		return getJson("/representation/{id}/getRepresentation", representationId);
+	}
+
+	/** Returns the new profile's id. */
+	String createProfile(String representationId, String profileName) {
+		ResponseEntity<JsonNode> response = rest.postForEntity(
+				base + "/representation/{id}/addProfile?profile={name}", null, JsonNode.class, representationId, profileName);
+
+		require(response, HttpStatus.CREATED, "create profile " + profileName);
+		return response.getBody().path("id").asText();
+	}
+
+	/** {@code {profiles: [{id, name, units}], unassigned: [...]}} */
+	JsonNode getProfiles(String representationId) {
+		return getJson("/representation/{id}/getProfiles", representationId);
+	}
+
+	/** A null target moves the units to Unassigned. */
+	void moveUnits(String representationId, List<String> units, String targetProfileId) {
+		String url = base + "/representation/{id}/moveUnits" + (targetProfileId == null ? "" : "?targetProfileId=" + targetProfileId);
+		ResponseEntity<String> response = rest.exchange(url, HttpMethod.POST, new HttpEntity<>(units, jsonHeaders()), String.class, representationId);
+
+		require(response, HttpStatus.OK, "move " + units + " to " + targetProfileId);
+	}
+
+	void deleteProfile(String profileId) {
+		ResponseEntity<String> response = rest.exchange(base + "/profile/{id}/delete", HttpMethod.DELETE, null, String.class, profileId);
+
+		require(response, HttpStatus.OK, "delete profile " + profileId);
 	}
 
 	@Override

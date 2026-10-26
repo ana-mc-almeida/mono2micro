@@ -54,11 +54,6 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 	}
 
 	@Override
-	public String getProfile() {
-		return "Generic";
-	}
-
-	@Override
 	public int getTracesMaxLimit() {
 		return 0;
 	}

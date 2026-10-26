@@ -13,6 +13,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityRepository;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
@@ -27,8 +28,8 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.FunctionalityTracesIterator;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -123,10 +124,10 @@ public class AccessesInformation extends RepresentationInformation {
 
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
 		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), ACCESSES);
-		InputStream inputStream = gridFsService.getFile(accesses.getId());
-		Set<String> profileFunctionalities = accesses.getProfile(similarity.getProfile());
+		byte[] accessesFile = IOUtils.toByteArray(gridFsService.getFile(accesses.getId()));
+		Set<String> profileFunctionalities = Profile.unitsOf(similarity.getProfile(), accesses, accessesFile);
 
-		FunctionalityTracesIterator iter = new FunctionalityTracesIterator(inputStream, similarity.getTracesMaxLimit());
+		FunctionalityTracesIterator iter = new FunctionalityTracesIterator(new ByteArrayInputStream(accessesFile), similarity.getTracesMaxLimit());
 		Map<String, DirectedAcyclicGraph<LocalTransaction, DefaultEdge>> localTransactionsGraphs = new HashMap<>();
 		List<Functionality> newFunctionalities = new ArrayList<>();
 

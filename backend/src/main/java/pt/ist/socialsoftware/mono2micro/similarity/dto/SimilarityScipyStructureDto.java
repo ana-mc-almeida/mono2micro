@@ -8,12 +8,12 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure.SIMILARITY_SCIPY_STRUCTURE;
 
 public class SimilarityScipyStructureDto extends SimilarityDto {
 	private List<Weights> weightsList;
 	private String linkageType;
-	private String profile;
 	private Constants.TraceType traceType;
 
 	public SimilarityScipyStructureDto() { this.type = SIMILARITY_SCIPY_STRUCTURE; }
@@ -26,7 +26,7 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.weightsList = similarity.getWeightsList();
-		this.profile = similarity.getProfile();
+		copyProfile(similarity.getProfile());
 		this.linkageType = similarity.getLinkageType();
 		this.traceType = similarity.getTraceType();
 
@@ -37,15 +37,20 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 		this.strategyName = recommend.getStrategy().getName();
 		this.type = SIMILARITY_SCIPY_STRUCTURE;
 		this.weightsList = weightsList;
-		this.profile = recommend.getProfile();
+		copyProfile(recommend.getProfile());
 		this.traceType = recommend.getTraceType();
 		this.linkageType = recommend.getLinkageType();
+	}
+
+	@Override
+	public String scopedRepresentationType() {
+		return STRUCTURE;
 	}
 
 	public String getName() {
 		if (this.name == null) {
 			this.name = this.strategyName + " "
-					+ "params" + "(" + this.profile + "," + this.linkageType + "," + this.traceType + ") "
+					+ "params" + "(" + profileLabel() + "," + this.linkageType + "," + this.traceType + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
 							.collect(Collectors.joining(", "));
@@ -60,14 +65,6 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 
 	public void setWeightsList(List<Weights> weightsList) {
 		this.weightsList = weightsList;
-	}
-
-	public String getProfile() {
-		return profile;
-	}
-
-	public void setProfile(String profile) {
-		this.profile = profile;
 	}
 
 	public String getLinkageType() {

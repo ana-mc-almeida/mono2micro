@@ -29,7 +29,6 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	private static final int STEP = 10;
 
 	// Used during Similarity Generation
-	private String profile;
 	private int tracesMaxLimit;
 	private Constants.TraceType traceType;
 
@@ -37,14 +36,13 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 
 	public SimilarityScipyAccessesAndRepository(Strategy strategy, String name, SimilarityScipyAccessesAndRepositoryDto dto) {
 		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
-		this.profile = dto.getProfile();
 		this.tracesMaxLimit = dto.getTracesMaxLimit();
 		this.traceType = dto.getTraceType();
 	}
 
 	public SimilarityScipyAccessesAndRepository(RecommendMatrixSciPy recommendation) {
 		super(recommendation);
-		this.profile = recommendation.getProfile();
+		setProfile(recommendation.getProfile());
 		this.tracesMaxLimit = recommendation.getTracesMaxLimit();
 		this.traceType = recommendation.getTraceType();
 	}
@@ -68,7 +66,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
 		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
-				similarityDto.getProfile().equals(this.profile) &&
+				Objects.equals(similarityDto.getProfileId(), getProfileId()) &&
 				similarityDto.getTracesMaxLimit() == this.tracesMaxLimit &&
 				similarityDto.getTraceType() == this.traceType &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
@@ -83,14 +81,6 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 		}
 
 		return true;
-	}
-
-	public String getProfile() {
-		return profile;
-	}
-
-	public void setProfile(String profile) {
-		this.profile = profile;
 	}
 
 	public int getTracesMaxLimit() {

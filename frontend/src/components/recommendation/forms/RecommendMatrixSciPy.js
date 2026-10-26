@@ -9,9 +9,9 @@ import filterFactory, {numberFilter} from "react-bootstrap-table2-filter";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import {Modal, ModalBody, ModalFooter, ModalTitle} from "react-bootstrap";
 import BootstrapTable from "react-bootstrap-table-next";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import Dropdown from "react-bootstrap/Dropdown";
 import {RepresentationFile} from "../../../models/representation/Representation";
+import {RecommendationType} from "../../../models/recommendation/RecommendationTypes";
+import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType} from "../../../type-declarations/types";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
@@ -67,8 +67,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
 
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
-    const [profiles, setProfiles] = useState([]);
-    const [profile, setProfile] = useState("Generic")
+    const [profileId, setProfileId] = useState(null);
     const [linkageType, setLinkageType] = useState("average");
     const [tracesMaxLimit, setTracesMaxLimit] = useState(0);
     const [traceType, setTraceType] = useState(TraceType.ALL);
@@ -83,21 +82,11 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        loadProfiles();
         setWeightsList(WeightsFactory.getWeightListByStrategyType(strategy.strategyTypes));
     }, [])
 
-    function loadProfiles() {
-        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.ACCESSES)
-            .then((response) => setProfiles(response.profiles));
-    }
-
     function handleChangeLinkageType(event) {
         setLinkageType(event.target.id);
-    }
-
-    function handleChangeProfile(profile) {
-        setProfile(profile);
     }
 
     function handleChangeTracesMaxLimit(event) {
@@ -133,7 +122,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
             type: recommendationType,
             strategyId: strategy.id,
             weightsList,
-            profile,
+            profileId,
             linkageType,
             tracesMaxLimit,
             traceType
@@ -211,24 +200,12 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
             { renderRecommendationList() }
 
             <Form onSubmit={handleCreateRecommendation} className="mt-2 mb-3">
-                <Form.Group as={Row} controlId="selectFunctionalityProfiles" className="align-items-center mb-3">
-                    <Form.Label column sm={2}>
-                        Select Software System Profile
-                    </Form.Label>
-                    <Col sm={2}>
-                        <DropdownButton title={profile === ""? 'Functionality Profiles': profile}>
-                            {profiles !== [] && Object.keys(profiles).map(profile =>
-                                <Dropdown.Item
-                                    key={profile}
-                                    onClick={() => handleChangeProfile(profile)}
-                                    active={profile === profile}
-                                >
-                                    {profile}
-                                </Dropdown.Item>
-                            )}
-                        </DropdownButton>
-                    </Col>
-                </Form.Group>
+                <ProfileSelect
+                    softwareSystemId={softwareSystemId}
+                    representationType={recommendationType === RecommendationType.RECOMMEND_MATRIX_SCIPY_STRUCTURE ? RepresentationFile.STRUCTURE : RepresentationFile.ACCESSES}
+                    profileId={profileId}
+                    setProfileId={setProfileId}
+                />
                 <Form.Group as={Row} controlId="amountOfTraces" className="mb-3">
                     <Form.Label column sm={2}>
                         Amount of Traces per Functionality
@@ -282,7 +259,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
                     <Col sm={{offset: 2}}>
                         <Button
                             type="submit"
-                            disabled={isUploaded === "Gathering recommendations..." || !(profile !== "") || loading}
+                            disabled={isUploaded === "Gathering recommendations..." || loading}
                         >
                             Recommend Decompositions
                         </Button>

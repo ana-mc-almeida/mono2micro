@@ -18,22 +18,24 @@ export const Profiles = () => {
     let { softwareSystemId, representationId } = useParams();
     const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [representation, setRepresentation] = useState({});
+    const [profiles, setProfiles] = useState(undefined);
     const [newProfileName, setNewProfileName] = useState("");
-    const [moveToProfile, setMoveToProfile] = useState("");
-    const [selectedFunctionalities, setSelectedFunctionalities] = useState([]);
+    const [moveTo, setMoveTo] = useState(undefined); // a profile, or null for Unassigned
+    const [selectedUnits, setSelectedUnits] = useState([]);
     const [isUploaded, setIsUploaded] = useState("");
 
     useEffect(() => {
         const service = new APIService();
         service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
-        loadRepresentation();
-    }, []);
-
-    function loadRepresentation() {
-        const service = new APIService();
         service.getRepresentation(representationId).then(response => {
             setRepresentation(response === null ? {} : response);
         });
+        loadProfiles();
+    }, []);
+
+    function loadProfiles() {
+        const service = new APIService();
+        service.getProfiles(representationId).then(response => setProfiles(response.data));
     }
 
     function handleChangeNewProfileName(event) {
@@ -46,9 +48,9 @@ export const Profiles = () => {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.addAccessesProfile(representationId, newProfileName).then(response => {
-            if (response.status === HttpStatus.OK) {
-                loadRepresentation();
+        service.addProfile(representationId, newProfileName).then(response => {
+            if (response.status === HttpStatus.CREATED) {
+                loadProfiles();
                 setIsUploaded("Upload completed successfully.");
             } else {
                 setIsUploaded("Upload failed.");
@@ -63,44 +65,52 @@ export const Profiles = () => {
         });
     }
 
-    function handleMoveToProfile(profile) {
-        setMoveToProfile(profile);
-    }
-
-    function handleMoveFunctionalitiesSubmit() {
+    // A move saves new versions of the profiles it changes, so the selected target is cleared: its id is gone.
+    function handleMoveUnitsSubmit() {
         const service = new APIService();
 
-        service.moveAccessesFunctionalities(
+        service.moveUnits(
             representationId,
-            selectedFunctionalities,
-            moveToProfile
+            selectedUnits,
+            moveTo === null ? null : moveTo.id
         ).then(() => {
-            setSelectedFunctionalities([]);
-            loadRepresentation();
+            setSelectedUnits([]);
+            setMoveTo(undefined);
+            loadProfiles();
         });
     }
 
     function handleDeleteProfile(profile) {
         const service = new APIService();
 
-        service.deleteAccessesProfile(
-            representationId,
-            profile
-        ).then(() => {
-            loadRepresentation();
+        service.deleteProfile(profile.id).then(() => {
+            setMoveTo(undefined);
+            loadProfiles();
         });
     }
 
-    function handleSelectFunctionality(event) {
+    function handleSelectUnit(event) {
         const eventTargetId = event.target.id;
 
-        if (selectedFunctionalities.includes(eventTargetId)) {
-            setSelectedFunctionalities(selectedFunctionalities.filter(c => c !== eventTargetId));
+        if (selectedUnits.includes(eventTargetId)) {
+            setSelectedUnits(selectedUnits.filter(c => c !== eventTargetId));
             return;
         }
 
-        setSelectedFunctionalities([...selectedFunctionalities, eventTargetId]);
+        setSelectedUnits([...selectedUnits, eventTargetId]);
     }
+
+    const renderUnits = (unitNames) => unitNames.map(unit =>
+        <Form.Check
+            id={unit}
+            key={unit}
+            type="checkbox"
+            label={unit}
+            checked={selectedUnits.includes(unit)}
+            onChange={handleSelectUnit}
+            style={{ paddingLeft: "3em" }}
+        />
+    );
 
     const renderBreadCrumbs = () => {
         return (
@@ -128,7 +138,7 @@ export const Profiles = () => {
         <div style={{ paddingLeft: "2rem" }}>
             {renderBreadCrumbs()}
             <h4 style={{color: "#666666"}}>
-                Create Functionality Profile
+                Create Profile
             </h4>
 
             <Form onSubmit={handleNewProfileSubmit}>
@@ -163,65 +173,65 @@ export const Profiles = () => {
             </Form>
 
             <h4 style={{color: "#666666"}}>
-                Functionality Profiles
+                Profiles
             </h4>
-            {Object.keys(representation).length &&
+            {profiles !== undefined &&
                 <div>
                     <ButtonToolbar>
-                        <Button className="me-1">Move selected functionalities to</Button>
+                        <Button className="me-1">Move selected units to</Button>
 
                         <DropdownButton
                             as={ButtonGroup}
-                            title={moveToProfile === "" ? "Functionality Profile" : moveToProfile}
+                            title={moveTo === undefined ? "Profile" : moveTo === null ? "Unassigned" : moveTo.name}
                             className="me-1"
                         >
-                            {Object.keys(representation.profiles).map(profile =>
+                            {profiles.profiles.map(profile =>
                                 <Dropdown.Item
-                                    key={profile}
-                                    onClick={() => handleMoveToProfile(profile)}
+                                    key={profile.id}
+                                    onClick={() => setMoveTo(profile)}
                                 >
-                                        {profile}
+                                        {profile.name}
                                 </Dropdown.Item>
                             )}
+                            <Dropdown.Divider />
+                            <Dropdown.Item onClick={() => setMoveTo(null)}>
+                                Unassigned
+                            </Dropdown.Item>
                         </DropdownButton>
 
                         <Button
-                            disabled={selectedFunctionalities.length === 0 || moveToProfile === ""}
-                            onClick={handleMoveFunctionalitiesSubmit}
+                            disabled={selectedUnits.length === 0 || moveTo === undefined}
+                            onClick={handleMoveUnitsSubmit}
                         >
                             Submit
                         </Button>
                     </ButtonToolbar>
 
-                    {Object.keys(representation.profiles).map(profile =>
-                        <div key={profile}>
+                    {profiles.profiles.map(profile =>
+                        <div key={profile.id}>
                             <div style={{fontSize: '25px'}}>
-                                {profile}
-                                {!representation.profiles[profile].length &&
-                                    <Button
-                                        onClick={() => handleDeleteProfile(profile)}
-                                        className="ms-2"
-                                        variant="danger"
-                                        size="sm"
-                                    >
-                                        -
-                                    </Button>
-                                }
+                                {profile.name}
+                                <Button
+                                    onClick={() => handleDeleteProfile(profile)}
+                                    className="ms-2"
+                                    variant="danger"
+                                    size="sm"
+                                >
+                                    -
+                                </Button>
                             </div>
 
-                            {representation.profiles[profile].map(functionality =>
-                                <Form.Check
-                                    id={functionality}
-                                    key={functionality}
-                                    type="checkbox"
-                                    label={functionality}
-                                    checked={selectedFunctionalities.includes(functionality)}
-                                    onChange={handleSelectFunctionality}
-                                    style={{ paddingLeft: "3em" }}
-                                />
-                            )}
+                            {renderUnits(profile.units)}
                         </div>
                     )}
+
+                    <div style={{fontSize: '25px'}}>
+                        Unassigned
+                    </div>
+                    <Form.Text className="ms-2">
+                        The units no profile selects. This list is computed and cannot be edited or chosen for a Similarity.
+                    </Form.Text>
+                    {renderUnits(profiles.unassigned)}
                 </div>
             }
         </div>

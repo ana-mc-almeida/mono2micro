@@ -8,6 +8,9 @@ import java.util.List;
 public interface SimilarityRepository extends MongoRepository<Similarity, String> {
 	List<Similarity> findByStrategyId(String strategyId);
 
+	/** The underscore walks the profile reference; plain ProfileId would clash with getProfileId(). */
+	boolean existsByProfile_Id(String profileId);
+
 	default Similarity getById(String id) {
 		return findById(id).orElseThrow(() -> new RuntimeException("No similarity " + id + " found."));
 	}

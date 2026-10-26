@@ -10,12 +10,14 @@ const SIMILARITY_SCIPY_STRUCTURE = 'SIMILARITY_SCIPY_STRUCTURE';
 export {SIMILARITY_SCIPY_STRUCTURE};    
 
 export default class SimilarityScipyStructure extends Similarity {
-    profile: string;
+    profileId: string | null;
+    profileName: string | null;
     weightsList: Weights[];
 
     constructor(similarity: any) {
         super(similarity);
-        this.profile =              similarity.profile                 ||     "Generic";
+        this.profileId =            similarity.profileId               ||     null;
+        this.profileName =          similarity.profileName             ||     null;
         this.weightsList = WeightsFactory.getWeightsList(similarity.weightsList);
     }
 

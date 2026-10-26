@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemController;
 import pt.ist.socialsoftware.mono2micro.representation.service.AccessesRepresentationService;
 
-import javax.management.openmbean.KeyAlreadyExistsException;
-
 @RestController
 @RequestMapping(value = "/mono2micro")
 public class AccessesRepresentationController {
@@ -19,61 +17,6 @@ public class AccessesRepresentationController {
 
 	@Autowired
 	AccessesRepresentationService accessesRepresentationService;
-
-	@PostMapping(value = "/representation/{representationId}/addAccessesProfile")
-	public ResponseEntity<HttpStatus> addAccessesProfile(
-			@PathVariable String representationId,
-			@RequestParam String profile
-	) {
-		logger.debug("addAccessesProfile");
-
-		try {
-			accessesRepresentationService.addAccessesProfile(representationId, profile);
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (KeyAlreadyExistsException e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@PostMapping(value = "/representation/{representationId}/moveAccessesFunctionalities")
-	public ResponseEntity<HttpStatus> moveAccessesFunctionalities(
-			@PathVariable String representationId,
-			@RequestBody String[] functionalities,
-			@RequestParam String targetProfile
-	) {
-		logger.debug("moveAccessesFunctionalities");
-
-		try {
-			accessesRepresentationService.moveAccessesFunctionalities(representationId, functionalities, targetProfile);
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@DeleteMapping(value = "/representation/{representationId}/deleteAccessesProfile")
-	public ResponseEntity<HttpStatus> deleteAccessesProfile(
-			@PathVariable String representationId,
-			@RequestParam String profile
-	) {
-		logger.debug("deleteAccessesProfile");
-
-		try {
-			accessesRepresentationService.deleteAccessesProfile(representationId, profile);
-			return new ResponseEntity<>(HttpStatus.OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
 
 	// FIXME (ticket 07): the path variable is a software system name, not a representation name;
 	// move to /softwareSystems/{softwareSystemName}/getIdToEntity

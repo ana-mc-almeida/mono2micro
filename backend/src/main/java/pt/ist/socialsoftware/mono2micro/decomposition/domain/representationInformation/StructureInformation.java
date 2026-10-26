@@ -23,6 +23,7 @@ import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dom
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.TraceDto;
 import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition.*;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
@@ -49,7 +50,7 @@ public class StructureInformation extends RepresentationInformation {
 	public StructureInformation() {}
 
 	@Override
-	public void setup(Decomposition decomposition) throws IOException {
+	public void setup(Decomposition decomposition) throws IOException, JSONException {
 		this.decompositionId = decomposition.getId();
 		decomposition.addRepresentationInformation(this);
 		setupEntities(decomposition);
@@ -116,13 +117,14 @@ public class StructureInformation extends RepresentationInformation {
 		this.totalEntities = totalEntities;
 	}
 
-	private void setupEntities(Decomposition decomposition) throws IOException {
+	private void setupEntities(Decomposition decomposition) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 		StructureRepresentation structureRepresentation = (StructureRepresentation) Representation.ofSoftwareSystem(
 				decomposition.getStrategy().getSoftwareSystem(),
 				STRUCTURE);
+		String structureFile = gridFsService.getFileAsString(structureRepresentation.getId());
 		Map<String, Object> jsonData = new ObjectMapper().readValue(
-				gridFsService.getFileAsString(structureRepresentation.getId()),
+				structureFile,
 				new TypeReference<Map<String, Object>>() {}
 		);
 
@@ -133,7 +135,7 @@ public class StructureInformation extends RepresentationInformation {
 		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(
 				decomposition.getSimilarity().getStrategy().getSoftwareSystem(),
 				STRUCTURE);
-		Set<String> entities = structure.getProfile(s.getProfile());
+		Set<String> entities = Profile.unitsOf(s.getProfile(), structure, structureFile.getBytes(StandardCharsets.UTF_8));
 		filterEntities(entitiesContainedMap, entities);
 
 		setEntitiesContained(entitiesContainedMap);

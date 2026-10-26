@@ -36,7 +36,6 @@ import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.I
 public class RecommendMatrixSciPy extends Recommendation {
 
 	public String type;
-	private String profile;
 	private int tracesMaxLimit;
 	private Constants.TraceType traceType;
 	private String linkageType;
@@ -47,7 +46,6 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 	public RecommendMatrixSciPy(RecommendMatrixSciPyDto dto) {
 		this.type = dto.getType();
-		this.profile = dto.getProfile();
 		this.tracesMaxLimit = dto.getTracesMaxLimit();
 		this.traceType = dto.getTraceType();
 		this.linkageType = dto.getLinkageType();
@@ -69,14 +67,6 @@ public class RecommendMatrixSciPy extends Recommendation {
 		default:
 			return false;
 		}
-	}
-
-	public String getProfile() {
-		return profile;
-	}
-
-	public void setProfile(String profile) {
-		this.profile = profile;
 	}
 
 	public int getTracesMaxLimit() {
@@ -139,7 +129,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 		RecommendMatrixSciPyDto recommendMatrixSciPyDto = (RecommendMatrixSciPyDto) dto;
 
-		return recommendMatrixSciPyDto.getProfile().equals(this.profile) &&
+		return Objects.equals(recommendMatrixSciPyDto.getProfileId(), getProfileId()) &&
 				(recommendMatrixSciPyDto.getLinkageType().equals(this.linkageType)) &&
 				(recommendMatrixSciPyDto.getTraceType() == this.traceType) &&
 				(recommendMatrixSciPyDto.getTracesMaxLimit() == this.tracesMaxLimit);
@@ -226,6 +216,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 			if (similarity == null) {
 				similarity = SimilarityFactory.createSimilarity(getStrategy(), similarityInformation);
+				similarity.setProfile(getProfile());
 
 				InputStream inputStream = gridFsService.getFile(name.substring(0, name.lastIndexOf(","))); // Gets the previously produced similarity matrix
 				gridFsService.saveFile(inputStream, similarity.getId()); // And saves it under the new similarity's id

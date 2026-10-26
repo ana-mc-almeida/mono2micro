@@ -351,9 +351,10 @@ except `Decomposition.history` and the information blocks' functionality map, wh
 ```
 SoftwareSystem
 ├── Representation*        (imported collector files; at most one per kind)
+│   └── Profile*           (a named selection of its units; immutable — D-017)
 └── Strategy*              (a decomposition approach)
-    ├── Similarity*  ──►  Dendrogram (built by SciPy)
-    ├── Recommendation*
+    ├── Similarity*  ──►  Dendrogram (built by SciPy), Profile? (null: every unit)
+    ├── Recommendation*  ──►  Profile? (null: every unit)
     └── Decomposition*
         ├── Cluster / Partition ──► Element (DomainEntity)
         ├── RepresentationInformation*
@@ -362,12 +363,13 @@ SoftwareSystem
 ```
 
 The tree reads parent → child, but each arrow is stored the other way, as a `@DBRef` on the
-child. References to concrete types (`SoftwareSystem`, `Strategy`) are lazy; references to
-abstract types (`Decomposition.similarity`) stay eager, because a lazy proxy subclasses the
-declared type and cannot be downcast (D-024). A service that needs a software system's
-representation of some kind calls `RepresentationRepository.findBySoftwareSystemIdAndType`;
-domain code still calls `Representation.ofSoftwareSystem(softwareSystem, kind)`, which goes
-through `ContextManager` until ticket 18 removes it.
+child. References to concrete types (`SoftwareSystem`, `Strategy`, `Profile`) are lazy;
+references to abstract types (`Decomposition.similarity`, `Profile.representation`) stay
+eager, because a lazy proxy subclasses the declared type and cannot be downcast (D-024).
+A service that needs a software system's representation of some kind calls
+`RepresentationRepository.findBySoftwareSystemIdAndType`; domain code still calls
+`Representation.ofSoftwareSystem(softwareSystem, kind)`, which goes through
+`ContextManager` until ticket 18 removes it.
 
 <!-- prettier-ignore-start -->
 | Concept | Location | Notes |
@@ -376,6 +378,7 @@ through `ContextManager` until ticket 18 removes it.
 | **Representation** | `<pkg>/representation/` | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
 | **Strategy** | `<pkg>/strategy/domain/` | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations |
 | **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves |
+| **Profile** | `<pkg>/refactoring/domainKnowledge/expertKnowledge/` | _Expert knowledge_ (D-017): `{id, name, units, representation, retired}`, a named selection of a representation's units that scopes a Similarity or recommendation. **Immutable**: a move saves new versions of the profiles it changes; discarding one (by a move or a delete) retires it while a Similarity or recommendation uses it, and deletes it otherwise. Unassigned is computed, never stored. `Similarity.profile` and `Recommendation.profile` are nullable, and null means every unit; consumers go through `Profile.unitsOf`. A representation lists its units with `Representation.readUnits` (null: no profile can scope it). Endpoints in `ProfileController`. The repositories query `existsByProfile_Id`: the underscore walks the reference, since a plain `ProfileId` clashes with the `getProfileId()` getter |
 | **Weights** | `<pkg>/similarity/domain/similarityMatrix/weights/` | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100` |
 | **Clustering** | `<pkg>/clusteringAlgorithm/` | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions |
 | **Decomposition** | `<pkg>/decomposition/domain/` | Abstract; one subclass `PartitionsDecomposition`. `metrics` is a `Map<String,Object>` keyed by metric type |
@@ -432,7 +435,8 @@ must know the key to display it.
 ### New representation
 
 New subclass in `<pkg>/representation/analytical/domain/` with a type constant, annotated
-`@JsonTypeName` with it so `RepresentationKindFamily` finds it → case in
+`@JsonTypeName` with it so `RepresentationKindFamily` finds it, and overriding `readUnits`
+if a profile can select its units → case in
 `RepresentationFactory` → entry in `Representation.representationGroupToRepresentations`
 → matching `RepresentationInformation` subclass + factory case → frontend
 `models/representation/files/` + `RepresentationFactory.ts`.

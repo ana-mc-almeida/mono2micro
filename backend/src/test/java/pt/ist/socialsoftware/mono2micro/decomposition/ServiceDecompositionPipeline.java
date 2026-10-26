@@ -133,7 +133,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 			SimilarityScipyAccessesAndRepositoryDto dto = new SimilarityScipyAccessesAndRepositoryDto();
 			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
-			dto.setProfile((String) extra.get("profile"));
+			dto.setProfileId((String) extra.get("profileId"));
 			dto.setTracesMaxLimit((Integer) extra.get("tracesMaxLimit"));
 			dto.setTraceType(Constants.TraceType.valueOf((String) extra.get("traceType")));
 			dto.setWeightsList(weightsList(strategyCase));
@@ -143,7 +143,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 			SimilarityScipyStructureDto dto = new SimilarityScipyStructureDto();
 			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
-			dto.setProfile((String) extra.get("profile"));
+			dto.setProfileId((String) extra.get("profileId"));
 			dto.setTraceType(Constants.TraceType.valueOf((String) extra.get("traceType")));
 			dto.setWeightsList(weightsList(strategyCase));
 			return dto;

@@ -2,6 +2,7 @@ package pt.ist.socialsoftware.mono2micro.recommendation.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 
 import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.*;
 
@@ -21,6 +22,9 @@ public abstract class RecommendationDto {
 	String strategyName;
 	String name;
 	boolean isCompleted;
+	/** Null for no profile (D-017). */
+	String profileId;
+	String profileName;
 
 	public String getType() {
 		return type;
@@ -28,6 +32,36 @@ public abstract class RecommendationDto {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public String getProfileId() {
+		return profileId;
+	}
+
+	public void setProfileId(String profileId) {
+		this.profileId = profileId;
+	}
+
+	public String getProfileName() {
+		return profileName;
+	}
+
+	public void setProfileName(String profileName) {
+		this.profileName = profileName;
+	}
+
+	/**
+	 * The representation kind whose units a profile of the recommended Similarities selects, or null when they take no
+	 * profile. Not a getter, so that it never appears in the JSON.
+	 */
+	public String scopedRepresentationType() {
+		return null;
+	}
+
+	/** Not a setter, so that a request's JSON never binds to it. */
+	protected void copyProfile(Profile profile) {
+		this.profileId = Profile.idOf(profile);
+		this.profileName = Profile.nameOf(profile);
 	}
 
 	public String getId() {

@@ -2,6 +2,7 @@ package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyClassVectorization.SIMILARITY_SCIPY_CLASS_VECTORIZATION;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyEntityVectorization.SIMILARITY_SCIPY_ENTITY_VECTORIZATION;
@@ -26,6 +27,9 @@ public abstract class SimilarityDto {
 	String strategyName;
 	String name;
 	String type;
+	/** Null for no profile: the Similarity is built on every unit (D-017). */
+	String profileId;
+	String profileName;
 
 	public String getName() {
 		return name;
@@ -65,6 +69,41 @@ public abstract class SimilarityDto {
 
 	public void setStrategyId(String strategyId) {
 		this.strategyId = strategyId;
+	}
+
+	public String getProfileId() {
+		return profileId;
+	}
+
+	public void setProfileId(String profileId) {
+		this.profileId = profileId;
+	}
+
+	public String getProfileName() {
+		return profileName;
+	}
+
+	public void setProfileName(String profileName) {
+		this.profileName = profileName;
+	}
+
+	/** Not a setter, so that a request's JSON never binds to it. */
+	protected void copyProfile(Profile profile) {
+		this.profileId = Profile.idOf(profile);
+		this.profileName = Profile.nameOf(profile);
+	}
+
+	/**
+	 * The representation kind whose units a profile of this Similarity selects, or null when the kind takes no profile.
+	 * Not a getter, so that it never appears in the JSON.
+	 */
+	public String scopedRepresentationType() {
+		return null;
+	}
+
+	/** How the generated name shows the profile. */
+	protected String profileLabel() {
+		return profileName == null ? "No profile" : profileName;
 	}
 
 	public String getSoftwareSystemId() {

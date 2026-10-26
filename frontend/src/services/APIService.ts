@@ -120,9 +120,14 @@ export class APIService {
     }
 
     // Profiles
-    addAccessesProfile(representationId: string, profile: string) {
-        return this.axios.post<null>(
-            "/representation/" + representationId + "/addAccessesProfile",
+    getProfiles(representationId: string) {
+        return this.axios.get<{ profiles: { id: string, name: string, units: string[] }[], unassigned: string[] }>(
+            "/representation/" + representationId + "/getProfiles");
+    }
+
+    addProfile(representationId: string, profile: string) {
+        return this.axios.post(
+            "/representation/" + representationId + "/addProfile",
             null,
             {
                 params: {
@@ -131,31 +136,25 @@ export class APIService {
             });
     }
 
-    moveAccessesFunctionalities(
+    /** A null target moves the units to Unassigned. */
+    moveUnits(
         representationId: string,
-        functionalities: string[],
-        targetProfile: string,
+        units: string[],
+        targetProfileId: string | null,
     ) {
         return this.axios.post<null>(
-            "/representation/" + representationId + "/moveAccessesFunctionalities",
-            functionalities,
+            "/representation/" + representationId + "/moveUnits",
+            units,
             {
-                params: {
-                    "targetProfile" : targetProfile
+                params: targetProfileId === null ? {} : {
+                    "targetProfileId" : targetProfileId
                 }
             }
         );
     }
 
-    deleteAccessesProfile(representationId: string, profile: string) {
-        return this.axios.delete<null>(
-            "/representation/" + representationId + "/deleteAccessesProfile",
-            {
-                params: {
-                    "profile" : profile
-                }
-            }
-        );
+    deleteProfile(profileId: string) {
+        return this.axios.delete<null>("/profile/" + profileId + "/delete");
     }
 
     //Representation

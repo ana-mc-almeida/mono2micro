@@ -10,6 +10,7 @@ import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationFact
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
@@ -30,6 +31,9 @@ public class RecommendationService {
 	SimilarityRepository similarityRepository;
 
 	@Autowired
+	ProfileService profileService;
+
+	@Autowired
 	GridFsService gridFsService;
 
 	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
@@ -42,6 +46,8 @@ public class RecommendationService {
 		// Create from scratch
 		if (existingRecommendation == null) {
 			recommendation = RecommendationFactory.getRecommendation(strategy, strategyRecommendations, recommendationDto);
+			recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), strategy.getSoftwareSystem().getId(),
+					recommendationDto.scopedRepresentationType()));
 			recommendationRepository.save(recommendation);
 		} else return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
 

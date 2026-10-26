@@ -8,6 +8,9 @@ import java.util.List;
 public interface RecommendationRepository extends MongoRepository<Recommendation, String> {
 	List<Recommendation> findByStrategyId(String strategyId);
 
+	/** The underscore walks the profile reference; plain ProfileId would clash with getProfileId(). */
+	boolean existsByProfile_Id(String profileId);
+
 	default Recommendation getById(String id) {
 		return findById(id).orElseThrow(() -> new RuntimeException("No recommendation " + id + " found."));
 	}
