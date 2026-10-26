@@ -2,7 +2,6 @@ package pt.ist.socialsoftware.mono2micro.feature;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -18,37 +17,14 @@ public class AvailabilityContext {
 
 	private final FeatureFamilies families;
 	private final Set<FeatureId> present;
-	private final Set<String> representationKinds;
-	private final Object input;
 
 	AvailabilityContext(FeatureFamilies families, Set<FeatureId> present) {
-		this(families, present, Collections.emptySet(), null);
-	}
-
-	private AvailabilityContext(FeatureFamilies families, Set<FeatureId> present, Set<String> representationKinds, Object input) {
 		this.families = families;
 		this.present = Collections.unmodifiableSet(new HashSet<>(present));
-		this.representationKinds = Collections.unmodifiableSet(new HashSet<>(representationKinds));
-		this.input = input;
-	}
-
-	public static AvailabilityContext ofRepresentationKinds(Set<String> representationKinds) {
-		return new AvailabilityContext(new FeatureFamilies(Collections.emptyList()), Collections.emptySet(), representationKinds, null);
-	}
-
-	/** A context for a question that depends only on the input. */
-	public static AvailabilityContext forInput(Object input) {
-		return ofRepresentationKinds(Collections.emptySet()).withInput(input);
-	}
-
-	/** Until the Similarity kinds require representations by class (ticket 19, slice 3). */
-	public AvailabilityContext withRepresentationKinds(Set<String> representationKinds) {
-		return new AvailabilityContext(families, present, representationKinds, input);
 	}
 
 	public AvailabilityContext withInput(Object input) {
-		AvailabilityContext asked = families.withInput(this, input);
-		return new AvailabilityContext(families, asked.present, representationKinds, input);
+		return families.withInput(this, input);
 	}
 
 	/**
@@ -71,13 +47,5 @@ public class AvailabilityContext {
 
 	FeatureFamilies getFamilies() {
 		return families;
-	}
-
-	public Set<String> getRepresentationKinds() {
-		return representationKinds;
-	}
-
-	public Optional<Object> getInput() {
-		return Optional.ofNullable(input);
 	}
 }

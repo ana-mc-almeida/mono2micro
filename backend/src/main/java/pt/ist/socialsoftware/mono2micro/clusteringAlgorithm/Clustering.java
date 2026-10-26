@@ -4,6 +4,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.DecompositionRequest;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
+import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
@@ -21,8 +22,9 @@ public abstract class Clustering implements VariableFeature {
 
 	/** The Similarity kinds this algorithm accepts as input, as the shared check derives them from its requirements. */
 	public List<String> getAlgorithmSupportedStrategyTypes() {
+		AvailabilityContext noSystem = FeatureFamilies.scanned().contextFor(Collections.emptyList());
 		return SelfRegistration.prototypes(SimilarityKind.class).entrySet().stream()
-				.filter(kind -> AvailabilityCheck.derive(Collections.singletonList(this), AvailabilityContext.forInput(kind.getValue()))
+				.filter(kind -> AvailabilityCheck.derive(Collections.singletonList(this), noSystem.withInput(kind.getValue()))
 						.getFeatures().get(0).isAvailable())
 				.map(kind -> kind.getKey())
 				.collect(Collectors.toList());

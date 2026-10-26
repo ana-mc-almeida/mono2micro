@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
+import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
+import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
+import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
@@ -28,7 +31,7 @@ import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.STRUCTUR
  */
 public class FamilyScanTest {
 
-	private static final AvailabilityContext NOTHING_COLLECTED = AvailabilityContext.ofRepresentationKinds(Collections.emptySet());
+	private static final AvailabilityContext NOTHING_COLLECTED = FeatureFamilies.scanned().contextFor(Collections.emptyList());
 
 	@Test
 	public void everySimilarityKindAppearsInTheRecord() {
@@ -54,16 +57,23 @@ public class FamilyScanTest {
 				.containsExactlyInAnyOrderElementsOf(ClusteringFactory.algorithmTypes);
 	}
 
-	/** Without an input there is no Similarity kind to accept, and the record says which requirement failed. */
+	/**
+	 * Without an input there is no Similarity kind to accept, and the record names the family SciPy requires, not a list of kinds, so an 8th
+	 * kind does not edit the algorithm (D-025).
+	 */
 	@Test
-	public void anAlgorithmWithoutAnInputIsWithheldNamingTheKindsItAccepts() {
+	public void sciPyWithoutAnInputIsWithheldNamingTheSimilarityKindFamily() {
 		DerivationRecord record = AvailabilityCheck.derive(
-				SelfRegistration.prototypes(Clustering.class).values(), NOTHING_COLLECTED);
+				Collections.singletonList(SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY)), NOTHING_COLLECTED);
 
-		assertThat(record.getFeatures()).allSatisfy(algorithm -> {
-			assertThat(algorithm.isAvailable()).isFalse();
-			assertThat(algorithm.getFailedRequirements()).hasSize(1);
-			assertThat(algorithm.getFailedRequirements().get(0)).startsWith("Similarity kind in {");
-		});
+		FeatureAvailability sciPy = record.getFeatures().get(0);
+		assertThat(sciPy.isAvailable()).isFalse();
+		assertThat(sciPy.getFailedRequirements()).containsExactly(Requires.of(SimilarityKind.class).name());
+	}
+
+	@Test
+	public void sciPyAcceptsEveryKindTheFamilyFinds() {
+		assertThat(SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY).getAlgorithmSupportedStrategyTypes())
+				.containsExactlyElementsOf(SelfRegistration.prototypes(SimilarityKind.class).keySet());
 	}
 }

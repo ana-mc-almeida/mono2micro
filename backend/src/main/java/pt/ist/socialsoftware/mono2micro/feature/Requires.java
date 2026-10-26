@@ -7,7 +7,7 @@ package pt.ist.socialsoftware.mono2micro.feature;
  *
  * <p>A disjunction is {@link #anyOf}, over either.
  */
-public final class Requires implements Requirement {
+public final class Requires extends Requirement {
 
 	private final Class<?> target;
 

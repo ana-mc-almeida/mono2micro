@@ -5,16 +5,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Met when at least one of its alternatives is met: the disjunction a flat list of requirements
- * cannot say, as in the model's "Structure requires Static analysis or Model analysis or External".
- *
- * <p>Built now with its tests, and removed later if nothing comes to use it (D-019 point 1).
+ * Met when at least one of its alternatives is met: the disjunction a flat list of requirements cannot say, as in the model's "Lexical requires
+ * Structure or Call graph or Sequence of accesses", over features and families alike. Built by {@link Requires#anyOf}. It stays although
+ * nothing uses it yet, because ticket 09's Profile needs it (D-025 point 4).
  */
-public class AnyOf implements Requirement {
+public final class AnyOf extends Requirement {
 
 	private final List<Requirement> alternatives;
 
-	public AnyOf(Requirement... alternatives) {
+	AnyOf(Requirement... alternatives) {
 		this.alternatives = Arrays.asList(alternatives);
 	}
 

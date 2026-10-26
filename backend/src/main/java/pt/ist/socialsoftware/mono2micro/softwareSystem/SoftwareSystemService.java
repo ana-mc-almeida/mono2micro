@@ -88,9 +88,7 @@ public class SoftwareSystemService {
 
 	/** The software system's context: each family is asked once which of its features the system's collected representations make present (D-025). */
 	private AvailabilityContext availabilityContext(String softwareSystemId) {
-		List<Representation> representations = representationRepository.findBySoftwareSystemId(softwareSystemId);
-		return FeatureFamilies.scanned().contextFor(representations)
-				.withRepresentationKinds(representations.stream().map(Representation::getType).collect(Collectors.toSet()));
+		return FeatureFamilies.scanned().contextFor(representationRepository.findBySoftwareSystemId(softwareSystemId));
 	}
 
 	public void deleteSoftwareSystem(String softwareSystemId) {

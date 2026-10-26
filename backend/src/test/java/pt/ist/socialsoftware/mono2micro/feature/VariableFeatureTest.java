@@ -20,15 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class VariableFeatureTest {
 
+	private final TestFamilies test = new TestFamilies();
+
+	/** An inner class, so the self-registration scan does not see it. */
 	@JsonTypeName("Silent")
-	private static class SilentFeature implements VariableFeature {
+	class SilentFeature implements VariableFeature {
 	}
 
 	@JsonTypeName("Reads accesses")
-	private static class AccessesReadingFeature implements VariableFeature {
+	class AccessesReadingFeature implements VariableFeature {
 		@Override
 		public List<Requirement> requirements() {
-			return Arrays.asList(new Uploaded("IDToEntity"), new Uploaded("Accesses"));
+			return Arrays.asList(Requires.of(TestFamilies.StructureUpload.class), Requires.of(TestFamilies.AccessesUpload.class));
 		}
 	}
 
@@ -56,7 +59,7 @@ public class VariableFeatureTest {
 	public void aFeatureWithNoRequirementsIsAvailableEvenToASystemWithNoUploads() {
 		DerivationRecord record = AvailabilityCheck.derive(
 				Collections.singletonList(new SilentFeature()),
-				AvailabilityContext.ofRepresentationKinds(Collections.emptySet()));
+				test.systemHolding());
 
 		FeatureAvailability feature = record.getFeatures().get(0);
 		assertThat(feature.isAvailable()).isTrue();
@@ -67,10 +70,10 @@ public class VariableFeatureTest {
 	public void aFeatureIsWithheldWhenARequirementFailsAndTheFailureIsNamed() {
 		DerivationRecord record = AvailabilityCheck.derive(
 				Collections.singletonList(new AccessesReadingFeature()),
-				AvailabilityContext.ofRepresentationKinds(Collections.singleton("IDToEntity")));
+				test.systemHolding(test.new StructureUpload()));
 
 		FeatureAvailability feature = record.getFeatures().get(0);
 		assertThat(feature.isAvailable()).isFalse();
-		assertThat(feature.getFailedRequirements()).containsExactly("uploaded Accesses");
+		assertThat(feature.getFailedRequirements()).containsExactly(Requires.of(TestFamilies.AccessesUpload.class).name());
 	}
 }
