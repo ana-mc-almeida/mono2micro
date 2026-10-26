@@ -50,6 +50,19 @@ public abstract class Representation {
 	public abstract String getType();
 
 	/**
+	 * Every unit in this representation's file that a profile can select (D-017), or null when no profile can scope this
+	 * representation. Units are the representation's own elements, by name, such as an Accesses representation's
+	 * functionalities or a Structure representation's entities.
+	 *
+	 * <p>A null here is not a Similarity's null profile, which means every unit. Units are not Granularity elements in
+	 * general: Structure clusters the entities a profile selects, but Accesses clusters entities while its profile's
+	 * functionalities only scope the traces the similarity matrix is built from.
+	 */
+	public Set<String> readUnits(byte[] representationFile) throws Exception {
+		return null;
+	}
+
+	/**
 	 * The representation of the given kind that a software system collected, or null if it has none. A software system
 	 * holds at most one per kind, and keeps no list of them: this is a repository query (D-016).
 	 */

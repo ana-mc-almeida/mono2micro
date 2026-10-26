@@ -23,7 +23,7 @@ public class StructureRepresentation extends Representation {
 	public String init(SoftwareSystem softwareSystem, byte[] representationFile) throws Exception {
 		this.name = softwareSystem.getName() + " & " + getType();
 		this.softwareSystem = softwareSystem;
-		addProfile("Generic", getEntitiesNamesFromRepresentationFile(representationFile));
+		addProfile("Generic", readUnits(representationFile));
 		return id;
 	}
 
@@ -53,7 +53,9 @@ public class StructureRepresentation extends Representation {
 		this.profiles.remove(profileName);
 	}
 
-	private Set<String> getEntitiesNamesFromRepresentationFile(byte[] representationFile) throws Exception {
+	@Override
+	public Set<String> readUnits(byte[] representationFile) throws Exception {
+		// getEntitiesNamesFromRepresentationFile
 		JSONObject representationFileJSON = new JSONObject(new String(representationFile));
 		Set<String> entitiesNames = new HashSet<>();
 

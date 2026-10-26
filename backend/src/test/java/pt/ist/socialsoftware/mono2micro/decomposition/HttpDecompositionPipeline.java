@@ -343,6 +343,39 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		require(response, HttpStatus.OK, "refactor the functionalities of " + decompositionId);
 	}
 
+	String representationId(String softwareSystemId, String representationType) {
+		return getJson("/softwareSystems/{id}/representation/{type}/getSoftwareSystemRepresentation", softwareSystemId, representationType)
+				.path("id").asText();
+	}
+
+	/** Returns the new profile's id. */
+	String createProfile(String representationId, String profileName) {
+		ResponseEntity<JsonNode> response = rest.postForEntity(
+				base + "/representation/{id}/addProfile?profile={name}", null, JsonNode.class, representationId, profileName);
+
+		require(response, HttpStatus.CREATED, "create profile " + profileName);
+		return response.getBody().path("id").asText();
+	}
+
+	/** {@code {profiles: [{id, name, units}], unassigned: [...]}} */
+	JsonNode getProfiles(String representationId) {
+		return getJson("/representation/{id}/getProfiles", representationId);
+	}
+
+	/** A null target moves the units to Unassigned. */
+	void moveUnits(String representationId, List<String> units, String targetProfileId) {
+		String url = base + "/representation/{id}/moveUnits" + (targetProfileId == null ? "" : "?targetProfileId=" + targetProfileId);
+		ResponseEntity<String> response = rest.exchange(url, HttpMethod.POST, new HttpEntity<>(units, jsonHeaders()), String.class, representationId);
+
+		require(response, HttpStatus.OK, "move " + units + " to " + targetProfileId);
+	}
+
+	void deleteProfile(String profileId) {
+		ResponseEntity<String> response = rest.exchange(base + "/profile/{id}/delete", HttpMethod.DELETE, null, String.class, profileId);
+
+		require(response, HttpStatus.OK, "delete profile " + profileId);
+	}
+
 	@Override
 	public int representationCount(String softwareSystemId) {
 		return getJson("/softwareSystems/{id}/getRepresentations", softwareSystemId).size();

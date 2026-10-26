@@ -23,7 +23,7 @@ public class AccessesRepresentation extends Representation {
 	public String init(SoftwareSystem softwareSystem, byte[] representationFile) throws Exception {
 		this.name = softwareSystem.getName() + " & " + getType();
 		this.softwareSystem = softwareSystem;
-		addProfile("Generic", getFunctionalitiesNamesFromRepresentationFile(representationFile));
+		addProfile("Generic", readUnits(representationFile));
 		return id;
 	}
 
@@ -62,7 +62,9 @@ public class AccessesRepresentation extends Representation {
 			this.profiles.get(targetProfile).add(functionality);
 	}
 
-	private Set<String> getFunctionalitiesNamesFromRepresentationFile(byte[] representationFile) throws Exception {
+	@Override
+	public Set<String> readUnits(byte[] representationFile) throws Exception {
+		// getFunctionalitiesNamesFromRepresentationFile
 		JSONObject representationFileJSON = new JSONObject(new String(representationFile));
 		Set<String> functionalitiesNames = new HashSet<>();
 		for (Iterator<String> it = representationFileJSON.keys(); it.hasNext();)

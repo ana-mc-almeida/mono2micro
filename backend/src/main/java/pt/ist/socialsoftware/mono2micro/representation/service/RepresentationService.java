@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileRepository;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.RepresentationFactory;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
@@ -30,6 +31,9 @@ public class RepresentationService {
 
 	@Autowired
 	RepresentationRepository representationRepository;
+
+	@Autowired
+	ProfileRepository profileRepository;
 
 	@Autowired
 	GridFsService gridFsService;
@@ -73,6 +77,7 @@ public class RepresentationService {
 
 	public void deleteRepresentation(String representationId) {
 		Representation representation = getRepresentationById(representationId);
+		profileRepository.deleteByRepresentationId(representationId);
 		gridFsService.deleteFile(representation.getId());
 		representationRepository.deleteById(representationId);
 	}
@@ -88,6 +93,7 @@ public class RepresentationService {
 			}
 		}
 
+		profileRepository.deleteByRepresentationId(representationId);
 		gridFsService.deleteFile(representation.getId());
 		representationRepository.deleteById(representationId);
 	}
