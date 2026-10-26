@@ -77,7 +77,7 @@ public class ProfileService {
 			return null;
 
 		Profile profile = profileRepository.getById(profileId);
-		if (profile.isRetired() || !profile.getRepresentation().getSoftwareSystem().getId().equals(softwareSystemId))
+		if (profile.isRetired() || !profile.belongsTo(softwareSystemId))
 			throw new IllegalArgumentException("Profile " + profileId + " is not offered for software system " + softwareSystemId + ".");
 		return profile;
 	}

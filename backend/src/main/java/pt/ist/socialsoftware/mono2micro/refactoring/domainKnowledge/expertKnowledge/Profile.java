@@ -55,6 +55,10 @@ public class Profile {
 		return profile == null ? null : profile.getName();
 	}
 
+	public boolean belongsTo(String softwareSystemId) {
+		return representation.getSoftwareSystem().getId().equals(softwareSystemId);
+	}
+
 	/** A new version of this profile, under the same name, that selects the given units instead. */
 	public Profile withUnits(Set<String> units) {
 		return new Profile(name, units, representation);
