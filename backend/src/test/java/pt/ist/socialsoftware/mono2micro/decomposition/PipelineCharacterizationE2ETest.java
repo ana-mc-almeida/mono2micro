@@ -14,6 +14,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -75,6 +77,10 @@ class PipelineCharacterizationE2ETest {
 
 	@Autowired
 	private TestRestTemplate rest;
+	@Autowired
+	private SimilarityService similarityService;
+	@Autowired
+	private DecompositionRepository decompositionRepository;
 
 	private final List<Runnable> cleanups = new ArrayList<>();
 
@@ -350,6 +356,20 @@ class PipelineCharacterizationE2ETest {
 			if (decomposition.path("expert").asBoolean())
 				experts++;
 		assertThat(experts).isEqualTo(1);
+	}
+
+	// Deletion.
+
+	@Test
+	@DisplayName("Deleting a similarity deletes its decompositions")
+	void deleteSimilarity() {
+		Built built = build(CASE, StrategyCase.accesses());
+
+		// Through the service: deleting a strategy deletes its decompositions before its
+		// similarities, so no endpoint reaches this path with decompositions still there.
+		similarityService.deleteSimilarity(similarityService.getSimilarityById(built.similarity));
+
+		assertThat(decompositionRepository.findBySimilarityId(built.similarity)).isEmpty();
 	}
 
 	// Export to Context Mapper.

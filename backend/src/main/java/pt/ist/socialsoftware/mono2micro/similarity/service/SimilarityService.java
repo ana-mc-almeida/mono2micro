@@ -51,17 +51,13 @@ public class SimilarityService {
 	}
 
 	public void deleteSingleSimilarity(String similarityId) {
-		Similarity similarity = getSimilarityById(similarityId);
-
-		for (Decomposition decomposition : decompositionRepository.findBySimilarityId(similarityId))
-			decompositionService.deleteDecomposition(decomposition);
-
-		similarity.removeProperties();
-
-		similarityRepository.deleteById(similarityId);
+		deleteSimilarity(getSimilarityById(similarityId));
 	}
 
-	public void deleteSimilarity(Similarity similarity) { // Used when strategy is deleted
+	public void deleteSimilarity(Similarity similarity) {
+		for (Decomposition decomposition : decompositionRepository.findBySimilarityId(similarity.getId()))
+			decompositionService.deleteDecomposition(decomposition);
+
 		similarity.removeProperties();
 		similarityRepository.deleteById(similarity.getId());
 	}
