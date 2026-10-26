@@ -44,6 +44,27 @@ public final class FeatureFamilies {
 		return families.stream().filter(family -> family.getMemberType().equals(memberType)).findFirst();
 	}
 
+	/**
+	 * {@code target} as a noun phrase: a family's member type by the family's label ("a Similarity kind as input"), and a feature by its name
+	 * and its family's label ("an Accesses representation"), so two features with one name read differently (D-025 point 6).
+	 */
+	String describe(Class<?> target) {
+		return familyWithMemberType(target)
+				.map(family -> withArticle(family.getLabel()))
+				.orElseGet(() -> describe(FeatureId.of(target)));
+	}
+
+	/** A feature no family claims is named by itself; the boot check keeps the tool from having one. */
+	String describe(FeatureId feature) {
+		return familyOf(feature)
+				.map(family -> withArticle(feature.getName() + " " + family.getLabel()))
+				.orElse(feature.getName());
+	}
+
+	private static String withArticle(String phrase) {
+		return ("AEIOUaeiou".indexOf(phrase.charAt(0)) >= 0 ? "an " : "a ") + phrase;
+	}
+
 	/** The context of a software system that holds {@code holdings}, such as its collected representations: each family is asked once. */
 	public AvailabilityContext contextFor(Collection<?> holdings) {
 		Set<FeatureId> present = new HashSet<>();

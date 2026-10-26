@@ -13,8 +13,16 @@ public abstract class Requirement {
 	Requirement() {
 	}
 
-	/** What the derivation record reports when this requirement fails. */
-	public abstract String name();
+	/**
+	 * What the derivation record reports when this requirement fails: "requires" and what it names, worded with the label of the named family
+	 * (D-025 point 6). The name is generated, never written by the feature.
+	 */
+	public final String name(FeatureFamilies families) {
+		return "requires " + target(families);
+	}
+
+	/** What this requirement names, as a noun phrase such as "an Accesses representation". */
+	abstract String target(FeatureFamilies families);
 
 	public abstract boolean isMetBy(AvailabilityContext context);
 }

@@ -74,6 +74,6 @@ public class VariableFeatureTest {
 
 		FeatureAvailability feature = record.getFeatures().get(0);
 		assertThat(feature.isAvailable()).isFalse();
-		assertThat(feature.getFailedRequirements()).containsExactly(Requires.of(TestFamilies.AccessesUpload.class).name());
+		assertThat(feature.getFailedRequirements()).containsExactly("requires an Accesses upload");
 	}
 }

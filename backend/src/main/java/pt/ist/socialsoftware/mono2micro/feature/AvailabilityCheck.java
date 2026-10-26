@@ -31,11 +31,11 @@ public final class AvailabilityCheck {
 	private static List<String> failuresOf(VariableFeature feature, AvailabilityContext context) {
 		List<String> failures = requirementsOf(feature, context.getFamilies()).stream()
 				.filter(requirement -> !requirement.isMetBy(context))
-				.map(Requirement::name)
+				.map(requirement -> requirement.name(context.getFamilies()))
 				.collect(Collectors.toList());
 		feature.excludes().stream()
 				.filter(context::isPresent)
-				.map(excluded -> "excludes " + excluded.getName())
+				.map(excluded -> "excludes " + context.getFamilies().describe(excluded))
 				.forEach(failures::add);
 		return failures;
 	}

@@ -1,7 +1,9 @@
 package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
 import org.junit.jupiter.api.Test;
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.feature.FeatureId;
 
@@ -46,6 +48,15 @@ public class SimilarityKindFamilyTest {
 		assertThat(context.isPresent(StructureKind.class)).isTrue();
 		assertThat(context.isPresent(AccessesKind.class)).isFalse();
 		assertThat(context.isPresent(SimilarityKind.class)).isTrue();
+	}
+
+	/** The shared requirements are named with the representation family's label, which keeps them apart from the Accesses kind. */
+	@Test
+	public void aKindOnASystemWithNothingCollectedFailsWhatTheFamilyShares() {
+		DerivationRecord record = AvailabilityCheck.derive(Collections.singletonList(new AccessesKind()), nothingCollected);
+
+		assertThat(record.getFeatures().get(0).getFailedRequirements())
+				.containsExactly("requires an IDToEntity representation", "requires an Accesses representation");
 	}
 
 	@Test

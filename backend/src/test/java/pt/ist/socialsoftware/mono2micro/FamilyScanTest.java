@@ -6,7 +6,6 @@ import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
-import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
@@ -68,7 +67,7 @@ public class FamilyScanTest {
 
 		FeatureAvailability sciPy = record.getFeatures().get(0);
 		assertThat(sciPy.isAvailable()).isFalse();
-		assertThat(sciPy.getFailedRequirements()).containsExactly(Requires.of(SimilarityKind.class).name());
+		assertThat(sciPy.getFailedRequirements()).containsExactly("requires a Similarity kind as input");
 	}
 
 	@Test

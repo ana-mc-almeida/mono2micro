@@ -18,8 +18,8 @@ public final class AnyOf extends Requirement {
 	}
 
 	@Override
-	public String name() {
-		return alternatives.stream().map(Requirement::name).collect(Collectors.joining(", ", "any of {", "}"));
+	String target(FeatureFamilies families) {
+		return alternatives.stream().map(alternative -> alternative.target(families)).collect(Collectors.joining(", ", "any of {", "}"));
 	}
 
 	@Override

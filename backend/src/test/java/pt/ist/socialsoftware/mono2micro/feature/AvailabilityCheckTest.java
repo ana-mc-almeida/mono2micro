@@ -56,7 +56,7 @@ public class AvailabilityCheckTest {
 				.extracting(FeatureAvailability::getName, FeatureAvailability::isAvailable, FeatureAvailability::getFailedRequirements)
 				.containsExactly(
 						tuple("Needs accesses", true, Collections.emptyList()),
-						tuple("Needs both", false, Collections.singletonList(Requires.of(TestFamilies.StructureUpload.class).name())));
+						tuple("Needs both", false, Collections.singletonList("requires a Structure upload")));
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class AvailabilityCheckTest {
 
 		assertThat(record.getFeatures())
 				.extracting(FeatureAvailability::isAvailable, FeatureAvailability::getFailedRequirements)
-				.containsExactly(tuple(false, Collections.singletonList("excludes Structure")));
+				.containsExactly(tuple(false, Collections.singletonList("excludes a Structure upload")));
 	}
 
 	@Test

@@ -29,8 +29,8 @@ public final class Requires extends Requirement {
 	}
 
 	@Override
-	public String name() {
-		return "requires " + target.getSimpleName();
+	String target(FeatureFamilies families) {
+		return families.describe(target);
 	}
 
 	@Override

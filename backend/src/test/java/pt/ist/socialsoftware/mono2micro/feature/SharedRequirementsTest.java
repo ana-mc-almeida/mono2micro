@@ -36,6 +36,6 @@ public class SharedRequirementsTest {
 		DerivationRecord record = kindsFor(test.systemHolding());
 
 		assertThat(record.getFeatures().get(1).getFailedRequirements())
-				.containsExactly(Requires.of(TestFamilies.AccessesUpload.class).name(), Requires.of(TestFamilies.StructureUpload.class).name());
+				.containsExactly("requires an Accesses upload", "requires a Structure upload");
 	}
 }
