@@ -6,6 +6,7 @@ import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.TraceDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
@@ -132,20 +133,25 @@ public class AccessesWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		SimilarityScipyAccessesAndRepository s = (SimilarityScipyAccessesAndRepository) similarity;
-		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
-		byte[] accessesFile = IOUtils.toByteArray(gridFsService.getFile(accesses.getId()));
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, new ByteArrayInputStream(accessesFile), Profile.unitsOf(s.getProfile(), accesses, accessesFile),
-				s.getTraceType(), s.getTracesMaxLimit());
+		fillMatrixFromAccesses(gridFsService, similarity.getStrategy().getSoftwareSystem(), s.getProfile(), rawMatrix, fillFromIndex, s.getTraceType(),
+				s.getTracesMaxLimit());
 	}
 
 	@Override
 	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), ACCESSES);
+		fillMatrixFromAccesses(gridFsService, recommendation.getStrategy().getSoftwareSystem(), r.getProfile(), rawMatrix, fillFromIndex, r.getTraceType(),
+				r.getTracesMaxLimit());
+	}
+
+	/** Fills from the software system's Accesses file, on the profile's functionalities; a null profile means all of them (D-017). */
+	private static void fillMatrixFromAccesses(GridFsService gridFsService, SoftwareSystem softwareSystem, Profile profile, float[][][] rawMatrix,
+			int fillFromIndex, Constants.TraceType traceType, int tracesMaxLimit) throws IOException, JSONException {
+		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(softwareSystem, ACCESSES);
 		byte[] accessesFile = IOUtils.toByteArray(gridFsService.getFile(accesses.getId()));
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, new ByteArrayInputStream(accessesFile), Profile.unitsOf(r.getProfile(), accesses, accessesFile),
-				r.getTraceType(), r.getTracesMaxLimit());
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, new ByteArrayInputStream(accessesFile), Profile.unitsOf(profile, accesses, accessesFile),
+				traceType, tracesMaxLimit);
 	}
 
 	public static void fillRawMatrixFromAccesses(
