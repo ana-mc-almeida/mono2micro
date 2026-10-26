@@ -93,6 +93,14 @@ public abstract class SimilarityDto {
 		this.profileName = Profile.nameOf(profile);
 	}
 
+	/**
+	 * The representation kind whose units a profile of this Similarity selects, or null when the kind takes no profile.
+	 * Not a getter, so that it never appears in the JSON.
+	 */
+	public String scopedRepresentationType() {
+		return null;
+	}
+
 	/** How the generated name shows the profile. */
 	protected String profileLabel() {
 		return profileName == null ? "No profile" : profileName;

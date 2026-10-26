@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class ProfileE2ETest {
 
 	private static final String CASE = "quizzes-tutor";
+	private static final String STRUCTURE_CASE = "quizzes-tutor-structure";
 
 	@LocalServerPort
 	private int port;
@@ -176,6 +178,31 @@ class ProfileE2ETest {
 		pipeline.createProfile(accesses, "Quizzes");
 
 		assertThat(pipeline.getRepresentation(accesses).has("profiles")).isFalse();
+	}
+
+	@Test
+	@DisplayName("A Similarity refuses a profile of a representation its kind does not read")
+	void wrongRepresentationProfileIsRefused() {
+		StrategyCase structure = StrategyCase.structure();
+		assumeTrue(RepresentationFiles.missing(STRUCTURE_CASE, structure.fixtureSuffixes()).isEmpty(), "No structure fixture for " + STRUCTURE_CASE);
+		HttpDecompositionPipeline structurePipeline = new HttpDecompositionPipeline(rest, port, STRUCTURE_CASE);
+		String system = structurePipeline.createSoftwareSystem(STRUCTURE_CASE + "-profiles-" + System.nanoTime());
+		try {
+			structurePipeline.addRepresentations(system, structure);
+			String structureProfile = structurePipeline.createProfile(structurePipeline.representationId(system, "Structure"), "Entities");
+			String accessesProfile = structurePipeline.createProfile(structurePipeline.representationId(system, "Accesses"), "Functionalities");
+			StrategyCase accessesScopedByStructure = StrategyCase.accesses().withProfile(structureProfile);
+			StrategyCase structureScopedByAccesses = structure.withProfile(accessesProfile);
+
+			assertThat(structurePipeline.requestSimilarity(structurePipeline.createStrategy(system, accessesScopedByStructure), accessesScopedByStructure))
+					.as("an Accesses Similarity with a Structure profile")
+					.isEqualTo(HttpStatus.BAD_REQUEST);
+			assertThat(structurePipeline.requestSimilarity(structurePipeline.createStrategy(system, structureScopedByAccesses), structureScopedByAccesses))
+					.as("a Structure Similarity with an Accesses profile")
+					.isEqualTo(HttpStatus.BAD_REQUEST);
+		} finally {
+			structurePipeline.deleteSoftwareSystem(system);
+		}
 	}
 
 	private String scopedSimilarity(String profileId) {

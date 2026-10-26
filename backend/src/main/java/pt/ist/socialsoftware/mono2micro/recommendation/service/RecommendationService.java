@@ -46,7 +46,8 @@ public class RecommendationService {
 		// Create from scratch
 		if (existingRecommendation == null) {
 			recommendation = RecommendationFactory.getRecommendation(strategy, strategyRecommendations, recommendationDto);
-			recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), strategy.getSoftwareSystem().getId()));
+			recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), strategy.getSoftwareSystem().getId(),
+					recommendationDto.scopedRepresentationType()));
 			recommendationRepository.save(recommendation);
 		} else return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
 

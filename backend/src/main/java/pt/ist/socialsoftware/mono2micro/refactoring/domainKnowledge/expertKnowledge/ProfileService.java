@@ -70,15 +70,19 @@ public class ProfileService {
 
 	/**
 	 * The profile a new Similarity or recommendation of the software system is scoped by, or null for none. Only an
-	 * offered profile of that software system can scope one.
+	 * offered profile of that software system, selecting units of the representation kind the request reads
+	 * ({@code scopedRepresentationType}, null when it takes no profile), can scope one.
 	 */
-	public Profile getScopingProfile(String profileId, String softwareSystemId) {
+	public Profile getScopingProfile(String profileId, String softwareSystemId, String scopedRepresentationType) {
 		if (profileId == null)
 			return null;
 
 		Profile profile = profileRepository.getById(profileId);
 		if (profile.isRetired() || !profile.belongsTo(softwareSystemId))
 			throw new IllegalArgumentException("Profile " + profileId + " is not offered for software system " + softwareSystemId + ".");
+		if (!profile.getRepresentation().getType().equals(scopedRepresentationType))
+			throw new IllegalArgumentException("Profile " + profileId + " selects " + profile.getRepresentation().getType()
+					+ " units, but the request reads " + (scopedRepresentationType == null ? "no profile" : scopedRepresentationType + " units") + ".");
 		return profile;
 	}
 

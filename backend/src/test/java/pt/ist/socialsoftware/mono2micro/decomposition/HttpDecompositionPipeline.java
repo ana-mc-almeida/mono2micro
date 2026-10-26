@@ -134,6 +134,19 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return response.getBody().path("id").asText();
 	}
 
+	/** The status of a Similarity request, for a test that expects it refused. */
+	HttpStatus requestSimilarity(String strategyId, StrategyCase strategyCase) {
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("type", strategyCase.similarityType());
+		body.put("strategyId", strategyId);
+		body.put("linkageType", "average");
+		body.putAll(strategyCase.extraSimilarityFields());
+		if (!strategyCase.weights().isEmpty())
+			body.put("weightsList", strategyCase.weights());
+
+		return rest.exchange(base + "/similarity/create", HttpMethod.POST, new HttpEntity<>(body, jsonHeaders()), String.class).getStatusCode();
+	}
+
 	@Override
 	public String createDecomposition(String similarityId) {
 		Map<String, Object> body = new LinkedHashMap<>();

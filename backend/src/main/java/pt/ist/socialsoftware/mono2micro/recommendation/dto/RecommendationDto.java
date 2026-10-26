@@ -50,6 +50,14 @@ public abstract class RecommendationDto {
 		this.profileName = profileName;
 	}
 
+	/**
+	 * The representation kind whose units a profile of the recommended Similarities selects, or null when they take no
+	 * profile. Not a getter, so that it never appears in the JSON.
+	 */
+	public String scopedRepresentationType() {
+		return null;
+	}
+
 	/** Not a setter, so that a request's JSON never binds to it. */
 	protected void copyProfile(Profile profile) {
 		this.profileId = Profile.idOf(profile);

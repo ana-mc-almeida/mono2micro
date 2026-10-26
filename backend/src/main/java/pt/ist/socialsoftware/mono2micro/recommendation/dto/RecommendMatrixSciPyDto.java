@@ -6,6 +6,11 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 
 import java.util.List;
 
+import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.RECOMMEND_MATRIX_SCIPY;
+import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.RECOMMEND_MATRIX_SCIPY_STRUCTURE;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
+
 public class RecommendMatrixSciPyDto extends RecommendationDto {
 	private String linkageType;
 	private Constants.TraceType traceType;
@@ -13,6 +18,18 @@ public class RecommendMatrixSciPyDto extends RecommendationDto {
 	private List<Weights> weightsList;
 
 	public RecommendMatrixSciPyDto() {}
+
+	@Override
+	public String scopedRepresentationType() {
+		switch (getType()) {
+		case RECOMMEND_MATRIX_SCIPY:
+			return ACCESSES;
+		case RECOMMEND_MATRIX_SCIPY_STRUCTURE:
+			return STRUCTURE;
+		default:
+			return null;
+		}
+	}
 
 	public RecommendMatrixSciPyDto(RecommendMatrixSciPy recommendation) {
 		this.setType(recommendation.getType());

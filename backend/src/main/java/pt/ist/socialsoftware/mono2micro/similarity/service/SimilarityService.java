@@ -44,7 +44,8 @@ public class SimilarityService {
 	public Similarity createSimilarity(SimilarityDto similarityDto) throws Exception {
 		Strategy strategy = strategyRepository.getById(similarityDto.getStrategyId());
 		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
-		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), strategy.getSoftwareSystem().getId());
+		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), strategy.getSoftwareSystem().getId(),
+				similarityDto.scopedRepresentationType());
 		similarityDto.setProfileName(Profile.nameOf(profile)); // and shows the profile
 		for (Similarity existing : similarityRepository.findByStrategyId(strategy.getId()))
 			if (existing.equalsDto(similarityDto))
