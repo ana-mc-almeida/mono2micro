@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
-import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
 
 @Document("representation")
@@ -16,7 +15,6 @@ import java.util.*;
 public class AccessesRepresentation extends Representation {
 
 	public static final String ACCESSES = "Accesses";
-	private Map<String, Set<String>> profiles = new HashMap<>(); // e.g <Generic, FunctionalityNamesList>
 
 	public AccessesRepresentation() {}
 
@@ -24,43 +22,12 @@ public class AccessesRepresentation extends Representation {
 	public String init(SoftwareSystem softwareSystem, byte[] representationFile) throws Exception {
 		this.name = softwareSystem.getName() + " & " + getType();
 		this.softwareSystem = softwareSystem;
-		addProfile("Generic", readUnits(representationFile));
 		return id;
 	}
 
 	@Override
 	public String getType() {
 		return ACCESSES;
-	}
-
-	public Map<String, Set<String>> getProfiles() {
-		return this.profiles;
-	}
-
-	public Set<String> getProfile(String profileName) { return this.profiles.get(profileName); }
-
-	public void setProfiles(Map<String, Set<String>> profiles) {
-		this.profiles = profiles;
-	}
-
-	public void addProfile(String profileName, Set<String> functionalities) {
-		if (this.profiles.containsKey(profileName))
-			throw new KeyAlreadyExistsException();
-
-		this.profiles.put(profileName, functionalities);
-	}
-
-	public void deleteProfile(String profileName) {
-		this.profiles.remove(profileName);
-	}
-
-	public void moveFunctionalities(String[] functionalities, String targetProfile) {
-		for (String profile : this.profiles.keySet())
-			for (String functionality : functionalities)
-				this.profiles.get(profile).remove(functionality);
-
-		for (String functionality : functionalities)
-			this.profiles.get(targetProfile).add(functionality);
 	}
 
 	@Override

@@ -9,14 +9,12 @@ import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
-import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
 
 @Document("representation")
 @JsonTypeName(StructureRepresentation.STRUCTURE)
 public class StructureRepresentation extends Representation {
 	public static final String STRUCTURE = "Structure";
-	private Map<String, Set<String>> profiles = new HashMap<>();
 
 	public StructureRepresentation() {}
 
@@ -24,34 +22,12 @@ public class StructureRepresentation extends Representation {
 	public String init(SoftwareSystem softwareSystem, byte[] representationFile) throws Exception {
 		this.name = softwareSystem.getName() + " & " + getType();
 		this.softwareSystem = softwareSystem;
-		addProfile("Generic", readUnits(representationFile));
 		return id;
 	}
 
 	@Override
 	public String getType() {
 		return STRUCTURE;
-	}
-
-	public Map<String, Set<String>> getProfiles() {
-		return this.profiles;
-	}
-
-	public Set<String> getProfile(String profileName) { return this.profiles.get(profileName); }
-
-	public void setProfiles(Map<String, Set<String>> profiles) {
-		this.profiles = profiles;
-	}
-
-	public void addProfile(String profileName, Set<String> entities) {
-		if (this.profiles.containsKey(profileName))
-			throw new KeyAlreadyExistsException();
-
-		this.profiles.put(profileName, entities);
-	}
-
-	public void deleteProfile(String profileName) {
-		this.profiles.remove(profileName);
 	}
 
 	@Override

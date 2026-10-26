@@ -170,6 +170,14 @@ class ProfileE2ETest {
 		assertThat(scopedSimilarity(profileId("Quizzes"))).as("the same name, a new version").isNotEqualTo(similarity);
 	}
 
+	@Test
+	@DisplayName("A representation holds no profiles: they are Expert knowledge, not representation data")
+	void representationsHoldNoProfiles() {
+		pipeline.createProfile(accesses, "Quizzes");
+
+		assertThat(pipeline.getRepresentation(accesses).has("profiles")).isFalse();
+	}
+
 	private String scopedSimilarity(String profileId) {
 		StrategyCase scoped = StrategyCase.accesses().withProfile(profileId);
 		return pipeline.createSimilarity(pipeline.createStrategy(softwareSystem, scoped), scoped);

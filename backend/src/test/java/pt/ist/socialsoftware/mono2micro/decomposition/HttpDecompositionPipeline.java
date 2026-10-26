@@ -356,6 +356,10 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				.path("id").asText();
 	}
 
+	JsonNode getRepresentation(String representationId) {
+		return getJson("/representation/{id}/getRepresentation", representationId);
+	}
+
 	/** Returns the new profile's id. */
 	String createProfile(String representationId, String profileName) {
 		ResponseEntity<JsonNode> response = rest.postForEntity(
