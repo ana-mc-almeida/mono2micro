@@ -2,21 +2,20 @@ package pt.ist.socialsoftware.mono2micro;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
-import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
+import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
+import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 /**
- * The one place that knows every family of {@code VariableFeature}s (D-022). Runs each family's scan when the application starts, so a feature without a
- * {@code @JsonTypeName}, or two features sharing one, stops the boot instead of failing the first
- * availability request.
+ * Runs the families' scans and {@link FeatureFamilies#verify} when the application starts (D-025 point 7), so a feature without a
+ * {@code @JsonTypeName}, two features sharing one, a feature no family claims, or a requirement naming nothing stops the boot instead of failing
+ * the first availability request.
  */
 @Component
 public class FeatureRegistrationCheck implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() {
-		SelfRegistration.prototypes(SimilarityKind.class);
-		SelfRegistration.prototypes(Clustering.class);
+		FeatureFamilies.scanned().verify(SelfRegistration.types(VariableFeature.class));
 	}
 }

@@ -34,6 +34,10 @@ public final class FeatureId {
 		return of(feature.getClass());
 	}
 
+	Class<?> getType() {
+		return type;
+	}
+
 	public String getName() {
 		return name;
 	}

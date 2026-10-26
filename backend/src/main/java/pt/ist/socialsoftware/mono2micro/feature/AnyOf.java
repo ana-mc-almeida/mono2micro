@@ -3,6 +3,7 @@ package pt.ist.socialsoftware.mono2micro.feature;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Met when at least one of its alternatives is met: the disjunction a flat list of requirements cannot say, as in the model's "Lexical requires
@@ -25,5 +26,10 @@ public final class AnyOf extends Requirement {
 	@Override
 	public boolean isMetBy(AvailabilityContext context) {
 		return alternatives.stream().anyMatch(alternative -> alternative.isMetBy(context));
+	}
+
+	@Override
+	Stream<Class<?>> targets() {
+		return alternatives.stream().flatMap(Requirement::targets);
 	}
 }

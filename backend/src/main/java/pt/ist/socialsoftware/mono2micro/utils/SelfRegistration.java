@@ -88,6 +88,11 @@ public final class SelfRegistration {
 		return findNamedType(type).orElseThrow(() -> new IllegalStateException(type.getName() + " has no @JsonTypeName"));
 	}
 
+	/** Whether some class up {@code type}'s hierarchy declares a {@code @JsonTypeName}, as {@link #namedType} needs. */
+	public static boolean hasNamedType(Class<?> type) {
+		return findNamedType(type).isPresent();
+	}
+
 	private static Optional<String> findName(Object member) {
 		return findNamedType(member.getClass()).map(type -> type.getDeclaredAnnotation(JsonTypeName.class).value());
 	}

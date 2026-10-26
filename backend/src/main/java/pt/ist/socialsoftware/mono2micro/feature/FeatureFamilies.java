@@ -5,8 +5,10 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,6 +44,56 @@ public final class FeatureFamilies {
 	/** The family whose member type is {@code memberType}, if one is registered. */
 	public Optional<FeatureFamily<?>> familyWithMemberType(Class<?> memberType) {
 		return families.stream().filter(family -> family.getMemberType().equals(memberType)).findFirst();
+	}
+
+	/**
+	 * Fails when the families do not add up, so the boot stops instead of an availability request misreporting (D-025 point 7): two families
+	 * claim one feature, one of {@code variableFeatures} belongs to no family, or a requirement or exclusion names a class that is neither a
+	 * feature of some family nor a family's member type. The requirements checked are each family's shared ones and its features' own.
+	 *
+	 * @throws IllegalStateException
+	 * naming the first such problem
+	 */
+	public void verify(Collection<Class<? extends VariableFeature>> variableFeatures) {
+		Map<FeatureId, FeatureFamily<?>> owners = new HashMap<>();
+		for (FeatureFamily<?> family : families)
+			for (FeatureId feature : family.features()) {
+				FeatureFamily<?> owner = owners.putIfAbsent(feature, family);
+				if (owner != null)
+					throw new IllegalStateException(
+							"The families \"" + owner.getLabel() + "\" and \"" + family.getLabel() + "\" both claim the feature " + feature);
+			}
+		for (Class<? extends VariableFeature> type : variableFeatures)
+			if (!isFeature(type))
+				throw new IllegalStateException(type.getName() + " is a variable feature that no family claims");
+		for (FeatureFamily<?> family : families) {
+			verifyTargets("The family \"" + family.getLabel() + "\"", family.sharedRequirements());
+			for (Object member : family.members())
+				if (member instanceof VariableFeature)
+					verifyTargets((VariableFeature) member);
+		}
+	}
+
+	private void verifyTargets(VariableFeature feature) {
+		String name = SelfRegistration.nameOf(feature);
+		verifyTargets(name, feature.requirements());
+		for (FeatureId excluded : feature.excludes())
+			if (!familyOf(excluded).isPresent())
+				throw new IllegalStateException(name + " excludes " + excluded.getType().getName() + ", which no family claims");
+	}
+
+	private void verifyTargets(String owner, List<Requirement> requirements) {
+		requirements.stream().flatMap(Requirement::targets)
+				.filter(target -> !familyWithMemberType(target).isPresent() && !isFeature(target))
+				.findFirst()
+				.ifPresent(target -> {
+					throw new IllegalStateException(
+							owner + " requires " + target.getName() + ", which is neither a feature of a family nor a family's member type");
+				});
+	}
+
+	private boolean isFeature(Class<?> type) {
+		return SelfRegistration.hasNamedType(type) && familyOf(FeatureId.of(type)).isPresent();
 	}
 
 	/**

@@ -1,5 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.feature;
 
+import java.util.stream.Stream;
+
 /**
  * One thing a {@link VariableFeature} needs before the tool can offer it. A requirement points at a feature or at a family, never at the data
  * behind it, so meeting one is a lookup in the context's set of present features (D-025 point 4).
@@ -25,4 +27,7 @@ public abstract class Requirement {
 	abstract String target(FeatureFamilies families);
 
 	public abstract boolean isMetBy(AvailabilityContext context);
+
+	/** Every class this requirement names, so the boot check can verify that each is a feature or a family (D-025 point 7). */
+	abstract Stream<Class<?>> targets();
 }

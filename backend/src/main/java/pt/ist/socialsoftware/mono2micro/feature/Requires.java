@@ -1,5 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.feature;
 
+import java.util.stream.Stream;
+
 /**
  * Met when what it names is present (D-025 point 4). A feature names what it needs by class and nothing else: a feature's own class, as in
  * {@code Requires.of(AccessesRepresentation.class)}, or a family's member type, as in {@code Requires.of(SimilarityKind.class)} ("some
@@ -36,5 +38,10 @@ public final class Requires extends Requirement {
 	@Override
 	public boolean isMetBy(AvailabilityContext context) {
 		return context.isPresent(target);
+	}
+
+	@Override
+	Stream<Class<?>> targets() {
+		return Stream.of(target);
 	}
 }

@@ -6,6 +6,7 @@ import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
+import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
@@ -15,6 +16,7 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ACCESSES_STRATEGY;
 import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.CLASS_VECTORIZATION_STRATEGY;
 import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ENTITY_VECTORIZATION_STRATEGY;
@@ -74,5 +76,11 @@ public class FamilyScanTest {
 	public void sciPyAcceptsEveryKindTheFamilyFinds() {
 		assertThat(SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY).getAlgorithmSupportedStrategyTypes())
 				.containsExactlyElementsOf(SelfRegistration.prototypes(SimilarityKind.class).keySet());
+	}
+
+	/** What the boot runs: every family, every variable feature on the classpath, and every requirement add up (D-025 point 7). */
+	@Test
+	public void theToolsFamiliesPassTheBootCheck() {
+		assertThatCode(() -> FeatureFamilies.scanned().verify(SelfRegistration.types(VariableFeature.class))).doesNotThrowAnyException();
 	}
 }
