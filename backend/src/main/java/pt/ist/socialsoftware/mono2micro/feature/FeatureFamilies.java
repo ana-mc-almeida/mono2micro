@@ -1,5 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.feature;
 
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,6 +20,14 @@ public final class FeatureFamilies {
 
 	public FeatureFamilies(Collection<? extends FeatureFamily<?>> families) {
 		this.families = Collections.unmodifiableList(new ArrayList<>(families));
+	}
+
+	/** The tool's families, found by the self-registration scan, so adding a family is adding its class. */
+	public static FeatureFamilies scanned() {
+		List<FeatureFamily<?>> families = new ArrayList<>();
+		for (FeatureFamily<?> family : SelfRegistration.instances(FeatureFamily.class))
+			families.add(family);
+		return new FeatureFamilies(families);
 	}
 
 	public List<FeatureFamily<?>> getFamilies() {

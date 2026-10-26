@@ -87,6 +87,20 @@ public class SelfRegistrationTest {
 	}
 
 	@Test
+	public void theUnnamedScanFindsEveryConcreteClassWithoutAskingForANameInClassNameOrder() {
+		assertThat(SelfRegistration.instances(Fruit.class)).extracting(fruit -> fruit.getClass().getSimpleName())
+				.containsExactly("Apple", "Lemon", "Pear");
+		assertThat(SelfRegistration.instances(Unnamed.class)).extracting(unnamed -> unnamed.getClass().getSimpleName())
+				.containsExactly("Forgotten");
+	}
+
+	@Test
+	public void aRuntimeSubclassResolvesToTheClassThatNamesIt() {
+		assertThat(SelfRegistration.namedType(new Lemon() {
+		}.getClass())).isEqualTo(Lemon.class);
+	}
+
+	@Test
 	public void aFeaturesNameIsItsJsonTypeName() {
 		assertThat(SelfRegistration.nameOf(new Lemon())).isEqualTo("Lemon");
 	}

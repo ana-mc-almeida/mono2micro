@@ -6,7 +6,10 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -26,6 +29,7 @@ public final class SelfRegistration {
 	private static final String BASE_PACKAGE = "pt.ist.socialsoftware.mono2micro";
 
 	private static final Map<Class<?>, SortedMap<String, ?>> PROTOTYPES = new ConcurrentHashMap<>();
+	private static final Map<Class<?>, List<?>> INSTANCES = new ConcurrentHashMap<>();
 
 	private SelfRegistration() {
 	}
@@ -40,6 +44,22 @@ public final class SelfRegistration {
 	@SuppressWarnings("unchecked")
 	public static <T> SortedMap<String, T> prototypes(Class<T> family) {
 		return (SortedMap<String, T>) PROTOTYPES.computeIfAbsent(family, SelfRegistration::scan);
+	}
+
+	/**
+	 * One instance of every concrete class assignable to {@code type}, in class-name order, for types whose members need no name, such as the
+	 * feature families.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> List<T> instances(Class<T> type) {
+		return (List<T>) INSTANCES.computeIfAbsent(type, SelfRegistration::scanInstances);
+	}
+
+	private static <T> List<T> scanInstances(Class<T> type) {
+		List<T> instances = new ArrayList<>();
+		for (Class<? extends T> member : candidates(type))
+			instances.add(instantiate(member));
+		return Collections.unmodifiableList(instances);
 	}
 
 	/**
@@ -79,13 +99,24 @@ public final class SelfRegistration {
 		return Optional.empty();
 	}
 
-	private static <T> SortedMap<String, T> scan(Class<T> family) {
-		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-		scanner.addIncludeFilter(new AssignableTypeFilter(family));
+	/** Every concrete class assignable to {@code type}, in class-name order. */
+	public static <T> List<Class<? extends T>> types(Class<T> type) {
+		return candidates(type);
+	}
 
+	private static <T> List<Class<? extends T>> candidates(Class<T> type) {
+		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+		scanner.addIncludeFilter(new AssignableTypeFilter(type));
+		List<Class<? extends T>> types = new ArrayList<>();
+		for (BeanDefinition candidate : scanner.findCandidateComponents(BASE_PACKAGE))
+			types.add(load(candidate.getBeanClassName(), type));
+		types.sort(Comparator.comparing(Class::getName));
+		return types;
+	}
+
+	private static <T> SortedMap<String, T> scan(Class<T> family) {
 		SortedMap<String, T> members = new TreeMap<>();
-		for (BeanDefinition candidate : scanner.findCandidateComponents(BASE_PACKAGE)) {
-			Class<? extends T> type = load(candidate.getBeanClassName(), family);
+		for (Class<? extends T> type : candidates(family)) {
 			JsonTypeName name = type.getDeclaredAnnotation(JsonTypeName.class);
 			if (name == null)
 				throw new IllegalStateException(type.getName() + " is a " + family.getSimpleName() + " without a @JsonTypeName");

@@ -41,6 +41,11 @@ public class AvailabilityContext {
 		return ofRepresentationKinds(Collections.emptySet()).withInput(input);
 	}
 
+	/** Until the Similarity kinds require representations by class (ticket 19, slice 3). */
+	public AvailabilityContext withRepresentationKinds(Set<String> representationKinds) {
+		return new AvailabilityContext(families, present, representationKinds, input);
+	}
+
 	public AvailabilityContext withInput(Object input) {
 		AvailabilityContext asked = families.withInput(this, input);
 		return new AvailabilityContext(families, asked.present, representationKinds, input);

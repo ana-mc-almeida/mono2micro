@@ -6,6 +6,7 @@ import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
+import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
@@ -81,9 +82,15 @@ public class SoftwareSystemService {
 	}
 
 	public List<String> getAllowableSoftwareSystemStrategyTypes(String softwareSystemId) {
-		return AvailabilityCheck.derive(
-				SelfRegistration.prototypes(SimilarityKind.class).values(),
-				AvailabilityContext.ofRepresentationKinds(representationKinds(softwareSystemId))).availableNames();
+		return AvailabilityCheck.derive(SelfRegistration.prototypes(SimilarityKind.class).values(), availabilityContext(softwareSystemId))
+				.availableNames();
+	}
+
+	/** The software system's context: each family is asked once which of its features the system's collected representations make present (D-025). */
+	private AvailabilityContext availabilityContext(String softwareSystemId) {
+		List<Representation> representations = representationRepository.findBySoftwareSystemId(softwareSystemId);
+		return FeatureFamilies.scanned().contextFor(representations)
+				.withRepresentationKinds(representations.stream().map(Representation::getType).collect(Collectors.toSet()));
 	}
 
 	public void deleteSoftwareSystem(String softwareSystemId) {
@@ -95,7 +102,6 @@ public class SoftwareSystemService {
 		softwareSystemRepository.delete(softwareSystem);
 	}
 
-	/** The context the shared check reads: the kinds of the representations this software system has collected (D-022). */
 	private Set<String> representationKinds(String softwareSystemId) {
 		return representationRepository.findBySoftwareSystemId(softwareSystemId).stream()
 				.map(Representation::getType)

@@ -1,11 +1,13 @@
 package pt.ist.socialsoftware.mono2micro.representation.analytical.domain;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 @Document("representation")
+@JsonTypeName(AuthorRepresentation.AUTHOR)
 public class AuthorRepresentation extends Representation {
 	public static final String AUTHOR = "Changes Authorship";
 
