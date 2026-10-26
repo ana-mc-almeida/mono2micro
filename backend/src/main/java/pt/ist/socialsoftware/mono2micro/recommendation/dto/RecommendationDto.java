@@ -2,6 +2,7 @@ package pt.ist.socialsoftware.mono2micro.recommendation.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 
 import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.*;
 
@@ -47,6 +48,12 @@ public abstract class RecommendationDto {
 
 	public void setProfileName(String profileName) {
 		this.profileName = profileName;
+	}
+
+	/** Not a setter, so that a request's JSON never binds to it. */
+	protected void copyProfile(Profile profile) {
+		this.profileId = Profile.idOf(profile);
+		this.profileName = Profile.nameOf(profile);
 	}
 
 	public String getId() {

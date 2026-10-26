@@ -45,7 +45,7 @@ public class SimilarityService {
 		Strategy strategy = strategyRepository.getById(similarityDto.getStrategyId());
 		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
 		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), strategy.getSoftwareSystem().getId());
-		similarityDto.setProfileName(profile == null ? null : profile.getName()); // and shows the profile
+		similarityDto.setProfileName(Profile.nameOf(profile)); // and shows the profile
 		for (Similarity existing : similarityRepository.findByStrategyId(strategy.getId()))
 			if (existing.equalsDto(similarityDto))
 				return existing;

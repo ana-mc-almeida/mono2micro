@@ -62,7 +62,7 @@ public abstract class Similarity {
 	}
 
 	public String getProfileId() {
-		return profile == null ? null : profile.getId();
+		return Profile.idOf(profile);
 	}
 
 	public abstract Clustering getClustering();

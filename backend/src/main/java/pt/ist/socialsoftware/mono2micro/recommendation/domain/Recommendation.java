@@ -56,7 +56,7 @@ public abstract class Recommendation {
 	}
 
 	public String getProfileId() {
-		return profile == null ? null : profile.getId();
+		return Profile.idOf(profile);
 	}
 
 	public abstract String getType();

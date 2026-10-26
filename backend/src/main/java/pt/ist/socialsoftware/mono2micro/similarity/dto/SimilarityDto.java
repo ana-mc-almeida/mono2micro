@@ -89,8 +89,8 @@ public abstract class SimilarityDto {
 
 	/** Not a setter, so that a request's JSON never binds to it. */
 	protected void copyProfile(Profile profile) {
-		this.profileId = profile == null ? null : profile.getId();
-		this.profileName = profile == null ? null : profile.getName();
+		this.profileId = Profile.idOf(profile);
+		this.profileName = Profile.nameOf(profile);
 	}
 
 	/** How the generated name shows the profile. */

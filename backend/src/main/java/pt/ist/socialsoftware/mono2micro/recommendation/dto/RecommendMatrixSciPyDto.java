@@ -20,8 +20,7 @@ public class RecommendMatrixSciPyDto extends RecommendationDto {
 		this.setStrategyId(recommendation.getStrategy().getId());
 		this.setStrategyName(recommendation.getStrategy().getName());
 		this.name = recommendation.getName();
-		this.profileId = recommendation.getProfileId();
-		this.profileName = recommendation.getProfile() == null ? null : recommendation.getProfile().getName();
+		copyProfile(recommendation.getProfile());
 		this.linkageType = recommendation.getLinkageType();
 		this.tracesMaxLimit = recommendation.getTracesMaxLimit();
 		this.isCompleted = recommendation.isCompleted();

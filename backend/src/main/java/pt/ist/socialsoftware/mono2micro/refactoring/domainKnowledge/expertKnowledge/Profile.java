@@ -45,6 +45,16 @@ public class Profile {
 		return profile == null ? representation.readUnits(representationFile) : profile.getUnits();
 	}
 
+	/** The profile's id, or null for no profile. */
+	public static String idOf(Profile profile) {
+		return profile == null ? null : profile.getId();
+	}
+
+	/** The profile's name, or null for no profile. */
+	public static String nameOf(Profile profile) {
+		return profile == null ? null : profile.getName();
+	}
+
 	/** A new version of this profile, under the same name, that selects the given units instead. */
 	public Profile withUnits(Set<String> units) {
 		return new Profile(name, units, representation);
