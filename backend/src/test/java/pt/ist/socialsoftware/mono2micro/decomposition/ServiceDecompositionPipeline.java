@@ -1,12 +1,11 @@
 package pt.ist.socialsoftware.mono2micro.decomposition;
 
 import org.springframework.mock.web.MockMultipartFile;
-import pt.ist.socialsoftware.mono2micro.codebase.CodebaseService;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyClassVectorizationDto;
@@ -45,7 +44,7 @@ import java.util.TreeMap;
  */
 class ServiceDecompositionPipeline implements DecompositionPipeline {
 
-	private final CodebaseService codebaseService;
+	private final SoftwareSystemService softwareSystemService;
 	private final RepresentationService representationService;
 	private final StrategyService strategyService;
 	private final SimilarityService similarityService;
@@ -55,14 +54,14 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	private final String caseName;
 
 	ServiceDecompositionPipeline(
-			CodebaseService codebaseService,
+			SoftwareSystemService softwareSystemService,
 			RepresentationService representationService,
 			StrategyService strategyService,
 			SimilarityService similarityService,
 			DecompositionService decompositionService,
 			String caseName
 	) {
-		this.codebaseService = codebaseService;
+		this.softwareSystemService = softwareSystemService;
 		this.representationService = representationService;
 		this.strategyService = strategyService;
 		this.similarityService = similarityService;
@@ -76,12 +75,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void createCodebase(String codebaseName) {
-		codebaseService.createCodebase(codebaseName);
+	public String createSoftwareSystem(String softwareSystemName) {
+		return softwareSystemService.createSoftwareSystem(softwareSystemName).getId();
 	}
 
 	@Override
-	public void addRepresentations(String codebaseName, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemId, StrategyCase strategyCase) {
 		List<String> types = new ArrayList<>();
 		List<Object> files = new ArrayList<>();
 
@@ -94,35 +93,27 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 
 		try {
 			representationService.addRepresentations(
-					codebaseName, strategyCase.representationGroup(), types, files);
+					softwareSystemId, strategyCase.representationGroup(), types, files);
 		} catch (Exception e) {
-			throw new AssertionError("Could not add representations to " + codebaseName, e);
+			throw new AssertionError("Could not add representations to " + softwareSystemId, e);
 		}
 	}
 
 	@Override
-	public String createStrategy(String codebaseName, StrategyCase strategyCase) {
-		strategyService.createStrategy(codebaseName, "SciPy Clustering", strategyCase.strategyTypes());
-		return strategyCase.strategyName(codebaseName);
+	public String createStrategy(String softwareSystemId, StrategyCase strategyCase) {
+		return strategyService.createStrategy(softwareSystemId, "SciPy Clustering", strategyCase.strategyTypes()).getId();
 	}
 
 	@Override
-	public String createSimilarity(String strategyName, StrategyCase strategyCase) {
-		SimilarityDto dto = similarityDto(strategyName, strategyCase);
+	public String createSimilarity(String strategyId, StrategyCase strategyCase) {
+		SimilarityDto dto = similarityDto(strategyId, strategyCase);
 
 		try {
-			similarityService.createSimilarity(dto);
+			// A duplicate request returns the existing similarity rather than creating one.
+			return similarityService.createSimilarity(dto).getId();
 		} catch (Exception e) {
-			throw new AssertionError("Could not create similarity for " + strategyName, e);
+			throw new AssertionError("Could not create similarity for " + strategyId, e);
 		}
-
-		// createSimilarity returns void, and a duplicate request is a silent no-op, so the
-		// generated name is read back rather than reconstructed.
-		List<Similarity> similarities = strategyService.getStrategySimilarities(strategyName);
-		if (similarities.isEmpty())
-			throw new AssertionError("No similarity was created for " + strategyName);
-
-		return similarities.get(similarities.size() - 1).getName();
 	}
 
 	/**
@@ -134,13 +125,13 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	 * Constructing them directly is also why this implementation never exercises the
 	 * {@code @JsonSubTypes} dispatch that {@link HttpDecompositionPipeline} does.
 	 */
-	private SimilarityDto similarityDto(String strategyName, StrategyCase strategyCase) {
+	private SimilarityDto similarityDto(String strategyId, StrategyCase strategyCase) {
 		Map<String, Object> extra = strategyCase.extraSimilarityFields();
 
 		switch (strategyCase.similarityType()) {
 		case StrategyCase.SIMILARITY_ACCESSES_REPOSITORY: {
 			SimilarityScipyAccessesAndRepositoryDto dto = new SimilarityScipyAccessesAndRepositoryDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setProfile((String) extra.get("profile"));
 			dto.setTracesMaxLimit((Integer) extra.get("tracesMaxLimit"));
@@ -150,7 +141,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		}
 		case StrategyCase.SIMILARITY_STRUCTURE: {
 			SimilarityScipyStructureDto dto = new SimilarityScipyStructureDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setProfile((String) extra.get("profile"));
 			dto.setTraceType(Constants.TraceType.valueOf((String) extra.get("traceType")));
@@ -159,19 +150,19 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		}
 		case StrategyCase.SIMILARITY_CLASS_VECTORIZATION: {
 			SimilarityScipyClassVectorizationDto dto = new SimilarityScipyClassVectorizationDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			return dto;
 		}
 		case StrategyCase.SIMILARITY_ENTITY_VECTORIZATION: {
 			SimilarityScipyEntityVectorizationDto dto = new SimilarityScipyEntityVectorizationDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			return dto;
 		}
 		case StrategyCase.SIMILARITY_FV_CALLGRAPH: {
 			SimilarityScipyFunctionalityVectorizationByCallGraphDto dto = new SimilarityScipyFunctionalityVectorizationByCallGraphDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setDepth((Integer) extra.get("depth"));
 			dto.setWeightsList(weightsList(strategyCase));
@@ -179,7 +170,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		}
 		case StrategyCase.SIMILARITY_FV_SEQUENCE_ACCESSES: {
 			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto = new SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto();
-			dto.setStrategyName(strategyName);
+			dto.setStrategyId(strategyId);
 			dto.setLinkageType("average");
 			dto.setWeightsList(weightsList(strategyCase));
 			return dto;
@@ -245,27 +236,27 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public String createDecomposition(String similarityName) {
-		SciPyRequestDto request = new SciPyRequestDto(similarityName, "N", 3);
-		request.setSimilarityName(similarityName);
+	public String createDecomposition(String similarityId) {
+		SciPyRequestDto request = new SciPyRequestDto(similarityId, "N", 3);
 
 		try {
 			decompositionService.createDecomposition(request);
 		} catch (Exception e) {
-			throw new AssertionError("Could not create decomposition for " + similarityName, e);
+			throw new AssertionError("Could not create decomposition for " + similarityId, e);
 		}
 
-		List<Decomposition> decompositions = similarityService.getDecompositions(similarityName);
+		List<Decomposition> decompositions = similarityService.getDecompositions(similarityId);
 		if (decompositions.isEmpty())
-			throw new AssertionError("No decomposition was created for " + similarityName);
+			throw new AssertionError("No decomposition was created for " + similarityId);
 
-		return decompositions.get(decompositions.size() - 1).getName();
+		// The query has no order. ObjectIds sort by creation, so the greatest is the newest.
+		return decompositions.stream().map(Decomposition::getId).max(String::compareTo).get();
 	}
 
 	@Override
-	public Map<String, List<String>> getClusters(String decompositionName) {
+	public Map<String, List<String>> getClusters(String decompositionId) {
 		Map<String, List<String>> clusters = new TreeMap<>();
-		decompositionService.getDecomposition(decompositionName).getClusters().forEach((name, cluster) -> {
+		decompositionService.getDecompositionById(decompositionId).getClusters().forEach((name, cluster) -> {
 			List<String> entities = new ArrayList<>();
 			cluster.getElements().forEach(element -> entities.add(element.getName()));
 			Collections.sort(entities);
@@ -275,12 +266,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public int representationCount(String codebaseName) {
-		return codebaseService.getRepresentationTypes(codebaseName).size();
+	public int representationCount(String softwareSystemId) {
+		return softwareSystemService.getRepresentationTypes(softwareSystemId).size();
 	}
 
 	@Override
-	public void deleteCodebase(String codebaseName) {
-		codebaseService.deleteCodebase(codebaseName);
+	public void deleteSoftwareSystem(String softwareSystemId) {
+		softwareSystemService.deleteSoftwareSystem(softwareSystemId);
 	}
 }

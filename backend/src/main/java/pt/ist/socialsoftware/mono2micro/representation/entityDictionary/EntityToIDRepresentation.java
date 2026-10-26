@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.representation.entityDictionary;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 @Document("representation")
 public class EntityToIDRepresentation extends Representation {
@@ -13,10 +13,10 @@ public class EntityToIDRepresentation extends Representation {
 	public EntityToIDRepresentation() {}
 
 	@Override
-	public String init(Codebase codebase, byte[] representationFile) {
-		this.name = codebase.getName() + " & " + getType();
-		this.codebase = codebase;
-		return name;
+	public String init(SoftwareSystem softwareSystem, byte[] representationFile) {
+		this.name = softwareSystem.getName() + " & " + getType();
+		this.softwareSystem = softwareSystem;
+		return id;
 	}
 
 	@Override

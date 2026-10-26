@@ -20,7 +20,9 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 	public SimilarityScipyAccessesAndRepositoryDto() { this.type = SIMILARITY_SCIPY_ACCESSES_REPOSITORY; }
 
 	public SimilarityScipyAccessesAndRepositoryDto(SimilarityScipyAccessesAndRepository similarity) {
-		this.codebaseName = similarity.getStrategy().getCodebase().getName();
+		this.id = similarity.getId();
+		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
+		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();
 		this.name = similarity.getName();
 		this.type = similarity.getType();
@@ -32,6 +34,7 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 	}
 
 	public SimilarityScipyAccessesAndRepositoryDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
+		this.strategyId = recommend.getStrategy().getId();
 		this.strategyName = recommend.getStrategy().getName();
 		this.type = SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 		this.weightsList = weightsList;

@@ -11,7 +11,7 @@ import {RepresentationInfoParameters} from "../../../type-declarations/types";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({codebaseName, strategy, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");
@@ -29,7 +29,7 @@ export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({co
         setIsUploaded("Uploading...");
 
         service.createSimilarity({
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             type: SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
             linkageType,
             depth,

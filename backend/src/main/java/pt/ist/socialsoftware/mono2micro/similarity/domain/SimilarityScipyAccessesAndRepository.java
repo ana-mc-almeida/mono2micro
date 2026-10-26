@@ -15,6 +15,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	}
 
 	public SimilarityScipyAccessesAndRepository(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 		this.profile = recommendation.getProfile();
 		this.tracesMaxLimit = recommendation.getTracesMaxLimit();
 		this.traceType = recommendation.getTraceType();
@@ -56,8 +57,8 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getName()), new TypeReference<Map<Short, String>>() {});
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
+		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 
 	@Override
@@ -66,7 +67,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
 				similarityDto.getProfile().equals(this.profile) &&
 				similarityDto.getTracesMaxLimit() == this.tracesMaxLimit &&
 				similarityDto.getTraceType() == this.traceType &&
@@ -140,14 +141,15 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 		}
 
 		JSONObject matrixJSON = getSimilarityMatrixAsJSON(elements, rawMatrix, getWeightsAsArray());
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	public Set<Short> fillElements(GridFsService gridFsService, Similarity similarity) throws IOException {
-		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) similarity.getStrategy().getCodebase()
-				.getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) Representation.ofSoftwareSystem(
+				similarity.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
 		Map<Short, String> idToEntity = new ObjectMapper().readValue(
-				gridFsService.getFileAsString(idToEntityRepresentation.getName()),
+				gridFsService.getFileAsString(idToEntityRepresentation.getId()),
 				new TypeReference<Map<Short, String>>() {}
 		);
 		return new TreeSet<>(idToEntity.keySet());
@@ -247,7 +249,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 
 		JSONObject matrixJSON = getSimilarityMatrixAsJSON(elements, rawMatrix, weightsAsFloats);
 
-		StringBuilder similarityMatrixName = new StringBuilder(getName());
+		StringBuilder similarityMatrixName = new StringBuilder(getId());
 		for (float weight : weights)
 			similarityMatrixName.append(",").append(getWeightAsString(weight));
 

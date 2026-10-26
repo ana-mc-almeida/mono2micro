@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.util.*;
@@ -91,10 +92,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(similarity.getStrategy().getCodebase().getRepresentationByFileType(AUTHOR).getName()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), AUTHOR).getId()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(similarity.getStrategy().getCodebase().getRepresentationByFileType(COMMIT).getName()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), COMMIT).getId()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 
@@ -103,10 +104,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(recommendation.getStrategy().getCodebase().getRepresentationByFileType(AUTHOR).getName()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), AUTHOR).getId()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(recommendation.getStrategy().getCodebase().getRepresentationByFileType(COMMIT).getName()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), COMMIT).getId()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 

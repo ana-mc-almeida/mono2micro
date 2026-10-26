@@ -51,15 +51,16 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void createCodebase(String codebaseName) {
-		ResponseEntity<String> response = rest.postForEntity(
-				base + "/codebase/create?codebaseName={name}", null, String.class, codebaseName);
+	public String createSoftwareSystem(String softwareSystemName) {
+		ResponseEntity<JsonNode> response = rest.postForEntity(
+				base + "/softwareSystems/create?softwareSystemName={name}", null, JsonNode.class, softwareSystemName);
 
-		require(response, HttpStatus.CREATED, "create codebase " + codebaseName);
+		require(response, HttpStatus.CREATED, "create software system " + softwareSystemName);
+		return response.getBody().path("id").asText();
 	}
 
 	@Override
-	public void addRepresentations(String codebaseName, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemId, StrategyCase strategyCase) {
 		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 
 		// Index-aligned repeated parts: representationTypes[i] describes representations[i].
@@ -75,24 +76,24 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 		ResponseEntity<String> response = rest.exchange(
-				base + "/codebase/{name}/addRepresentations/{group}",
+				base + "/softwareSystems/{id}/addRepresentations/{group}",
 				HttpMethod.POST,
 				new HttpEntity<>(form, headers),
 				String.class,
-				codebaseName,
+				softwareSystemId,
 				strategyCase.representationGroup());
 
-		require(response, HttpStatus.CREATED, "add representations to " + codebaseName);
+		require(response, HttpStatus.CREATED, "add representations to " + softwareSystemId);
 	}
 
 	@Override
-	public String createStrategy(String codebaseName, StrategyCase strategyCase) {
+	public String createStrategy(String softwareSystemId, StrategyCase strategyCase) {
 		// strategyTypes is a repeated query parameter, so a multi-type strategy such as
 		// Repository sends it twice rather than as one comma-joined value.
 		StringBuilder url = new StringBuilder(
-				base + "/codebase/{name}/createStrategy?algorithmType={algorithm}");
+				base + "/softwareSystems/{id}/createStrategy?algorithmType={algorithm}");
 		List<Object> uriVariables = new ArrayList<>();
-		uriVariables.add(codebaseName);
+		uriVariables.add(softwareSystemId);
 		uriVariables.add("SciPy Clustering");
 
 		for (String strategyType : strategyCase.strategyTypes()) {
@@ -100,19 +101,19 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 			uriVariables.add(strategyType);
 		}
 
-		ResponseEntity<String> response = rest.postForEntity(
-				url.toString(), null, String.class, uriVariables.toArray());
+		ResponseEntity<JsonNode> response = rest.postForEntity(
+				url.toString(), null, JsonNode.class, uriVariables.toArray());
 
-		require(response, HttpStatus.CREATED, "create strategy for " + codebaseName);
+		require(response, HttpStatus.CREATED, "create strategy for " + softwareSystemId);
 
-		return strategyCase.strategyName(codebaseName);
+		return response.getBody().path("id").asText();
 	}
 
 	@Override
-	public String createSimilarity(String strategyName, StrategyCase strategyCase) {
+	public String createSimilarity(String strategyId, StrategyCase strategyCase) {
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.put("type", strategyCase.similarityType());
-		body.put("strategyName", strategyName);
+		body.put("strategyId", strategyId);
 		body.put("linkageType", "average");
 		body.putAll(strategyCase.extraSimilarityFields());
 
@@ -121,25 +122,23 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		if (!strategyCase.weights().isEmpty())
 			body.put("weightsList", strategyCase.weights());
 
-		ResponseEntity<String> response = rest.exchange(
+		ResponseEntity<JsonNode> response = rest.exchange(
 				base + "/similarity/create",
 				HttpMethod.POST,
 				new HttpEntity<>(body, jsonHeaders()),
-				String.class);
+				JsonNode.class);
 
-		require(response, HttpStatus.CREATED, "create similarity for " + strategyName);
+		require(response, HttpStatus.CREATED, "create similarity for " + strategyId);
 
-		// A duplicate request also returns 201 without creating anything, so the name is read
-		// back rather than assumed.
-		JsonNode similarities = getJson("/strategy/{name}/getStrategySimilarities", strategyName);
-		return onlyName(similarities, "similarity", strategyName);
+		// A duplicate request also returns 201, with the existing similarity.
+		return response.getBody().path("id").asText();
 	}
 
 	@Override
-	public String createDecomposition(String similarityName) {
+	public String createDecomposition(String similarityId) {
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.put("type", "SciPy Clustering");
-		body.put("similarityName", similarityName);
+		body.put("similarityId", similarityId);
 		body.put("cutType", "N");
 		body.put("cutValue", 3);
 
@@ -151,15 +150,15 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 
 		// 200, not 201: DecompositionController returns OK here while every other create
 		// endpoint in the pipeline returns CREATED.
-		require(response, HttpStatus.OK, "create decomposition for " + similarityName);
+		require(response, HttpStatus.OK, "create decomposition for " + similarityId);
 
-		JsonNode decompositions = getJson("/similarity/{name}/decompositions", similarityName);
-		return onlyName(decompositions, "decomposition", similarityName);
+		JsonNode decompositions = getJson("/similarity/{id}/decompositions", similarityId);
+		return newestId(decompositions, "decomposition", similarityId);
 	}
 
 	@Override
-	public Map<String, List<String>> getClusters(String decompositionName) {
-		return clusterNames(getJson("/decomposition/{name}/getClusters", decompositionName));
+	public Map<String, List<String>> getClusters(String decompositionId) {
+		return clusterNames(getJson("/decomposition/{id}/getClusters", decompositionId));
 	}
 
 	/**
@@ -179,13 +178,13 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	/** Entity name → id, read from the decomposition's clusters. Edit requests address entities by id. */
-	Map<String, Short> entityIds(String decompositionName) {
+	Map<String, Short> entityIds(String decompositionId) {
 		Map<String, Short> ids = new TreeMap<>();
-		for (JsonNode cluster : getJson("/decomposition/{name}/getClusters", decompositionName))
+		for (JsonNode cluster : getJson("/decomposition/{id}/getClusters", decompositionId))
 			for (JsonNode element : cluster.path("elements")) {
 				Short previous = ids.put(element.path("name").asText(), (short) element.path("id").asInt());
 				if (previous != null)
-					throw new AssertionError("Entity " + element.path("name").asText() + " appears more than once in " + decompositionName);
+					throw new AssertionError("Entity " + element.path("name").asText() + " appears more than once in " + decompositionId);
 			}
 		return ids;
 	}
@@ -193,81 +192,81 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	// Manual editing. Each body is the one ClusterView.js sends. The entity lists of split and
 	// transfer are comma-joined id strings, while form cluster takes cluster name → id array.
 
-	void merge(String decompositionName, String cluster1, String cluster2, String newName) {
+	void merge(String decompositionId, String cluster1, String cluster2, String newName) {
 		Map<String, Object> body = operation("MergeOperation");
 		body.put("cluster1Name", cluster1);
 		body.put("cluster2Name", cluster2);
 		body.put("newName", newName);
-		edit(decompositionName, "merge", body);
+		edit(decompositionId, "merge", body);
 	}
 
-	void split(String decompositionName, String originalCluster, String newCluster, List<Short> entityIds) {
+	void split(String decompositionId, String originalCluster, String newCluster, List<Short> entityIds) {
 		Map<String, Object> body = operation("SplitOperation");
 		body.put("originalCluster", originalCluster);
 		body.put("newCluster", newCluster);
 		body.put("entities", joined(entityIds));
-		edit(decompositionName, "split", body);
+		edit(decompositionId, "split", body);
 	}
 
-	void transfer(String decompositionName, String fromCluster, String toCluster, List<Short> entityIds) {
+	void transfer(String decompositionId, String fromCluster, String toCluster, List<Short> entityIds) {
 		Map<String, Object> body = operation("TransferOperation");
 		body.put("fromCluster", fromCluster);
 		body.put("toCluster", toCluster);
 		body.put("entities", joined(entityIds));
-		edit(decompositionName, "transfer", body);
+		edit(decompositionId, "transfer", body);
 	}
 
-	void rename(String decompositionName, String clusterName, String newClusterName) {
+	void rename(String decompositionId, String clusterName, String newClusterName) {
 		Map<String, Object> body = operation("RenameOperation");
 		body.put("clusterName", clusterName);
 		body.put("newClusterName", newClusterName);
-		edit(decompositionName, "rename", body);
+		edit(decompositionId, "rename", body);
 	}
 
-	void formCluster(String decompositionName, String newCluster, Map<String, List<Short>> entityIdsByCluster) {
+	void formCluster(String decompositionId, String newCluster, Map<String, List<Short>> entityIdsByCluster) {
 		Map<String, Object> body = operation("FormClusterOperation");
 		body.put("newCluster", newCluster);
 		body.put("entities", entityIdsByCluster);
-		edit(decompositionName, "formCluster", body);
+		edit(decompositionId, "formCluster", body);
 	}
 
 	/** Returns the status, since an undo with nothing to undo is itself characterized. */
-	HttpStatus undo(String decompositionName) {
-		return rest.getForEntity(base + "/history/{name}/undoOperation", String.class, decompositionName).getStatusCode();
+	HttpStatus undo(String decompositionId) {
+		return rest.getForEntity(base + "/history/{id}/undoOperation", String.class, decompositionId).getStatusCode();
 	}
 
 	/** Returns the status, since a redo with nothing to redo is itself characterized. */
-	HttpStatus redo(String decompositionName) {
-		return rest.getForEntity(base + "/history/{name}/redoOperation", String.class, decompositionName).getStatusCode();
+	HttpStatus redo(String decompositionId) {
+		return rest.getForEntity(base + "/history/{id}/redoOperation", String.class, decompositionId).getStatusCode();
 	}
 
 	/** {@code {"undo": bool, "redo": bool}}. */
-	JsonNode canUndoRedo(String decompositionName) {
-		return getJson("/history/{name}/canUndoRedo", decompositionName);
+	JsonNode canUndoRedo(String decompositionId) {
+		return getJson("/history/{id}/canUndoRedo", decompositionId);
 	}
 
 	// Quality assessment.
 
 	/** The decomposition as stored: metrics are those of its last calculation. */
-	JsonNode getDecomposition(String decompositionName) {
-		return getJson("/decomposition/{name}", decompositionName);
+	JsonNode getDecomposition(String decompositionId) {
+		return getJson("/decomposition/{id}", decompositionId);
 	}
 
 	/** The decomposition after recalculating its metrics if an edit made them outdated. */
-	JsonNode updateDecomposition(String decompositionName) {
-		return getJson("/decomposition/{name}/update", decompositionName);
+	JsonNode updateDecomposition(String decompositionId) {
+		return getJson("/decomposition/{id}/update", decompositionId);
 	}
 
 	/** Functionality metrics, keyed by functionality name under {@code functionalities}. */
-	JsonNode getFunctionalities(String decompositionName) {
-		return getJson("/accesses/{name}/getFunctionalitiesAndFunctionalitiesClusters", decompositionName);
+	JsonNode getFunctionalities(String decompositionId) {
+		return getJson("/accesses/{id}/getFunctionalitiesAndFunctionalitiesClusters", decompositionId);
 	}
 
 	/** MoJo and Purity of the second decomposition against the first, under {@code analysisList}. */
-	JsonNode compare(String decomposition1Name, String decomposition2Name) {
+	JsonNode compare(String decomposition1Id, String decomposition2Id) {
 		ResponseEntity<JsonNode> response = rest.postForEntity(
-				base + "/comparison/{one}/{two}", null, JsonNode.class, decomposition1Name, decomposition2Name);
-		require(response, HttpStatus.OK, "compare " + decomposition1Name + " with " + decomposition2Name);
+				base + "/comparison/{one}/{two}", null, JsonNode.class, decomposition1Id, decomposition2Id);
+		require(response, HttpStatus.OK, "compare " + decomposition1Id + " with " + decomposition2Id);
 		return response.getBody();
 	}
 
@@ -278,7 +277,21 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	 *
 	 * <p>The file is {@code {"clusters": {name: [entity id, ...]}}}.
 	 */
-	String createExpertDecomposition(String similarityName, String expertName, byte[] expertFile) {
+	String createExpertDecomposition(String similarityId, String expertName, byte[] expertFile) {
+		ResponseEntity<String> response = importExpertClustering(similarityId, expertName, expertFile);
+
+		require(response, HttpStatus.OK, "import expert clustering " + expertName + " for " + similarityId);
+
+		for (JsonNode decomposition : getDecompositions(similarityId))
+			if (decomposition.path("expert").asBoolean() && decomposition.path("name").asText().endsWith(" " + expertName))
+				return decomposition.path("id").asText();
+
+		throw new AssertionError("The expert import of " + expertName + " returned success, but no expert decomposition exists for "
+				+ similarityId + ".");
+	}
+
+	/** Uploads an expert clustering and returns the response as it is, for tests of a refused import. */
+	ResponseEntity<String> importExpertClustering(String similarityId, String expertName, byte[] expertFile) {
 		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 		form.add("expertName", expertName);
 		form.add("expertFile", filePart(expertFile, expertName + ".json"));
@@ -286,28 +299,23 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-		ResponseEntity<String> response = rest.exchange(
-				base + "/similarity/{name}/createExpertDecomposition",
+		return rest.exchange(
+				base + "/similarity/{id}/createExpertDecomposition",
 				HttpMethod.POST,
 				new HttpEntity<>(form, headers),
 				String.class,
-				similarityName);
+				similarityId);
+	}
 
-		require(response, HttpStatus.OK, "import expert clustering " + expertName + " for " + similarityName);
-
-		for (JsonNode decomposition : getJson("/similarity/{name}/decompositions", similarityName))
-			if (decomposition.path("expert").asBoolean() && decomposition.path("name").asText().endsWith(" " + expertName))
-				return decomposition.path("name").asText();
-
-		throw new AssertionError("The expert import of " + expertName + " returned success, but no expert decomposition exists for "
-				+ similarityName + ".");
+	JsonNode getDecompositions(String similarityId) {
+		return getJson("/similarity/{id}/decompositions", similarityId);
 	}
 
 	// Export to Context Mapper.
 
 	/** The raw response: the status is the export gate, and the body is a zip when it opens. */
-	ResponseEntity<byte[]> export(String decompositionName) {
-		return rest.getForEntity(base + "/decomposition/{name}/export", byte[].class, decompositionName);
+	ResponseEntity<byte[]> export(String decompositionId) {
+		return rest.getForEntity(base + "/decomposition/{id}/export", byte[].class, decompositionId);
 	}
 
 	/**
@@ -315,11 +323,11 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	 * decomposition, which is what the export reads alongside the Structure representation.
 	 *
 	 * <p>The tool answers at once and keeps working in the background, so the export is not
-	 * ready until it finishes. The body is what the frontend's {@code refactorCodebase} sends.
+	 * ready until it finishes. The body is what the frontend's {@code refactorSoftwareSystem} sends.
 	 */
-	void refactorFunctionalities(String refactorToolAddress, String decompositionName) {
+	void refactorFunctionalities(String refactorToolAddress, String decompositionId) {
 		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("decomposition_name", decompositionName);
+		body.put("decomposition_id", decompositionId);
 		body.put("functionality_names", new ArrayList<>());
 		body.put("data_dependence_threshold", 0);
 		body.put("minimize_sum_of_complexities", false);
@@ -332,17 +340,17 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				new HttpEntity<>(body, jsonHeaders()),
 				String.class);
 
-		require(response, HttpStatus.OK, "refactor the functionalities of " + decompositionName);
+		require(response, HttpStatus.OK, "refactor the functionalities of " + decompositionId);
 	}
 
 	@Override
-	public int representationCount(String codebaseName) {
-		return getJson("/codebase/{name}/getRepresentations", codebaseName).size();
+	public int representationCount(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/getRepresentations", softwareSystemId).size();
 	}
 
 	@Override
-	public void deleteCodebase(String codebaseName) {
-		rest.delete(base + "/codebase/{name}/delete", codebaseName);
+	public void deleteSoftwareSystem(String softwareSystemId) {
+		rest.delete(base + "/softwareSystems/{id}/delete", softwareSystemId);
 	}
 
 	private Map<String, Object> operation(String type) {
@@ -351,15 +359,15 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return body;
 	}
 
-	private void edit(String decompositionName, String endpoint, Map<String, Object> body) {
+	private void edit(String decompositionId, String endpoint, Map<String, Object> body) {
 		ResponseEntity<String> response = rest.exchange(
-				base + "/decomposition/{name}/" + endpoint,
+				base + "/decomposition/{id}/" + endpoint,
 				HttpMethod.POST,
 				new HttpEntity<>(body, jsonHeaders()),
 				String.class,
-				decompositionName);
+				decompositionId);
 
-		require(response, HttpStatus.OK, endpoint + " on " + decompositionName + " with " + body);
+		require(response, HttpStatus.OK, endpoint + " on " + decompositionId + " with " + body);
 	}
 
 	private static String joined(List<Short> ids) {
@@ -391,13 +399,17 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return response.getBody();
 	}
 
-	private String onlyName(JsonNode array, String what, String parent) {
+	private String newestId(JsonNode array, String what, String parent) {
 		if (array == null || !array.isArray() || array.size() == 0)
 			throw new AssertionError("No " + what + " was created for " + parent
-					+ ". The request returned success, but nothing exists — see the silent-duplicate"
-					+ " paths in SimilarityService and StrategyService.");
+					+ ". The request returned success, but nothing exists.");
 
-		return array.get(array.size() - 1).path("name").asText();
+		// The query has no order. ObjectIds sort by creation, so the greatest is the newest.
+		String newest = "";
+		for (JsonNode element : array)
+			if (element.path("id").asText().compareTo(newest) > 0)
+				newest = element.path("id").asText();
+		return newest;
 	}
 
 	private void require(ResponseEntity<?> response, HttpStatus expected, String what) {

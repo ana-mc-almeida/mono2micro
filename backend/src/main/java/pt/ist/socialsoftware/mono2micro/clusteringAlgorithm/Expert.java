@@ -11,10 +11,9 @@ import javax.management.openmbean.KeyAlreadyExistsException;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 public class Expert {
 	public static final String EXPERT = "Expert Clustering";
@@ -25,17 +24,17 @@ public class Expert {
 		return EXPERT;
 	}
 
-	public Decomposition generateClusters(Similarity similarity, String expertName, Optional<MultipartFile> expertFile) throws Exception {
+	public Decomposition generateClusters(Similarity similarity, String expertName, Optional<MultipartFile> expertFile, Set<String> decompositionNames)
+			throws Exception {
 		Decomposition decomposition = new PartitionsDecomposition(similarity);
 		decomposition.setExpert(true);
 
 		Map<Short, String> idToEntity;
 
-		List<String> decompositionNames = similarity.getDecompositions().stream().map(Decomposition::getName).collect(Collectors.toList());
-
-		if (decompositionNames.contains(expertName))
+		String name = similarity.getName() + " " + expertName;
+		if (decompositionNames.contains(name))
 			throw new KeyAlreadyExistsException();
-		decomposition.setName(similarity.getName() + " " + expertName);
+		decomposition.setName(name);
 		decomposition.setExpert(true);
 
 		idToEntity = similarity.getIDToEntityName();

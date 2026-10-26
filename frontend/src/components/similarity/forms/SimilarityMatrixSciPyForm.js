@@ -14,7 +14,7 @@ import {SIMILARITY_SCIPY_ACCESSES_REPOSITORY} from "../../../models/similarity/S
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixSciPyForm = ({codebaseName, strategy, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
     const [profiles, setProfiles] = useState([]);
@@ -36,7 +36,7 @@ export const SimilarityMatrixSciPyForm = ({codebaseName, strategy, setUpdateStra
         setIsUploaded("Uploading...");
 
         service.createSimilarity({
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             type: SIMILARITY_SCIPY_ACCESSES_REPOSITORY,
             weightsList,
             profile,
@@ -62,7 +62,7 @@ export const SimilarityMatrixSciPyForm = ({codebaseName, strategy, setUpdateStra
     }
 
     function loadProfiles() {
-        service.getCodebaseRepresentation(codebaseName, RepresentationFile.ACCESSES)
+        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.ACCESSES)
             .then((response) => setProfiles(response.profiles));
     }
 
@@ -105,7 +105,7 @@ export const SimilarityMatrixSciPyForm = ({codebaseName, strategy, setUpdateStra
             <Form onSubmit={handleSubmit} className="mt-2 mb-3">
                 <Form.Group as={Row} controlId="selectFunctionalityProfiles" className="align-items-center mb-3">
                     <Form.Label column sm={2}>
-                        Select Codebase Profile
+                        Select Software System Profile
                     </Form.Label>
                     <Col sm={2}>
                         <DropdownButton title={profile === ""? 'Functionality Profiles': profile}>

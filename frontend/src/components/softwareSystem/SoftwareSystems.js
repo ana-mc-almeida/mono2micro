@@ -11,54 +11,54 @@ import {toast, ToastContainer} from "react-toastify";
 
 const HttpStatus = require('http-status-codes');
 
-export const Codebases = () => {
-    const [newCodebaseName, setNewCodebaseName] = useState("");
-    const [codebases, setCodebases] = useState([]);
+export const SoftwareSystems = () => {
+    const [newSoftwareSystemName, setNewSoftwareSystemName] = useState("");
+    const [softwareSystems, setSoftwareSystems] = useState([]);
     const [isCreated, setIsCreated] = useState("");
 
     //Executed on mount
-    useEffect(() => loadCodebases(), []);
+    useEffect(() => loadSoftwareSystems(), []);
 
-    function loadCodebases() {
+    function loadSoftwareSystems() {
         const service = new APIService();
-        service.getCodebases().then(response => {
-            setCodebases(response);
+        service.getSoftwareSystems().then(response => {
+            setSoftwareSystems(response);
         });
     }
 
-    function handleChangeNewCodebaseName(event) {
-        setNewCodebaseName(event.target.value);
+    function handleChangeNewSoftwareSystemName(event) {
+        setNewSoftwareSystemName(event.target.value);
     }
 
-    function handleDeleteCodebase(codebaseName) {
-        let toastId = toast.loading("Deleting codebase information...", {type: toast.TYPE.INFO});
+    function handleDeleteSoftwareSystem(softwareSystemId) {
+        let toastId = toast.loading("Deleting software system information...", {type: toast.TYPE.INFO});
         const service = new APIService();
-        service.deleteCodebase(codebaseName).then(() => {
-            loadCodebases();
-            toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Codebase deleted.", isLoading: false});
+        service.deleteSoftwareSystem(softwareSystemId).then(() => {
+            loadSoftwareSystems();
+            toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Software System deleted.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
         });
     }
 
-    function renderCodebases() {
+    function renderSoftwareSystems() {
         return (
             <Row>
                 {
-                    codebases.map(codebase =>
-                        <Col key={codebase.name} md="auto">
+                    softwareSystems.map(softwareSystem =>
+                        <Col key={softwareSystem.id} md="auto">
                             <Card className={"text-center"} style={{ width: '15rem', marginBottom: "16px" }}>
-                                <Card.Header>{codebase.name}</Card.Header>
+                                <Card.Header>{softwareSystem.name}</Card.Header>
                                 <Card.Body>
                                     <Button
-                                        href={`/codebases/${codebase.name}`}
+                                        href={`/softwareSystems/${softwareSystem.id}`}
                                         className="mb-2"
                                         variant={"primary"}
                                     >
-                                        Manage Codebase
+                                        Manage Software System
                                     </Button>
                                     <br/>
                                     <Button
-                                        onClick={() => handleDeleteCodebase(codebase.name)}
+                                        onClick={() => handleDeleteSoftwareSystem(softwareSystem.id)}
                                         variant="danger"
                                     >
                                         Delete
@@ -78,10 +78,10 @@ export const Codebases = () => {
         setIsCreated("Creating...");
 
         const service = new APIService();
-        service.createCodebase(newCodebaseName)
+        service.createSoftwareSystem(newSoftwareSystemName)
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
-                    loadCodebases();
+                    loadSoftwareSystems();
                     setIsCreated("Creation completed successfully.");
                 } else {
                     setIsCreated("Creation failed.");
@@ -89,26 +89,26 @@ export const Codebases = () => {
             })
             .catch(error => {
                 if (error.response !== undefined && error.response.status === HttpStatus.UNAUTHORIZED) {
-                    setIsCreated("Creation failed. Codebase name already exists.");
+                    setIsCreated("Creation failed. Software system name already exists.");
                 }
                 else setIsCreated("Creation failed.");
             });
     }
 
-    function renderCreateCodebaseForm() {
+    function renderCreateSoftwareSystemForm() {
         return (
             <Form onSubmit={handleSubmit}>
-                <Form.Group as={Row} controlId="newCodebaseName" className="mb-3 align-items-center">
+                <Form.Group as={Row} controlId="newSoftwareSystemName" className="mb-3 align-items-center">
                     <Form.Label column sm={2}>
-                        Codebase Name
+                        Software System Name
                     </Form.Label>
                     <Col sm={5}>
                         <FormControl
                             type="text"
                             maxLength="256"
-                            placeholder="Codebase Name"
-                            value={newCodebaseName}
-                            onChange={handleChangeNewCodebaseName}
+                            placeholder="Software system Name"
+                            value={newSoftwareSystemName}
+                            onChange={handleChangeNewSoftwareSystemName}
                         />
                     </Col>
                 </Form.Group>
@@ -119,10 +119,10 @@ export const Codebases = () => {
                             type="submit"
                             disabled={
                                 isCreated === "Creating..." ||
-                                newCodebaseName === ""
+                                newSoftwareSystemName === ""
                             }
                         >
-                            Create Codebase
+                            Create Software System
                         </Button>
                         <Form.Text className="ms-3">
                             {isCreated}
@@ -141,7 +141,7 @@ export const Codebases = () => {
                     Home
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
-                    Codebases
+                    Software Systems
                 </Breadcrumb.Item>
             </Breadcrumb>
         );
@@ -159,14 +159,14 @@ export const Codebases = () => {
                 {renderBreadCrumbs()}
 
                 <h4 style={{color: "#666666"}}>
-                    Create Codebase
+                    Create Software System
                 </h4>
-                {renderCreateCodebaseForm()}
+                {renderCreateSoftwareSystemForm()}
 
                 <h4 style={{color: "#666666"}}>
-                    Codebases
+                    Software Systems
                 </h4>
-                {renderCodebases()}
+                {renderSoftwareSystems()}
             </div>
         </>
     );

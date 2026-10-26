@@ -19,6 +19,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.util.*;
@@ -43,6 +44,13 @@ public abstract class SimilarityScipy extends Similarity {
 		this.weightsList = weightsList;
 	}
 
+	/** A temporary similarity for a recommendation; its matrices are keyed by the recommendation's id. */
+	// FIXME (ticket 09): recommendations should not need a temporary similarity; remove this constructor once a recommendation finds or creates its Similarity
+	public SimilarityScipy(RecommendMatrixSciPy recommendation) {
+		this(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		this.id = recommendation.getId();
+	}
+
 	public SimilarityScipy(Strategy strategy, String name, RecommendMatrixSciPy recommendation) {
 		super(strategy, name);
 		this.linkageType = recommendation.getLinkageType();
@@ -57,14 +65,14 @@ public abstract class SimilarityScipy extends Similarity {
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getName()), new TypeReference<Map<Short, String>>() {});
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
+		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 
 	public Map<String, Short> getEntityToId() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
-		return new ObjectMapper().readValue(gridFsService.getFileAsString(entityToId.getName()), new TypeReference<Map<String, Short>>() {});
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ENTITY_TO_ID);
+		return new ObjectMapper().readValue(gridFsService.getFileAsString(entityToId.getId()), new TypeReference<Map<String, Short>>() {});
 	}
 
 	public void matchEntitiesTranslationIds(JSONObject codeEmbeddings)
@@ -92,10 +100,10 @@ public abstract class SimilarityScipy extends Similarity {
 	public JSONObject getCodeEmbeddings(Strategy strategy) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) strategy.getCodebase()
-				.getRepresentationByFileType(CODE_EMBEDDINGS);
+		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(),
+				CODE_EMBEDDINGS);
 		JSONObject codeEmbeddings = new JSONObject(
-				gridFsService.getFileAsString(codeEmbeddingsRepresentation.getName())
+				gridFsService.getFileAsString(codeEmbeddingsRepresentation.getId())
 		);
 
 		this.matchEntitiesTranslationIds(codeEmbeddings);
@@ -109,7 +117,7 @@ public abstract class SimilarityScipy extends Similarity {
 		generate(gridFsService, this);
 
 		// 2 - Generate Dendrogram
-		this.dendrogram = new Dendrogram(getName(), getName(), getLinkageType());
+		this.dendrogram = new Dendrogram(getId(), getId(), getLinkageType());
 	}
 
 	@Override

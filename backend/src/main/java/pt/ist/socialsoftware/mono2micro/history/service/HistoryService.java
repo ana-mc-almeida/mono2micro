@@ -26,7 +26,7 @@ public class HistoryService {
 
 	public void deleteHistory(History history) {
 		history.deleteProperties();
-		historyRepository.deleteByName(history.getName());
+		historyRepository.deleteById(history.getId());
 	}
 
 	public void undoOperation(Decomposition decomposition) {

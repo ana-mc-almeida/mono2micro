@@ -16,7 +16,7 @@ import { StrategyType } from '../../models/strategy/StrategyTypes';
 
 export const Similarities = () => {
 
-    let { codebaseName, strategyName } = useParams();
+    let { softwareSystemId, strategyId } = useParams();
 
     const [strategy, setStrategy] = useState(undefined);
     const [similarities, setSimilarities] = useState([]);
@@ -29,7 +29,7 @@ export const Similarities = () => {
     function loadStrategy() {
         const toastId = toast.loading("Fetching Strategy...");
         const service = new APIService();
-        service.getStrategy(strategyName).then(response => {
+        service.getStrategy(strategyId).then(response => {
             setStrategy(response);
             loadSimilarities();
 
@@ -41,8 +41,8 @@ export const Similarities = () => {
     function loadSimilarities() {
         const toastId = toast.loading("Fetching Similarities...");
         const service = new APIService();
-        console.log('[LOG] - Test -> ' + strategyName);
-        service.getStrategySimilarities(strategyName)
+        console.log('[LOG] - Test -> ' + strategyId);
+        service.getStrategySimilarities(strategyId)
             .then(response => {
                 console.log('[LOG] - ' + response);
                 setSimilarities(response);
@@ -57,7 +57,7 @@ export const Similarities = () => {
         const toastId = toast.loading("Deleting " + similarity.name + "...");
         const service = new APIService();
 
-        service.deleteSimilarity(similarity.name).then(() => {
+        service.deleteSimilarity(similarity.id).then(() => {
             loadSimilarities();
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Similarity deleted.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
@@ -70,9 +70,9 @@ export const Similarities = () => {
         return (
             <Breadcrumb>
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">Codebases</Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>{codebaseName}</Breadcrumb.Item>
-                <Breadcrumb.Item active>{strategyName}</Breadcrumb.Item>
+                <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{strategy?.softwareSystemName}</Breadcrumb.Item>
+                <Breadcrumb.Item active>{strategy?.name}</Breadcrumb.Item>
             </Breadcrumb>
         );
     }
@@ -103,41 +103,41 @@ export const Similarities = () => {
                     {strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.ENTITY_VECTORIZATION_STRATEGY) ?
                         <SimilarityMatrixSciPyEntityVectorizationForm
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.CLASS_VECTORIZATION_STRATEGY) ?
                         <SimilarityMatrixSciPyClassVectorizationForm
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY) ?
                         <SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY) ?
                         <SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.STRUCTURE_STRATEGY) ?
                         <SimilarityMatrixSciPyStructureForm
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         <SimilarityMatrixSciPyForm
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                         />

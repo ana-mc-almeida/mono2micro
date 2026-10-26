@@ -26,30 +26,30 @@ public class SimilarityController {
 	SimilarityService similarityService;
 
 	@PostMapping(value = "/similarity/create")
-	public ResponseEntity<HttpStatus> createSimilarity(
+	public ResponseEntity<SimilarityDto> createSimilarity(
 			@RequestBody SimilarityDto similarityDto
 	) {
 		logger.debug("Create Similarity Distances");
 
 		try {
-			similarityService.createSimilarity(similarityDto);
-
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			return new ResponseEntity<>(
+					SimilarityDtoFactory.getSimilarityDto(similarityService.createSimilarity(similarityDto)),
+					HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	@GetMapping(value = "/similarity/{similarityName}/getSimilarity")
+	@GetMapping(value = "/similarity/{similarityId}/getSimilarity")
 	public ResponseEntity<SimilarityDto> getSimilarity(
-			@PathVariable String similarityName
+			@PathVariable String similarityId
 	) {
 		logger.debug("getSimilarity");
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDto(similarityService.getSimilarity(similarityName)),
+					SimilarityDtoFactory.getSimilarityDto(similarityService.getSimilarityById(similarityId)),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -58,15 +58,15 @@ public class SimilarityController {
 		}
 	}
 
-	@GetMapping(value = "/similarity/{similarityName}/decompositions")
+	@GetMapping(value = "/similarity/{similarityId}/decompositions")
 	public ResponseEntity<List<DecompositionDto>> getDecompositions(
-			@PathVariable String similarityName
+			@PathVariable String similarityId
 	) {
 		logger.debug("getDecompositions");
 
 		try {
 			return new ResponseEntity<>(
-					DecompositionDtoFactory.getDecompositionDtos(similarityService.getDecompositions(similarityName)),
+					DecompositionDtoFactory.getDecompositionDtos(similarityService.getDecompositions(similarityId)),
 					HttpStatus.OK
 			);
 
@@ -76,14 +76,14 @@ public class SimilarityController {
 		}
 	}
 
-	@DeleteMapping(value = "/similarity/{similarityName}/delete")
+	@DeleteMapping(value = "/similarity/{similarityId}/delete")
 	public ResponseEntity<HttpStatus> deleteSimilarity(
-			@PathVariable String similarityName
+			@PathVariable String similarityId
 	) {
 		logger.debug("Delete Similarity");
 
 		try {
-			similarityService.deleteSingleSimilarity(similarityName);
+			similarityService.deleteSingleSimilarity(similarityId);
 
 			return new ResponseEntity<>(HttpStatus.OK);
 
@@ -93,16 +93,16 @@ public class SimilarityController {
 		}
 	}
 
-	@GetMapping(value = "/similarity/{similarityName}/image")
+	@GetMapping(value = "/similarity/{similarityId}/image")
 	public ResponseEntity<byte[]> getDendrogramImage(
-			@PathVariable String similarityName
+			@PathVariable String similarityId
 	) {
 		logger.debug("getDendrogramImage");
 
 		try {
 			return ResponseEntity.ok()
 					.contentType(MediaType.IMAGE_PNG)
-					.body(similarityService.getDendrogramImage(similarityName));
+					.body(similarityService.getDendrogramImage(similarityId));
 
 		} catch (Exception e) {
 			System.err.println(e.getMessage());

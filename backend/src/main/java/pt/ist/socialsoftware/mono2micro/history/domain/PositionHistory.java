@@ -19,7 +19,6 @@ public class PositionHistory extends History {
 	public PositionHistory() {}
 
 	public PositionHistory(Decomposition decomposition) {
-		this.name = decomposition.getName();
 		this.historyOperationList = new ArrayList<>();
 		this.currentHistoryOperationDepth = 0L;
 		this.depthGraphPositions = new HashMap<>();

@@ -25,6 +25,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.FunctionalityTracesIterator;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,14 +44,14 @@ public class AccessesInformation extends RepresentationInformation {
 
 	@Override
 	public void setup(Decomposition decomposition) throws Exception {
-		this.decompositionName = decomposition.getName();
+		this.decompositionId = decomposition.getId();
 		decomposition.addRepresentationInformation(this);
 		setupFunctionalities(decomposition);
 	}
 
 	@Override
 	public void snapshot(Decomposition snapshotDecomposition, Decomposition decomposition) throws IOException {
-		this.decompositionName = snapshotDecomposition.getName();
+		this.decompositionId = snapshotDecomposition.getId();
 		snapshotDecomposition.addRepresentationInformation(this);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		copyFunctionalities(accessesInformation);
@@ -89,7 +90,7 @@ public class AccessesInformation extends RepresentationInformation {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
 		functionalityService.deleteFunctionalities(getFunctionalities().values());
-		gridFsService.deleteFile(getDecompositionName() + "_refactorization");
+		gridFsService.deleteFile(getDecompositionId() + "_refactorization");
 	}
 
 	public Map<String, Functionality> getFunctionalities() {
@@ -121,8 +122,8 @@ public class AccessesInformation extends RepresentationInformation {
 		FunctionalityRepository functionalityRepository = ContextManager.get().getBean(FunctionalityRepository.class);
 
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
-		AccessesRepresentation accesses = (AccessesRepresentation) decomposition.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-		InputStream inputStream = gridFsService.getFile(accesses.getName());
+		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), ACCESSES);
+		InputStream inputStream = gridFsService.getFile(accesses.getId());
 		Set<String> profileFunctionalities = accesses.getProfile(similarity.getProfile());
 
 		FunctionalityTracesIterator iter = new FunctionalityTracesIterator(inputStream, similarity.getTracesMaxLimit());
@@ -136,7 +137,7 @@ public class AccessesInformation extends RepresentationInformation {
 				continue;
 
 			iter.getFunctionalityWithName(functionalityName);
-			Functionality functionality = new Functionality(decomposition.getName(), functionalityName);
+			Functionality functionality = new Functionality(functionalityName);
 
 			// Get traces according to trace type
 			List<TraceDto> traceDtos = iter.getTracesByType(similarity.getTraceType());
@@ -294,7 +295,7 @@ public class AccessesInformation extends RepresentationInformation {
 	public void copyFunctionalities(AccessesInformation accessesInformation) throws IOException {
 		FunctionalityService functionalityService = ContextManager.get().getBean(FunctionalityService.class);
 		for (Functionality functionality : accessesInformation.getFunctionalities().values()) {
-			Functionality snapshotFunctionality = new Functionality(getDecompositionName(), functionality);
+			Functionality snapshotFunctionality = new Functionality(functionality);
 			snapshotFunctionality.setFunctionalityRedesignNameUsedForMetrics(functionality.getFunctionalityRedesignNameUsedForMetrics());
 
 			for (String redesignName : functionality.getFunctionalityRedesigns().keySet()) {

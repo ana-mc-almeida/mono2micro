@@ -23,7 +23,7 @@ export default class PartitionsDecomposition extends Decomposition {
 
     handleUpdate(reloadDecompositions: () => void) {
         const service = new APIService();
-        const promise = service.updateDecomposition(this.name);
+        const promise = service.updateDecomposition(this.id);
         toast.promise(promise, {
             pending: "Updating Decomposition...",
             success: {render: "Success updating decomposition!", autoClose: 2000},
@@ -33,8 +33,8 @@ export default class PartitionsDecomposition extends Decomposition {
 
     printCard(
         reloadDecompositions: () => void,
-        handleDeleteDecomposition: (collector: string) => void,
-        handleExportDecomposition: (collector: string) => void
+        handleDeleteDecomposition: (decomposition: Decomposition) => void,
+        handleExportDecomposition: (decomposition: Decomposition) => void
     ): JSX.Element {
         let amountOfSingletonClusters = 0;
         let maxClusterSize = 0;
@@ -48,7 +48,7 @@ export default class PartitionsDecomposition extends Decomposition {
         })
 
         return (
-            <Card key={this.name} style={{ width: '16rem', marginBottom: "16px" }}>
+            <Card key={this.id} style={{ width: '16rem', marginBottom: "16px" }}>
                 <Card.Body>
                     <Card.Title>
                         {this.name}
@@ -74,7 +74,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`/codebases/${this.codebaseName}/${this.strategyName}/${this.similarityName}/${this.name}/accessesViews`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/accessesViews`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -86,7 +86,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.REPOSITORY_TYPE) &&
                         <>
                             <Button
-                                href={`/codebases/${this.codebaseName}/${this.strategyName}/${this.similarityName}/${this.name}/repositoryView`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/repositoryView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -98,7 +98,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.STRUCTURE_TYPE) &&
                         <>
                             <Button
-                                href={`/codebases/${this.codebaseName}/${this.strategyName}/${this.similarityName}/${this.name}/structureView`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/structureView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -110,7 +110,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`/codebases/${this.codebaseName}/${this.strategyName}/${this.similarityName}/${this.name}/functionalityRefactor`}
+                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/functionalityRefactor`}
                                 className="mb-2"
                                 variant={"primary"}
                             >
@@ -122,7 +122,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.STRUCTURE_TYPE) &&
                         <>
                             <Button
-                                onClick={() => handleExportDecomposition(this.name)}
+                                onClick={() => handleExportDecomposition(this)}
                                 className="mb-2"
                                 variant={"primary"}
                             >
@@ -132,7 +132,7 @@ export default class PartitionsDecomposition extends Decomposition {
                         </>
                     }
                     <Button
-                        onClick={() => handleDeleteDecomposition(this.name)}
+                        onClick={() => handleDeleteDecomposition(this)}
                         variant="danger"
                     >
                         Delete

@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -26,55 +27,52 @@ public class SimilarityService {
 	SimilarityRepository similarityRepository;
 
 	@Autowired
+	DecompositionRepository decompositionRepository;
+
+	@Autowired
 	DecompositionService decompositionService;
 
 	@Autowired
 	GridFsService gridFsService;
 
-	public void createSimilarity(SimilarityDto similarityDto) throws Exception {
-		Strategy strategy = strategyRepository.findByName(similarityDto.getStrategyName());
-		if (strategy.getSimilarities().stream().anyMatch(similarity -> similarity.equalsDto(similarityDto)))
-			return;
-		Similarity similarity = SimilarityFactory.getSimilarity(strategy, similarityDto);
+	/** Returns the new similarity, or the existing one equal to the request. */
+	public Similarity createSimilarity(SimilarityDto similarityDto) throws Exception {
+		Strategy strategy = strategyRepository.getById(similarityDto.getStrategyId());
+		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
+		for (Similarity existing : similarityRepository.findByStrategyId(strategy.getId()))
+			if (existing.equalsDto(similarityDto))
+				return existing;
+		Similarity similarity = SimilarityFactory.createSimilarity(strategy, similarityDto);
 
 		similarity.generate();
 
 		similarityRepository.save(similarity);
-		strategyRepository.save(strategy);
+		return similarity;
 	}
 
-	public void deleteSingleSimilarity(String similarityName) {
-		Similarity similarity = similarityRepository.findByName(similarityName);
+	public void deleteSingleSimilarity(String similarityId) {
+		deleteSimilarity(getSimilarityById(similarityId));
+	}
 
-		for (Decomposition decomposition : similarity.getDecompositions())
+	public void deleteSimilarity(Similarity similarity) {
+		for (Decomposition decomposition : decompositionRepository.findBySimilarityId(similarity.getId()))
 			decompositionService.deleteDecomposition(decomposition);
 
 		similarity.removeProperties();
-
-		Strategy strategy = similarity.getStrategy();
-		strategy.removeSimilarity(similarity.getName());
-		strategyRepository.save(strategy);
-
-		similarityRepository.deleteByName(similarityName);
+		similarityRepository.deleteById(similarity.getId());
 	}
 
-	public void deleteSimilarity(Similarity similarity) { // Used when strategy is deleted
-		similarity.removeProperties();
-		similarityRepository.deleteByName(similarity.getName());
+	public List<Decomposition> getDecompositions(String similarityId) {
+		return decompositionRepository.findBySimilarityId(similarityId);
 	}
 
-	public List<Decomposition> getDecompositions(String similarityName) {
-		Similarity similarity = similarityRepository.findByName(similarityName);
-		return similarity.getDecompositions();
+	public Similarity getSimilarityById(String similarityId) {
+		return similarityRepository.getById(similarityId);
 	}
 
-	public Similarity getSimilarity(String similarityName) {
-		return similarityRepository.findByName(similarityName);
-	}
-
-	public byte[] getDendrogramImage(String similarityName) throws IOException {
-		Similarity similarity = similarityRepository.findByName(similarityName);
-		InputStream inputStream = gridFsService.getFile(similarity.getName() + "_image");
+	public byte[] getDendrogramImage(String similarityId) throws IOException {
+		Similarity similarity = getSimilarityById(similarityId);
+		InputStream inputStream = gridFsService.getFile(similarity.getId() + "_image");
 		return IOUtils.toByteArray(inputStream);
 	}
 }

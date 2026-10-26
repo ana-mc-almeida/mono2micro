@@ -106,7 +106,8 @@ const functionalityRedesignColumns = [
 export const FunctionalityRefactorToolMenu = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile, translateEntity } = context;
-    let { codebaseName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
+    const [decomposition, setDecomposition] = useState(undefined);
 
     const [waitingResponse, setWaitingResponse] = useState(false);
     const [functionalities, setFunctionalities] = useState([]);
@@ -123,14 +124,15 @@ export const FunctionalityRefactorToolMenu = () => {
 
     useEffect(() => {
         const service = new APIService();
-        viewCodebaseRefactor();
-        service.getIdToEntity(codebaseName).then(response => {
+        service.getDecomposition(decompositionId).then(response => setDecomposition(response));
+        viewSoftwareSystemRefactor();
+        service.getIdToEntity(softwareSystemId).then(response => {
             updateEntityTranslationFile(response.data);
         });
     }, []);
 
     useEffect(() => {
-        viewCodebaseRefactor();
+        viewSoftwareSystemRefactor();
     }, [translateEntity]);
 
     function handleChangeThreshold(event) {
@@ -225,12 +227,12 @@ export const FunctionalityRefactorToolMenu = () => {
         }
     }
 
-    function viewCodebaseRefactor(){
+    function viewSoftwareSystemRefactor(){
         const service = new APIService();
 
         setWaitingResponse(true);
 
-        service.viewRefactor(decompositionName)
+        service.viewRefactor(decompositionId)
             .then(response => {
                 setWaitingResponse(false);
                 setRefactorizationExists(true);
@@ -241,7 +243,7 @@ export const FunctionalityRefactorToolMenu = () => {
                 }
                 else {
                     setError(true);
-                    setErrorMessage('ERROR: Failed to view refactorization of the codebase.');
+                    setErrorMessage('ERROR: Failed to view refactorization of the software system.');
                     setIsLoading(false);
                 }
                 setWaitingResponse(false);
@@ -250,12 +252,12 @@ export const FunctionalityRefactorToolMenu = () => {
         );
     }
 
-    function requestCodebaseRefactor(newRefactor){
+    function requestSoftwareSystemRefactor(newRefactor){
         const service = new APIService();
 
         setWaitingResponse(true);
 
-        service.refactorCodebase(decompositionName,
+        service.refactorSoftwareSystem(decompositionId,
             functionalities, Number(dataDependenceThreshold), minimizeSumOfComplexities, Number(timeoutSecs), newRefactor)
             .then(response => {
                 setWaitingResponse(false);
@@ -263,7 +265,7 @@ export const FunctionalityRefactorToolMenu = () => {
                 handleDataParsing(response.data);
             }).catch(() => {
                 setError(true);
-                setErrorMessage('ERROR: Failed to request refactorization of the codebase.');
+                setErrorMessage('ERROR: Failed to request refactorization of the software system.');
                 setWaitingResponse(false);
             }
         );
@@ -321,20 +323,20 @@ export const FunctionalityRefactorToolMenu = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
+                    {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/similarity`}>
-                    {strategyName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
+                    {decomposition?.strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/${similarityName}/decomposition`}>
-                    {similarityName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityId}/decomposition`}>
+                    {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
-                    {decompositionName}
+                    {decomposition?.name}
                 </Breadcrumb.Item>
             </Breadcrumb>
         );
@@ -470,7 +472,7 @@ between the one being analyzed and the last one from the same cluster.</p>
                 </div> */}
 
                 <Button
-                    onClick={ () => requestCodebaseRefactor(true) }
+                    onClick={ () => requestSoftwareSystemRefactor(true) }
                     variant="contained"
                     color="primary"
                     disabled={isLoading}
@@ -496,7 +498,7 @@ between the one being analyzed and the last one from the same cluster.</p>
                 <div>
                     <Button
                         className="ms-3"
-                        onClick={ () => viewCodebaseRefactor() }
+                        onClick={ () => viewSoftwareSystemRefactor() }
                         variant="contained"
                         color="primary"
                     >

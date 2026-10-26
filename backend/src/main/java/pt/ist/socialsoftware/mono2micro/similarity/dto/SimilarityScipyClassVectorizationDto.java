@@ -5,7 +5,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyClassVe
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyClassVectorization.SIMILARITY_SCIPY_CLASS_VECTORIZATION;
 
@@ -15,7 +14,9 @@ public class SimilarityScipyClassVectorizationDto extends SimilarityDto {
 	public SimilarityScipyClassVectorizationDto() { this.type = SIMILARITY_SCIPY_CLASS_VECTORIZATION; }
 
 	public SimilarityScipyClassVectorizationDto(SimilarityScipyClassVectorization similarity) {
-		this.codebaseName = similarity.getStrategy().getCodebase().getName();
+		this.id = similarity.getId();
+		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
+		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();
 		this.name = similarity.getName();
 		this.type = similarity.getType();
@@ -23,6 +24,7 @@ public class SimilarityScipyClassVectorizationDto extends SimilarityDto {
 	}
 
 	public SimilarityScipyClassVectorizationDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
+		this.strategyId = recommend.getStrategy().getId();
 		this.strategyName = recommend.getStrategy().getName();
 		this.name = recommend.getName();
 		this.type = SIMILARITY_SCIPY_CLASS_VECTORIZATION;

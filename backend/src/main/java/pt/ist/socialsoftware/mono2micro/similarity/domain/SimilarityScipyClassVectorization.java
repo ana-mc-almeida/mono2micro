@@ -16,6 +16,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAn
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 	}
 
 	public SimilarityScipyClassVectorization(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
 				similarityDto.getLinkageType().equals(this.linkageType);
 	}
 
@@ -77,7 +78,7 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	private void computeClassesVectors(HashMap<String, Object> matrix, JSONObject codeEmbeddings, Map<String, Short> entityToId) throws JSONException {
@@ -209,9 +210,9 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
-				gridFsService.getFileAsString(entityToId.getName()),
+				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
 		);
 	}
@@ -233,8 +234,8 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 		JSONObject matrixJSON = new JSONObject(matrix);
 
 		Set<String> similarityMatrices = new HashSet<>();
-		similarityMatrices.add(getName());
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		similarityMatrices.add(getId());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 
 		return similarityMatrices;
 	}

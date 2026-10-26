@@ -16,7 +16,7 @@ export default class AccessesRepresentation extends Representation {
             <Card.Header>{this.type}</Card.Header>
             <Card.Body>
                 <Button
-                    href={`/codebase/${this.codebaseName}/${this.name}/profiles`}
+                    href={`/softwareSystems/${this.softwareSystemId}/${this.id}/profiles`}
                     className="mb-2"
                 >
                     Change Profile

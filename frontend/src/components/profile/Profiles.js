@@ -15,18 +15,23 @@ import {useParams} from "react-router-dom";
 const HttpStatus = require('http-status-codes');
 
 export const Profiles = () => {
-    let { codebaseName, representationName } = useParams();
+    let { softwareSystemId, representationId } = useParams();
+    const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [representation, setRepresentation] = useState({});
     const [newProfileName, setNewProfileName] = useState("");
     const [moveToProfile, setMoveToProfile] = useState("");
     const [selectedFunctionalities, setSelectedFunctionalities] = useState([]);
     const [isUploaded, setIsUploaded] = useState("");
 
-    useEffect(() => loadRepresentation(), []);
+    useEffect(() => {
+        const service = new APIService();
+        service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
+        loadRepresentation();
+    }, []);
 
     function loadRepresentation() {
         const service = new APIService();
-        service.getRepresentation(representationName).then(response => {
+        service.getRepresentation(representationId).then(response => {
             setRepresentation(response === null ? {} : response);
         });
     }
@@ -41,7 +46,7 @@ export const Profiles = () => {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.addAccessesProfile(representationName, newProfileName).then(response => {
+        service.addAccessesProfile(representationId, newProfileName).then(response => {
             if (response.status === HttpStatus.OK) {
                 loadRepresentation();
                 setIsUploaded("Upload completed successfully.");
@@ -66,7 +71,7 @@ export const Profiles = () => {
         const service = new APIService();
 
         service.moveAccessesFunctionalities(
-            representationName,
+            representationId,
             selectedFunctionalities,
             moveToProfile
         ).then(() => {
@@ -79,7 +84,7 @@ export const Profiles = () => {
         const service = new APIService();
 
         service.deleteAccessesProfile(
-            representationName,
+            representationId,
             profile
         ).then(() => {
             loadRepresentation();
@@ -103,14 +108,14 @@ export const Profiles = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
+                    {softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {representationName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
+                    {representation.name}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
                     Profiles

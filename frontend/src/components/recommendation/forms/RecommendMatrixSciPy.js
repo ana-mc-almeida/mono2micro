@@ -63,7 +63,7 @@ const selectRow = {
     clickToSelect: true
 };
 
-export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategies, recommendationType}) => {
+export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrategies, recommendationType}) => {
 
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
@@ -88,7 +88,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
     }, [])
 
     function loadProfiles() {
-        service.getCodebaseRepresentation(codebaseName, RepresentationFile.ACCESSES)
+        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.ACCESSES)
             .then((response) => setProfiles(response.profiles));
     }
 
@@ -115,7 +115,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
         }
         else setIsSelected("Creating decomposition...");
 
-        service.createRecommendationDecompositions(recommendation.name, selectedDecompositions.selectionContext.selected)
+        service.createRecommendationDecompositions(recommendation.id, selectedDecompositions.selectionContext.selected)
             .then(() => {
                 setUpdateStrategies({});
                 setIsSelected("Decompositions created.");
@@ -131,7 +131,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
 
         service.recommendation({
             type: recommendationType,
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             weightsList,
             profile,
             linkageType,
@@ -140,7 +140,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
         }).then(recommendation => {
                 setRecommendation(recommendation);
 
-                service.getRecommendationResult(recommendation.name).then(list => {
+                service.getRecommendationResult(recommendation.id).then(list => {
                     if (list.length !== 0) {
                         let line = Object.keys(list[0]);
                         setDecompositionInfo(columns.filter(column => line.includes(column.dataField)));
@@ -213,7 +213,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
             <Form onSubmit={handleCreateRecommendation} className="mt-2 mb-3">
                 <Form.Group as={Row} controlId="selectFunctionalityProfiles" className="align-items-center mb-3">
                     <Form.Label column sm={2}>
-                        Select Codebase Profile
+                        Select Software System Profile
                     </Form.Label>
                     <Col sm={2}>
                         <DropdownButton title={profile === ""? 'Functionality Profiles': profile}>

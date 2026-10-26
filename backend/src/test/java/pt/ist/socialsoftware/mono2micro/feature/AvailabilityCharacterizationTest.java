@@ -10,10 +10,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
-import pt.ist.socialsoftware.mono2micro.codebase.CodebaseService;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.codebase.repository.CodebaseRepository;
-import pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures;
+import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures;
+import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.Fixture;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
@@ -22,6 +20,8 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityTo
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,13 +33,12 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
-import static pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures.ACCESSES_BASED_NAME;
-import static pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures.CODE_EMBEDDINGS_BASED_NAME;
-import static pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures.EMPTY_NAME;
-import static pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures.REPOSITORY_BASED_NAME;
-import static pt.ist.socialsoftware.mono2micro.fixtures.CodebaseFixtures.STRUCTURE_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.ACCESSES_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.CODE_EMBEDDINGS_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.EMPTY_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.REPOSITORY_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.STRUCTURE_BASED_NAME;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation.AUTHOR;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation.CODE_EMBEDDINGS;
@@ -66,7 +65,7 @@ import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.STRUCTUR
  * produced it. Whatever replaces those internals must keep these answers, except where a test
  * names the decision that changes one.
  *
- * <p>Follows {@code CodebaseServiceAvailabilityTest}: in-memory fixtures, a stubbed repository,
+ * <p>Follows {@code SoftwareSystemServiceAvailabilityTest}: in-memory fixtures, a stubbed repository,
  * no Spring, Mongo or Docker.
  */
 public class AvailabilityCharacterizationTest {
@@ -96,23 +95,23 @@ public class AvailabilityCharacterizationTest {
 			StructureRepresentation::new);
 
 	@Mock
-	private CodebaseRepository codebaseRepository;
+	private RepresentationRepository representationRepository;
 
 	@InjectMocks
-	private CodebaseService codebaseService;
+	private SoftwareSystemService softwareSystemService;
 
 	@BeforeEach
-	public void givenTheFixtureCodebasesExist() {
+	public void givenTheFixtureSoftwareSystemsExist() {
 		MockitoAnnotations.initMocks(this);
-		for (Codebase codebase : CodebaseFixtures.all())
-			givenTheRepositoryFinds(codebase);
-		givenTheRepositoryFinds(CodebaseFixtures.codebaseWith(
+		for (Fixture fixture : SoftwareSystemFixtures.all())
+			givenTheRepositoryFinds(fixture);
+		givenTheRepositoryFinds(SoftwareSystemFixtures.softwareSystemWith(
 				UNGROUPED_STRUCTURE_NAME,
 				new IDToEntityRepresentation(),
 				new AccessesRepresentation(),
 				new StructureRepresentation()));
 		givenTheRepositoryFinds(everythingExcept(null, EVERYTHING_NAME));
-		givenTheRepositoryFinds(CodebaseFixtures.codebaseWith(
+		givenTheRepositoryFinds(SoftwareSystemFixtures.softwareSystemWith(
 				ACCESSES_ONLY_NAME,
 				new AccessesRepresentation()));
 	}
@@ -166,10 +165,10 @@ public class AvailabilityCharacterizationTest {
 	@ParameterizedTest(name = "without {0}")
 	@MethodSource("kindsOfferedWithoutEachRepresentation")
 	public void leavingOutOneRepresentationWithholdsExactlyTheKindsThatNeedIt(String missingType, Set<String> expectedKinds) {
-		Codebase codebase = everythingExcept(missingType, "fixture-everything-but-" + missingType);
-		givenTheRepositoryFinds(codebase);
+		Fixture fixture = everythingExcept(missingType, "fixture-everything-but-" + missingType);
+		givenTheRepositoryFinds(fixture);
 
-		assertThat(offeredKinds(codebase.getName())).containsExactlyInAnyOrderElementsOf(expectedKinds);
+		assertThat(offeredKinds(fixture.getId())).containsExactlyInAnyOrderElementsOf(expectedKinds);
 	}
 
 	/** Without Entity-to-ID, Structure is withheld, because the Structure kind declares it (D-019); see the Structure test below. */
@@ -198,7 +197,7 @@ public class AvailabilityCharacterizationTest {
 	public void structureIsWithheldWithoutEntityToIdAndItsUploadGroupIsNotSatisfied() {
 		assertThat(offeredKinds(UNGROUPED_STRUCTURE_NAME))
 				.containsExactlyInAnyOrder(ACCESSES_STRATEGY);
-		assertThat(codebaseService.getCodebaseRepresentationGroups(UNGROUPED_STRUCTURE_NAME))
+		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(UNGROUPED_STRUCTURE_NAME))
 				.doesNotContain(STRUCTURE_TYPE);
 	}
 
@@ -218,21 +217,21 @@ public class AvailabilityCharacterizationTest {
 		return mock(SciPyClustering.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 	}
 
-	private List<String> offeredKinds(String codebaseName) {
-		return codebaseService.getAllowableCodebaseStrategyTypes(codebaseName);
+	private List<String> offeredKinds(String softwareSystemId) {
+		return softwareSystemService.getAllowableSoftwareSystemStrategyTypes(softwareSystemId);
 	}
 
-	private void givenTheRepositoryFinds(Codebase codebase) {
-		when(codebaseRepository.findByName(codebase.getName())).thenReturn(codebase);
+	private void givenTheRepositoryFinds(Fixture fixture) {
+		SoftwareSystemFixtures.stubbed(representationRepository, fixture);
 	}
 
-	/** A codebase with every representation type except {@code missingType}; {@code null} omits none. */
-	private static Codebase everythingExcept(String missingType, String name) {
+	/** A software system with every representation type except {@code missingType}; {@code null} omits none. */
+	private static Fixture everythingExcept(String missingType, String name) {
 		List<Representation> representations = new ArrayList<>();
 		for (Supplier<Representation> representation : EVERY_REPRESENTATION)
 			representations.add(representation.get());
 		representations.removeIf(representation -> representation.getType().equals(missingType));
-		return CodebaseFixtures.codebaseWith(name, representations.toArray(new Representation[0]));
+		return SoftwareSystemFixtures.softwareSystemWith(name, representations.toArray(new Representation[0]));
 	}
 
 	private static Set<String> union(Set<String> first, Set<String> second) {

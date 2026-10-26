@@ -17,6 +17,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyFunctional
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
@@ -42,7 +43,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 	}
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraph(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 	}
 
 	public int getDepth() {
@@ -64,7 +65,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
 	}
@@ -101,13 +102,14 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeMethodCallsFeaturesVectors(matrix, codeEmbeddings);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-		matrix.put("translationFileName", idToEntity.getName());
-		matrix.put("accessesFileName", accessesInfo.getName());
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
+		matrix.put("translationFileName", idToEntity.getId());
+		matrix.put("accessesFileName", accessesInfo.getId());
 
 		JSONObject matrixJSON = new JSONObject(matrix);
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	private void computeMethodCallsFeaturesVectors(HashMap<String, Object> matrix, JSONObject codeEmbeddings) throws JSONException {
@@ -272,8 +274,10 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			int totalNumberOfWeights
 	) throws Exception {
 		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+				ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];
 		weights[0] = INTERVAL;
@@ -281,7 +285,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		remainders[0] = INTERVAL;
 
 		Set<String> similarityMatrices = new HashSet<>();
-		getMatrixCombinations(similarityMatrices, codeEmbeddings, idToEntity.getName(), accessesInfo.getName(), weights, remainders, 0);
+		getMatrixCombinations(similarityMatrices, codeEmbeddings, idToEntity.getId(), accessesInfo.getId(), weights, remainders, 0);
 		return similarityMatrices;
 	}
 
@@ -335,7 +339,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		matrix.put("accessesFileName", accessesFileName);
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		StringBuilder similarityMatrixName = new StringBuilder(getName());
+		StringBuilder similarityMatrixName = new StringBuilder(getId());
 		for (float weight : weights)
 			similarityMatrixName.append(",").append(getWeightAsString(weight));
 

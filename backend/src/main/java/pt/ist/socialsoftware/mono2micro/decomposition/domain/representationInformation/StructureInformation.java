@@ -30,6 +30,7 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.SimilarityStructureIterator;
 
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,14 +50,14 @@ public class StructureInformation extends RepresentationInformation {
 
 	@Override
 	public void setup(Decomposition decomposition) throws IOException {
-		this.decompositionName = decomposition.getName();
+		this.decompositionId = decomposition.getId();
 		decomposition.addRepresentationInformation(this);
 		setupEntities(decomposition);
 	}
 
 	@Override
 	public void snapshot(Decomposition snapshotDecomposition, Decomposition decomposition) {
-		this.decompositionName = snapshotDecomposition.getName();
+		this.decompositionId = snapshotDecomposition.getId();
 		snapshotDecomposition.addRepresentationInformation(this);
 		StructureInformation structureInformation = (StructureInformation) decomposition.getRepresentationInformationByType(STRUCTURE_TYPE);
 		this.entitiesContained = structureInformation.getEntitiesContained();
@@ -117,10 +118,11 @@ public class StructureInformation extends RepresentationInformation {
 
 	private void setupEntities(Decomposition decomposition) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		StructureRepresentation structureRepresentation = (StructureRepresentation) decomposition.getStrategy().getCodebase()
-				.getRepresentationByFileType(STRUCTURE);
+		StructureRepresentation structureRepresentation = (StructureRepresentation) Representation.ofSoftwareSystem(
+				decomposition.getStrategy().getSoftwareSystem(),
+				STRUCTURE);
 		Map<String, Object> jsonData = new ObjectMapper().readValue(
-				gridFsService.getFileAsString(structureRepresentation.getName()),
+				gridFsService.getFileAsString(structureRepresentation.getId()),
 				new TypeReference<Map<String, Object>>() {}
 		);
 
@@ -128,8 +130,9 @@ public class StructureInformation extends RepresentationInformation {
 
 		/* Filter out all the primitive types */
 		SimilarityScipyStructure s = (SimilarityScipyStructure) decomposition.getSimilarity();
-		StructureRepresentation structure = (StructureRepresentation) decomposition.getSimilarity().getStrategy().getCodebase()
-				.getRepresentationByFileType(STRUCTURE);
+		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(
+				decomposition.getSimilarity().getStrategy().getSoftwareSystem(),
+				STRUCTURE);
 		Set<String> entities = structure.getProfile(s.getProfile());
 		filterEntities(entitiesContainedMap, entities);
 

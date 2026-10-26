@@ -6,7 +6,7 @@ import java.util.Set;
 
 /**
  * A feature of the tool that is not always available: whether the tool can offer it depends on
- * what a System has collected, or on the input it would act on. The feature declares what it
+ * what a software system has collected, or on the input it would act on. The feature declares what it
  * needs as a list of named {@link Requirement}s, and one shared {@link AvailabilityCheck} derives
  * from those declarations which features of a family are offered, and why the others are not.
  *
@@ -18,7 +18,7 @@ import java.util.Set;
  * <h2>Requirements are in tool terms</h2>
  *
  * <p>A requirement is named in the tool's own vocabulary ("has an Accesses representation",
- * "Similarity kind in {…}"), because that is what can be checked against a real System. The
+ * "Similarity kind in {…}"), because that is what can be checked against a real software system. The
  * model feature each requirement corresponds to is recorded outside the code, in the thesis
  * repository, and the correspondence test reads it there in both directions: model to tool gives
  * a coverage figure, and tool to model is an assertion (D-003, D-019 point 2).

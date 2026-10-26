@@ -18,6 +18,7 @@ import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.utils.Utils;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,10 +42,13 @@ public class AccessesDecompositionService {
 	FunctionalityService functionalityService;
 
 	@Autowired
+	RepresentationRepository representationRepository;
+
+	@Autowired
 	GridFsService gridFsService;
 
-	public Map<String, Object> getFunctionalitiesAndFunctionalitiesClusters(String decompositionName) throws Exception {
-		Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
+	public Map<String, Object> getFunctionalitiesAndFunctionalitiesClusters(String decompositionId) throws Exception {
+		Decomposition decomposition = decompositionService.updateDecomposition(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 
 		Map<String, Set<Cluster>> functionalitiesClusters = Utils.getFunctionalitiesClusters(
@@ -66,8 +70,8 @@ public class AccessesDecompositionService {
 		return response;
 	}
 
-	public Map<String, Object> getClustersAndClustersFunctionalities(String decompositionName) throws Exception {
-		Decomposition decomposition = decompositionService.updateDecomposition(decompositionName);
+	public Map<String, Object> getClustersAndClustersFunctionalities(String decompositionId) throws Exception {
+		Decomposition decomposition = decompositionService.updateDecomposition(decompositionId);
 
 		Map<String, List<Functionality>> clustersFunctionalities = Utils.getClustersFunctionalities(decomposition);
 
@@ -78,16 +82,18 @@ public class AccessesDecompositionService {
 		return response;
 	}
 
-	public Utils.GetSerializableLocalTransactionsGraphResult getLocalTransactionGraphForFunctionality(String decompositionName, String functionalityName)
+	public Utils.GetSerializableLocalTransactionsGraphResult getLocalTransactionGraphForFunctionality(String decompositionId, String functionalityName)
 			throws JSONException, IOException {
-		Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+		Decomposition decomposition = decompositionRepository.getById(decompositionId);
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
-		AccessesRepresentation representation = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		AccessesRepresentation representation = (AccessesRepresentation) representationRepository
+				.findBySoftwareSystemIdAndType(similarity.getStrategy().getSoftwareSystem().getId(), ACCESSES)
+				.orElseThrow(() -> new RuntimeException("No representation with type " + ACCESSES));
 
 		DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)
 				.createLocalTransactionGraphFromScratch(
-						gridFsService.getFile(representation.getName()),
+						gridFsService.getFile(representation.getId()),
 						similarity.getTracesMaxLimit(),
 						similarity.getTraceType(),
 						decomposition.getEntityIDToClusterName());

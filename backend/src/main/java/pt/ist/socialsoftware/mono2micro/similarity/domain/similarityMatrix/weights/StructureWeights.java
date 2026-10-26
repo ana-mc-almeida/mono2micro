@@ -12,6 +12,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructu
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.SimilarityStructureIterator;
 import pt.ist.socialsoftware.mono2micro.utils.Pair;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -109,16 +110,17 @@ public class StructureWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		SimilarityScipyStructure s = (SimilarityScipyStructure) similarity;
-		StructureRepresentation structure = (StructureRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(STRUCTURE);
-		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getName()), structure.getProfile(s.getProfile()), getWeights());
+		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), STRUCTURE);
+		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getId()), structure.getProfile(s.getProfile()), getWeights());
 	}
 
 	@Override
 	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-		StructureRepresentation structure = (StructureRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(STRUCTURE);
-		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getName()), structure.getProfile(r.getProfile()), getWeights());
+		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+				STRUCTURE);
+		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getId()), structure.getProfile(r.getProfile()), getWeights());
 	}
 
 	public static void fillRawMatrixFromStructures(

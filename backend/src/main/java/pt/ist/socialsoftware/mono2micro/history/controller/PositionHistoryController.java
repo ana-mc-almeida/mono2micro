@@ -13,7 +13,7 @@ import pt.ist.socialsoftware.mono2micro.history.service.PositionHistoryService;
 import java.io.IOException;
 
 @RestController
-@RequestMapping(value = "/mono2micro/positionHistory/{decompositionName}")
+@RequestMapping(value = "/mono2micro/positionHistory/{decompositionId}")
 public class PositionHistoryController {
 	@Autowired
 	PositionHistoryService historyService;
@@ -25,12 +25,12 @@ public class PositionHistoryController {
 
 	@PostMapping(value = "/saveGraphPositions")
 	public ResponseEntity<HttpStatus> saveGraphPositions(
-			@PathVariable String decompositionName,
+			@PathVariable String decompositionId,
 			@RequestBody String graphPositions
 	) {
 		logger.debug("saveGraphPositions");
 		try {
-			Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+			Decomposition decomposition = decompositionRepository.getById(decompositionId);
 
 			historyService.saveGraphPositions(decomposition, graphPositions);
 			return new ResponseEntity<>(HttpStatus.OK);
@@ -42,12 +42,12 @@ public class PositionHistoryController {
 
 	@GetMapping(value = "/getGraphPositions")
 	public ResponseEntity<String> getGraphPositions(
-			@PathVariable String decompositionName
+			@PathVariable String decompositionId
 	) {
 		logger.debug("getGraphPositions");
 
 		try {
-			Decomposition decomposition = decompositionRepository.findByName(decompositionName);
+			Decomposition decomposition = decompositionRepository.getById(decompositionId);
 
 			String graphPositions = historyService.getGraphPositions(decomposition);
 

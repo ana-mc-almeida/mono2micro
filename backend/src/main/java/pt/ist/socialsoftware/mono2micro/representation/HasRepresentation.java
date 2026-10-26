@@ -4,7 +4,7 @@ import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 
 /**
- * Met when the System has collected a representation of the given kind, named as the tool's
+ * Met when the software system has collected a representation of the given kind, named as the tool's
  * representation types name themselves ({@code Accesses}, {@code Changes Authorship}).
  */
 public class HasRepresentation implements Requirement {

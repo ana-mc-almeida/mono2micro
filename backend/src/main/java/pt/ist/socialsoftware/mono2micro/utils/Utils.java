@@ -252,7 +252,7 @@ public class Utils {
 					clustersFunctionalities.put(cluster.getName(), clusterFunctionalities);
 
 				if (clusterFunctionalities.stream().noneMatch(prevFunctionality -> prevFunctionality.getName().equals(functionality.getName())))
-					clusterFunctionalities.add(new Functionality(decomposition.getName(), functionality));
+					clusterFunctionalities.add(new Functionality(functionality));
 			}
 		}
 

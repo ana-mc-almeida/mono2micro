@@ -1,14 +1,14 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 
+import java.util.List;
+
 public interface RecommendationRepository extends MongoRepository<Recommendation, String> {
-	boolean existsByName(String name);
+	List<Recommendation> findByStrategyId(String strategyId);
 
-	Recommendation findByName(String recommendationName);
-
-	@Query(value = "{'name': ?0}", fields = "{'recommendationResultName': 1, '_id': 1, '_class': 1}")
-	Recommendation getRecommendationResultName(String recommendationName);
+	default Recommendation getById(String id) {
+		return findById(id).orElseThrow(() -> new RuntimeException("No recommendation " + id + " found."));
+	}
 }

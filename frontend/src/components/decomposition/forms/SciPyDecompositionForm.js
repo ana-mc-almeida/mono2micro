@@ -11,7 +11,7 @@ import HttpStatus from "http-status-codes";
 
 
 export const SciPyDecompositionForm = ({loadDecompositions}) => {
-    let { similarityName } = useParams();
+    let { similarityId } = useParams();
 
     const [createExpert, setCreateExpert] = useState(undefined);
 
@@ -52,7 +52,7 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
 
         service.createDecomposition({
             type: "SciPy Clustering",
-            similarityName,
+            similarityId,
             cutType,
             cutValue
         }).then(response => {
@@ -76,7 +76,7 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
 
         const service = new APIService();
         service.createExpertDecomposition(
-            similarityName,
+            similarityId,
             expertName,
             expertFile
         ).then(response => {
@@ -110,7 +110,7 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
                 <img
                     className={"d-block mb-4"}
                     width="70%"
-                    src={URL + "/similarity/" + similarityName + "/image?" + new Date().getTime()}
+                    src={URL + "/similarity/" + similarityId + "/image?" + new Date().getTime()}
                     alt="Strategy"
                 />
 

@@ -7,9 +7,13 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class DecompositionDto {
+	String id;
 	String name;
-	String codebaseName;
+	String softwareSystemId;
+	String softwareSystemName;
+	String strategyId;
 	String strategyName;
+	String similarityId;
 	String similarityName;
 	String type;
 	Map<String, Object> metrics;
@@ -24,12 +28,44 @@ public abstract class DecompositionDto {
 		this.name = name;
 	}
 
-	public String getCodebaseName() {
-		return codebaseName;
+	public String getId() {
+		return id;
 	}
 
-	public void setCodebaseName(String codebaseName) {
-		this.codebaseName = codebaseName;
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
+	}
+
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
+	}
+
+	public String getSoftwareSystemName() {
+		return softwareSystemName;
+	}
+
+	public void setSoftwareSystemName(String softwareSystemName) {
+		this.softwareSystemName = softwareSystemName;
+	}
+
+	public String getStrategyId() {
+		return strategyId;
+	}
+
+	public void setStrategyId(String strategyId) {
+		this.strategyId = strategyId;
+	}
+
+	public String getSimilarityId() {
+		return similarityId;
+	}
+
+	public void setSimilarityId(String similarityId) {
+		this.similarityId = similarityId;
 	}
 
 	public String getStrategyName() {

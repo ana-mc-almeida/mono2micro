@@ -94,6 +94,8 @@ class ManualOperationCharacterizationTest {
 
 	private InMemoryFunctionalityService functionalityService;
 	private AccessesInformation accessesInformation;
+	/** Functionality name → its generated id, which names its redesign files. */
+	private final Map<String, String> functionalityIds = new TreeMap<>();
 	private PartitionsDecomposition decomposition;
 	private ManualEditing editing;
 
@@ -637,7 +639,8 @@ class ManualOperationCharacterizationTest {
 	 * {@code "C1", 1, "C2", 3}
 	 */
 	private void addFunctionality(String name, Object... clustersAndEntities) throws IOException {
-		Functionality functionality = new Functionality(ManualEditing.DECOMPOSITION_NAME, name);
+		Functionality functionality = new Functionality(name);
+		functionalityIds.put(name, functionality.getId());
 		FunctionalityRedesign redesign = new FunctionalityRedesign(Constants.DEFAULT_REDESIGN_NAME);
 
 		LocalTransaction root = new LocalTransaction(0, "-1");
@@ -666,7 +669,7 @@ class ManualOperationCharacterizationTest {
 	}
 
 	/** Where the default redesign of the named functionality is stored, as production names it. */
-	private static String redesignFile(String functionalityName) {
-		return new Functionality(ManualEditing.DECOMPOSITION_NAME, functionalityName).getId() + Constants.DEFAULT_REDESIGN_NAME;
+	private String redesignFile(String functionalityName) {
+		return functionalityIds.get(functionalityName) + Constants.DEFAULT_REDESIGN_NAME;
 	}
 }

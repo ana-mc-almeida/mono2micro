@@ -44,7 +44,8 @@ export const views = {
 export const AccessesViews = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile } = context;
-    let { codebaseName, strategyName, similarityName, decompositionName } = useParams();
+    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
+    const [decomposition, setDecomposition] = useState(undefined);
 
     const [view, setView] = useState(views.CLUSTERS);
     const [displayAccesses, setDisplayAccesses] = useState("block");
@@ -68,17 +69,18 @@ export const AccessesViews = () => {
         setNow(10);
 
         const service = new APIService();
-        service.getClustersAndClustersFunctionalities(decompositionName).then(response => {
+        service.getDecomposition(decompositionId).then(response => setDecomposition(response));
+        service.getClustersAndClustersFunctionalities(decompositionId).then(response => {
             setNow(prev => prev + 20);
             setClusters(Object.values(response.data.clusters).sort((a, b) => a.name - b.name));
             setClustersFunctionalities(response.data.clustersFunctionalities);
 
-            service.getEdgeWeights(decompositionName, RepresentationType.ACCESSES_TYPE).then(response => {
+            service.getEdgeWeights(decompositionId, RepresentationType.ACCESSES_TYPE).then(response => {
                 setNow(n => n + 30);
                 setEdgeWeights(response.data);
             });
         });
-        service.getIdToEntity(codebaseName).then(response => {
+        service.getIdToEntity(softwareSystemId).then(response => {
             setNow(prev => prev + 10);
             updateEntityTranslationFile(response.data);
         });
@@ -87,7 +89,7 @@ export const AccessesViews = () => {
 
     function loadClustersAndClustersFunctionalities() {
         const service = new APIService();
-        service.getClustersAndClustersFunctionalities(decompositionName).then(response => {
+        service.getClustersAndClustersFunctionalities(decompositionId).then(response => {
             setClusters(Object.values(response.data.clusters).sort((a, b) => a.name - b.name));
             setClustersFunctionalities(response.data.clustersFunctionalities);
             setOutdated(false);
@@ -131,7 +133,7 @@ export const AccessesViews = () => {
     function changeSpeedDial(showTable) {
         setActions(speedDialActions);
         const service = new APIService();
-        service.canUndoRedo(decompositionName).then(response => {
+        service.canUndoRedo(decompositionId).then(response => {
             setActions(actions => [...actions.filter(action => action.name !== "Undo" && action.name !== "Redo")]);
             if (response.data["undo"])
                 setActions(actions => [...actions, {icon: <Undo/>, name: 'Undo', handler: handleUndo}]);
@@ -168,20 +170,20 @@ export const AccessesViews = () => {
                 <Breadcrumb.Item href="/">
                     Home
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">
-                    Codebases
+                <Breadcrumb.Item href="/softwareSystems">
+                    Software Systems
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>
-                    {codebaseName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
+                    {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/similarity`}>
-                    {strategyName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
+                    {decomposition?.strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}/${strategyName}/${similarityName}/decomposition`}>
-                    {similarityName}
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityId}/decomposition`}>
+                    {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
-                    {decompositionName}
+                    {decomposition?.name}
                 </Breadcrumb.Item>
             </Breadcrumb>
         );
@@ -189,8 +191,8 @@ export const AccessesViews = () => {
 
     function handleUndo() {
         const service = new APIService();
-        service.undoOperation(decompositionName).then(() => {
-            service.getClusters(decompositionName).then(response => {
+        service.undoOperation(decompositionId).then(() => {
+            service.getClusters(decompositionId).then(response => {
                 setClusters(Object.values(response.data));
                 setReloadPositions({});
             });
@@ -200,8 +202,8 @@ export const AccessesViews = () => {
 
     function handleRedo() {
         const service = new APIService();
-        service.redoOperation(decompositionName).then(() => {
-            service.getClusters(decompositionName).then(response => {
+        service.redoOperation(decompositionId).then(() => {
+            service.getClusters(decompositionId).then(response => {
                 setClusters(Object.values(response.data));
                 setReloadPositions({});
             });

@@ -13,7 +13,9 @@ public class SimilarityScipyEntityVectorizationDto extends SimilarityDto {
 	public SimilarityScipyEntityVectorizationDto() { this.type = SIMILARITY_SCIPY_ENTITY_VECTORIZATION; }
 
 	public SimilarityScipyEntityVectorizationDto(SimilarityScipyEntityVectorization similarity) {
-		this.codebaseName = similarity.getStrategy().getCodebase().getName();
+		this.id = similarity.getId();
+		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
+		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();
 		this.name = similarity.getName();
 		this.type = similarity.getType();
@@ -21,6 +23,7 @@ public class SimilarityScipyEntityVectorizationDto extends SimilarityDto {
 	}
 
 	public SimilarityScipyEntityVectorizationDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
+		this.strategyId = recommend.getStrategy().getId();
 		this.strategyName = recommend.getStrategy().getName();
 		this.name = recommend.getName();
 		this.type = SIMILARITY_SCIPY_ENTITY_VECTORIZATION;

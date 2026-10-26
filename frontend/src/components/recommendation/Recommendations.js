@@ -10,7 +10,7 @@ import { StrategyType } from '../../models/strategy/StrategyTypes';
 import { RecommendationType } from '../../models/recommendation/RecommendationTypes';
 
 export const Recommendations = () => {
-    let { codebaseName, strategyName } = useParams();
+    let { softwareSystemId, strategyId } = useParams();
 
     const [strategy, setStrategy] = useState(undefined);
     const [decompositions, setDecompositions] = useState([]);
@@ -24,7 +24,7 @@ export const Recommendations = () => {
     function loadStrategy() {
         const toastId = toast.loading("Fetching Strategy...");
         const service = new APIService();
-        service.getStrategy(strategyName).then(response => {
+        service.getStrategy(strategyId).then(response => {
             setStrategy(response);
 
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Loaded Strategy.", isLoading: false});
@@ -36,7 +36,7 @@ export const Recommendations = () => {
         const service = new APIService();
         const toastId = toast.loading("Fetching Decompositions...");
         service.getStrategyDecompositions(
-            strategyName
+            strategyId
         ).then(response => {
             setDecompositions(response);
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decompositions Loaded.", isLoading: false});
@@ -46,10 +46,11 @@ export const Recommendations = () => {
         });
     }
 
-    function handleDeleteDecomposition(decompositionName) {
+    function handleDeleteDecomposition(decomposition) {
+        const decompositionName = decomposition.name;
         const toastId = toast.loading("Deleting " + decompositionName + "...");
         const service = new APIService();
-        service.deleteDecomposition(decompositionName).then(() => {
+        service.deleteDecomposition(decomposition.id).then(() => {
             loadDecompositions();
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decomposition deleted.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
@@ -58,10 +59,11 @@ export const Recommendations = () => {
         });
     }
 
-    function handleExportDecomposition(decompositionName) {
+    function handleExportDecomposition(decomposition) {
+        const decompositionName = decomposition.name;
         const toastId = toast.loading("Exporting " + decompositionName + "...");
         const service = new APIService();
-        service.exportDecomposition(decompositionName).then(response => {
+        service.exportDecomposition(decomposition.id).then(response => {
             downloadDecompositionData(response);
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decomposition exported.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
@@ -89,9 +91,9 @@ export const Recommendations = () => {
         return (
             <Breadcrumb>
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/codebases">Codebases</Breadcrumb.Item>
-                <Breadcrumb.Item href={`/codebases/${codebaseName}`}>{codebaseName}</Breadcrumb.Item>
-                <Breadcrumb.Item active>{strategyName}</Breadcrumb.Item>
+                <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{strategy?.softwareSystemName}</Breadcrumb.Item>
+                <Breadcrumb.Item active>{strategy?.name}</Breadcrumb.Item>
             </Breadcrumb>
         );
     }
@@ -111,7 +113,7 @@ export const Recommendations = () => {
                     {strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.ENTITY_VECTORIZATION_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_ENTITY_VECTORIZATION}
@@ -119,7 +121,7 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.CLASS_VECTORIZATION_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_CLASS_VECTORIZATION}
@@ -127,7 +129,7 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_CALLGRAPH}
@@ -135,7 +137,7 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES}
@@ -143,14 +145,14 @@ export const Recommendations = () => {
                     strategy.algorithmType === "SciPy Clustering" &&
                         strategy.strategyTypes.includes(StrategyType.STRUCTURE_STRATEGY) ?
                         <RecommendMatrixSciPy
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_SCIPY_STRUCTURE}
                         /> :
                     strategy.algorithmType === "SciPy Clustering" &&
                         <RecommendMatrixSciPy
-                            codebaseName={codebaseName}
+                            softwareSystemId={softwareSystemId}
                             strategy={strategy}
                             setUpdateStrategies={setUpdateStrategies}
                             recommendationType={RecommendationType.RECOMMEND_MATRIX_SCIPY}

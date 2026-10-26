@@ -19,16 +19,16 @@ public class ComparisonToolController {
 	@Autowired
 	DecompositionService decompositionService;
 
-	@PostMapping(value = "/comparison/{decomposition1Name}/{decomposition2Name}")
+	@PostMapping(value = "/comparison/{decomposition1Id}/{decomposition2Id}")
 	public ResponseEntity<ComparisonToolResponse> getAnalysis(
-			@PathVariable String decomposition1Name,
-			@PathVariable String decomposition2Name
+			@PathVariable String decomposition1Id,
+			@PathVariable String decomposition2Id
 	) {
 		logger.debug("getAnalysis");
 
 		try {
-			Decomposition decomposition1 = decompositionService.updateDecomposition(decomposition1Name);
-			Decomposition decomposition2 = decompositionService.updateDecomposition(decomposition2Name);
+			Decomposition decomposition1 = decompositionService.updateDecomposition(decomposition1Id);
+			Decomposition decomposition2 = decompositionService.updateDecomposition(decomposition2Id);
 
 			ComparisonToolResponse comparisonToolResponse = ComparisonToolResponseFactory.getComparisonToolResponse(decomposition1, decomposition2);
 			return new ResponseEntity<>(comparisonToolResponse, HttpStatus.OK);

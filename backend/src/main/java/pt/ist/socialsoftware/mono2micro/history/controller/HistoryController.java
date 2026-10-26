@@ -12,7 +12,7 @@ import pt.ist.socialsoftware.mono2micro.history.service.HistoryService;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/mono2micro/history/{decompositionName}")
+@RequestMapping(value = "/mono2micro/history/{decompositionId}")
 public class HistoryController {
 	@Autowired
 	HistoryService historyService;
@@ -24,12 +24,12 @@ public class HistoryController {
 
 	@GetMapping(value = "/undoOperation")
 	public ResponseEntity<HttpStatus> undoOperation(
-			@PathVariable String decompositionName
+			@PathVariable String decompositionId
 	) {
 		logger.debug("undoOperation");
 
 		try {
-			historyService.undoOperation(decompositionRepository.findByName(decompositionName));
+			historyService.undoOperation(decompositionRepository.getById(decompositionId));
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -40,12 +40,12 @@ public class HistoryController {
 
 	@GetMapping(value = "/redoOperation")
 	public ResponseEntity<HttpStatus> redoOperation(
-			@PathVariable String decompositionName
+			@PathVariable String decompositionId
 	) {
 		logger.debug("redoOperation");
 
 		try {
-			historyService.redoOperation(decompositionRepository.findByName(decompositionName));
+			historyService.redoOperation(decompositionRepository.getById(decompositionId));
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -56,12 +56,12 @@ public class HistoryController {
 
 	@GetMapping(value = "/canUndoRedo")
 	public ResponseEntity<Map<String, Boolean>> canUndoRedo(
-			@PathVariable String decompositionName
+			@PathVariable String decompositionId
 	) {
 		logger.debug("canUndoRedo");
 
 		try {
-			return new ResponseEntity<>(historyService.canUndoRedo(decompositionRepository.findByName(decompositionName)), HttpStatus.OK);
+			return new ResponseEntity<>(historyService.canUndoRedo(decompositionRepository.getById(decompositionId)), HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();

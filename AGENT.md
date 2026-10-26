@@ -276,40 +276,42 @@ Two things CI must do that a local checkout does not need:
    loaded and the backend reads precomputed `codeVector` arrays from the fixture JSON
    instead of calling `/code2vec/predict`.
 
-### Codebase fixtures
+### Software system fixtures
 
-Availability tests need a codebase whose uploaded representations are known. `codebases/`
-is gitignored and empty in a fresh clone, so tests carry their own data:
-`<pkg>/fixtures/CodebaseFixtures` (test sources) builds codebases in memory — one per
-representation group, plus `empty()`.
+Availability tests need a software system whose uploaded representations are known.
+`codebases/` is gitignored and empty in a fresh clone, so tests carry their own data:
+`<pkg>/fixtures/SoftwareSystemFixtures` (test sources) builds software systems in memory —
+one per representation group, plus `empty()`. A `SoftwareSystem` keeps no list of its
+representations (D-016), so each `Fixture` pairs a software system with the representations
+it collected, and a fixture's id is its name.
 
 ```java
-Codebase offered  = CodebaseFixtures.repositoryBased();  // has authorship + commit data
-Codebase withheld = CodebaseFixtures.accessesBased();    // deliberately does not
+Fixture offered  = SoftwareSystemFixtures.repositoryBased();  // has authorship + commit data
+Fixture withheld = SoftwareSystemFixtures.accessesBased();    // deliberately does not
 ```
 
 Availability is derived from representation **types** alone, so a fixture is plain objects:
 nothing is persisted and no database is contacted. Tests using them run in milliseconds,
-offline, with the same result on any machine. For a service that looks a codebase up, stub
-the repository with Mockito rather than starting Spring —
-`CodebaseServiceAvailabilityTest` is the worked example to copy.
+offline, with the same result on any machine. For a service that looks representations up,
+stub the repository with `SoftwareSystemFixtures.stubbed(repository, fixtures...)` rather than
+starting Spring — `SoftwareSystemServiceAvailabilityTest` is the worked example to copy.
 
 Two rules, from the Phase 1 spec's testing decisions:
 
 - **Assert the derived answer, not the derivation.** Never assert that a particular map was
   read or a method called in an order — those internals are what the refactor is free to
   change.
-- **Prefer a difference over an absolute set** where the claim is that two codebases get
-  different answers, so the test keeps meaning as features are added.
+- **Prefer a difference over an absolute set** where the claim is that two software systems
+  get different answers, so the test keeps meaning as features are added.
 
 Add a fixture when a new representation group appears;
 `everyRepresentationGroupIsCoveredByAFixture` fails until you do.
 
 **Limit.** Fixtures call constructors directly and skip `init()`, so the collections that
 `AccessesRepresentation` and `StructureRepresentation` parse from their file (functionality
-names, entity names) are empty. Availability never reads them. A test that needs a codebase
-with _real_ functionalities or entities should load committed collector output instead —
-sample files live in `../codebases-structure/` (SpringPetclinic is 24K).
+names, entity names) are empty. Availability never reads them. A test that needs a software
+system with _real_ functionalities or entities should load committed collector output
+instead — sample files live in `../codebases-structure/` (SpringPetclinic is 24K).
 
 ## Backend layout
 
@@ -334,9 +336,16 @@ beans and reach services through the static `<pkg>/fileManager/ContextManager.ja
 
 ### Domain model
 
+Every entity has a generated id (an ObjectId hex string, set at construction); `name` is a
+display field. GridFS files and REST routes are keyed by id. References go from child to
+parent only, and a parent finds its children by repository query (`findBySoftwareSystemId`,
+`findByStrategyId`, `findBySimilarityId`) — no class keeps a list of its children (D-016),
+except `Decomposition.history` and the information blocks' functionality map, which tickets
+10–12 replace (D-024).
+
 ```
-Codebase
-├── Representation*        (imported collector files)
+SoftwareSystem
+├── Representation*        (imported collector files; at most one per kind)
 └── Strategy*              (a decomposition approach)
     ├── Similarity*  ──►  Dendrogram (built by SciPy)
     ├── Recommendation*
@@ -347,9 +356,17 @@ Codebase
         └── metrics: Map<String, Object>
 ```
 
+The tree reads parent → child, but each arrow is stored the other way, as a `@DBRef` on the
+child. References to concrete types (`SoftwareSystem`, `Strategy`) are lazy; references to
+abstract types (`Decomposition.similarity`) stay eager, because a lazy proxy subclasses the
+declared type and cannot be downcast (D-024). A service that needs a software system's
+representation of some kind calls `RepresentationRepository.findBySoftwareSystemIdAndType`;
+domain code still calls `Representation.ofSoftwareSystem(softwareSystem, kind)`, which goes
+through `ContextManager` until ticket 18 removes it.
+
 | Concept                       | Location                                                 | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Codebase**                  | `<pkg>/codebase/`                                        | Top-level container; id is its name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **SoftwareSystem**            | `<pkg>/softwareSystem/`                                  | Top-level container `{id, name}`; REST under `/softwareSystems`. Not `System`, because of `java.lang.System`                                                                                                                                                                                                                                                                                                                                                                                                       |
 | **Representation**            | `<pkg>/representation/`                                  | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based`                                                                                                                                                                                                                                                                                 |
 | **Strategy**                  | `<pkg>/strategy/domain/`                                 | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations                                                                                                                                                                                                                                                                                                                                                                  |
 | **Similarity**                | `<pkg>/similarity/domain/`                               | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves                                                                                                                                                                                                                                                                                                                                                                                                                                                           |

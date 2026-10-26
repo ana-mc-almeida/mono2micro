@@ -1,20 +1,31 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.domain;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
 import java.util.List;
 
 public abstract class Recommendation {
 	@Id
+	String id = new ObjectId().toHexString();
 	String name;
-	@DBRef
+	@DBRef(lazy = true)
 	Strategy strategy;
 	String recommendationResultName;
 	boolean isCompleted; // true when all the decompositions are calculated
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
@@ -56,5 +67,5 @@ public abstract class Recommendation {
 
 	public abstract void generateRecommendation(RecommendationRepository recommendationRepository);
 
-	public abstract void createDecompositions(List<String> decompositionNames) throws Exception;
+	public abstract void createDecompositions(List<Similarity> strategySimilarities, List<String> decompositionNames) throws Exception;
 }

@@ -12,6 +12,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccesse
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.utils.FunctionalityTracesIterator;
 import pt.ist.socialsoftware.mono2micro.utils.Pair;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,8 +129,8 @@ public class AccessesWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		SimilarityScipyAccessesAndRepository s = (SimilarityScipyAccessesAndRepository) similarity;
-		AccessesRepresentation accesses = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(s.getProfile()), s.getTraceType(),
+		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getId()), accesses.getProfile(s.getProfile()), s.getTraceType(),
 				s.getTracesMaxLimit());
 	}
 
@@ -137,8 +138,8 @@ public class AccessesWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-		AccessesRepresentation accesses = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getName()), accesses.getProfile(r.getProfile()), r.getTraceType(),
+		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), ACCESSES);
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getId()), accesses.getProfile(r.getProfile()), r.getTraceType(),
 				r.getTracesMaxLimit());
 	}
 

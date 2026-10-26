@@ -1,17 +1,19 @@
 export default abstract class Representation {
+    id!: string;
     name!: string;
     type!: string;
-    codebaseName!: string;
+    softwareSystemId!: string;
     inputFile!: string;
 
     protected constructor(representation: Representation) {
+        this.id = representation.id;
         this.name = representation.name;
         this.type = representation.type;
-        this.codebaseName = representation.codebaseName;
+        this.softwareSystemId = representation.softwareSystemId;
         this.inputFile = representation.inputFile;
     }
 
-    // This function is used to be displayed in the context of the codebase
+    // This function is used to be displayed in the context of the software system
     abstract printCard(handleDeleteRepresentation: (representation: Representation) => void): JSX.Element;
 }
 

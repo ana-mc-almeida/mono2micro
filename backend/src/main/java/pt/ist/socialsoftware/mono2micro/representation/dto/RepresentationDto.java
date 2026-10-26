@@ -3,16 +3,27 @@ package pt.ist.socialsoftware.mono2micro.representation.dto;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 public class RepresentationDto {
+	private String id;
+
 	private String name;
 
 	private String type;
 
-	private String codebaseName;
+	private String softwareSystemId;
 
 	protected RepresentationDto(Representation representation) {
+		this.id = representation.getId();
 		this.name = representation.getName();
 		this.type = representation.getType();
-		this.codebaseName = representation.getCodebase().getName();
+		this.softwareSystemId = representation.getSoftwareSystem().getId();
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getName() {
@@ -31,11 +42,11 @@ public class RepresentationDto {
 		this.type = type;
 	}
 
-	public String getCodebaseName() {
-		return codebaseName;
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
 	}
 
-	public void setCodebaseName(String codebaseName) {
-		this.codebaseName = codebaseName;
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
 	}
 }

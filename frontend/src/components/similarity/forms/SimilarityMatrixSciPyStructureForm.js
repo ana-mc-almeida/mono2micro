@@ -14,7 +14,7 @@ import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 import {TraceType} from "../../../type-declarations/types";
 
 
-export const SimilarityMatrixSciPyStructureForm = ({codebaseName, strategy, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [profiles, setProfiles] = useState([]);
     const [profile, setProfile] = useState("Generic")
@@ -35,7 +35,7 @@ export const SimilarityMatrixSciPyStructureForm = ({codebaseName, strategy, setU
         setIsUploaded("Uploading...");
 
         service.createSimilarity({
-            strategyName: strategy.name,
+            strategyId: strategy.id,
             type: SIMILARITY_SCIPY_STRUCTURE,
             weightsList,
             profile,
@@ -60,7 +60,7 @@ export const SimilarityMatrixSciPyStructureForm = ({codebaseName, strategy, setU
     }
 
     function loadProfiles() {
-        service.getCodebaseRepresentation(codebaseName, RepresentationFile.STRUCTURE)
+        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.STRUCTURE)
             .then((response) => setProfiles(response.profiles));
     }
 
@@ -99,7 +99,7 @@ export const SimilarityMatrixSciPyStructureForm = ({codebaseName, strategy, setU
             <Form onSubmit={handleSubmit} className="mt-2 mb-3">
                 <Form.Group as={Row} controlId="selectFunctionalityProfiles" className="align-items-center mb-3">
                     <Form.Label column sm={2}>
-                        Select Codebase Profile
+                        Select Software System Profile
                     </Form.Label>
                     <Col sm={2}>
                         <DropdownButton title={profile === ""? 'Functionality Profiles': profile}>

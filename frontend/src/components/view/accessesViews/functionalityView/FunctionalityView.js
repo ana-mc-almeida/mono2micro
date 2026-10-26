@@ -195,7 +195,7 @@ const optionsFunctionalityRedesign = {
 export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setOutdated, changeToClusters, setOpenSearch, setActions, view}) => {
     const context = useContext(AppContext);
     const { translateEntity } = context;
-    let { decompositionName } = useParams();
+    let { decompositionId } = useParams();
 
     const [functionalities, setFunctionalities] = useState(undefined);
     const [visGraph, setVisGraph] = useState({});
@@ -273,7 +273,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
     function loadFunctionalitiesAndFunctionalitiesClusters() {
         const service = new APIService();
 
-        service.getFunctionalitiesAndFunctionalitiesClusters(decompositionName).then(response => {
+        service.getFunctionalitiesAndFunctionalitiesClusters(decompositionId).then(response => {
             setFunctionalitiesClusters(response.data.functionalitiesClusters);
             setFunctionalities(Object.values(response.data.functionalities));
             setOutdated(false);
@@ -294,7 +294,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
         const service = new APIService();
 
         service.getLocalTransactionsGraphForFunctionality(
-            decompositionName,
+            decompositionId,
             currentFunctionality.name
         ).then(response => {
             createSequenceDiagram(response.data, currentFunctionality);
@@ -549,7 +549,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
         switch (selectedOperation) {
             case redesignOperations.AC:
                 service.addCompensating(
-                    decompositionName,
+                    decompositionId,
                     functionality.name,
                     selectedRedesign.name,
                     value.cluster,
@@ -568,7 +568,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
 
             case redesignOperations.SQ:
                 service.sequenceChange(
-                    decompositionName,
+                    decompositionId,
                     functionality.name,
                     selectedRedesign.name,
                     selectedLocalTransaction.id,
@@ -592,7 +592,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
                         return 1;
                 });
                 service.dcgi(
-                    decompositionName,
+                    decompositionId,
                     functionality.name,
                     selectedRedesign.name,
                     DCGISelectedClusters[0],
@@ -611,7 +611,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
 
             case redesignOperations.PIVOT:
                 service.selectPivotTransaction(
-                    decompositionName,
+                    decompositionId,
                     functionality.name,
                     selectedRedesign.name,
                     selectedLocalTransaction.id,
@@ -635,7 +635,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
 
             case redesignOperations.RENAME:
                 service.changeLTName(
-                    decompositionName,
+                    decompositionId,
                     functionality.name,
                     selectedRedesign.name,
                     selectedLocalTransaction.id,
@@ -754,7 +754,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
 
     function handleUseForMetrics(value){
         const service = new APIService();
-        service.setUseForMetrics(decompositionName, functionality.name, value.name)
+        service.setUseForMetrics(decompositionId, functionality.name, value.name)
             .then(response => {
                 const tempFunctionalities = functionalities;
                 const index = tempFunctionalities.indexOf(functionality);
@@ -775,7 +775,7 @@ export const FunctionalityView = ({searchedItem, setSearchedItem, outdated, setO
 
     function handleDeleteRedesign(value){
         const service = new APIService();
-        service.deleteRedesign(decompositionName, functionality.name, value.name)
+        service.deleteRedesign(decompositionId, functionality.name, value.name)
             .then(response => {
                 const tempFunctionalities = functionalities;
                 const index = tempFunctionalities.indexOf(functionality);

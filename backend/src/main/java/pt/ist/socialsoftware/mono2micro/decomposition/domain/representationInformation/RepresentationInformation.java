@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class RepresentationInformation {
-	String decompositionName;
+	String decompositionId;
 
 	public abstract String getType();
 
@@ -31,11 +31,11 @@ public abstract class RepresentationInformation {
 
 	public abstract String getSearchItems(Decomposition decomposition) throws Exception;
 
-	public String getDecompositionName() {
-		return decompositionName;
+	public String getDecompositionId() {
+		return decompositionId;
 	}
 
-	public void setDecompositionName(String decompositionName) {
-		this.decompositionName = decompositionName;
+	public void setDecompositionId(String decompositionId) {
+		this.decompositionId = decompositionId;
 	}
 }

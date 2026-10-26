@@ -1,12 +1,10 @@
 package pt.ist.socialsoftware.mono2micro.strategy.domain;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,21 +66,16 @@ public class Strategy {
 					new ArrayList<>(Arrays.asList(ACCESSES_TYPE, CODE_EMBEDDINGS_TYPE)))
 	).collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
 	@Id
+	private String id = new ObjectId().toHexString();
 	private String name;
 	private String algorithmType;
-	@DBRef
-	private Codebase codebase;
 	@DBRef(lazy = true)
-	private List<Decomposition> decompositions = new ArrayList<>();
-	@DBRef(lazy = true)
-	private List<Similarity> similarities = new ArrayList<>();
-	@DBRef(lazy = true)
-	private List<Recommendation> recommendations = new ArrayList<>();
+	private SoftwareSystem softwareSystem;
 	private List<String> strategyTypes;
 
 	public Strategy() {}
 
-	public Strategy(Codebase codebase, String algorithmType, List<String> strategyTypes) {
+	public Strategy(SoftwareSystem softwareSystem, String algorithmType, List<String> strategyTypes) {
 		StringBuilder shortForm = new StringBuilder();
 		for (String word : strategyTypes.get(0).split(" ")) {
 			shortForm.append(word.charAt(0));
@@ -93,7 +86,7 @@ public class Strategy {
 				shortForm.append(word.charAt(0));
 			}
 		}
-		this.name = codebase.getName() + " - " + shortForm + " Strategy";
+		this.name = softwareSystem.getName() + " - " + shortForm + " Strategy";
 		this.algorithmType = algorithmType;
 		this.strategyTypes = strategyTypes;
 	}
@@ -106,6 +99,14 @@ public class Strategy {
 		this.algorithmType = algorithmType;
 	}
 
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -114,76 +115,12 @@ public class Strategy {
 		this.name = name;
 	}
 
-	public Codebase getCodebase() {
-		return codebase;
+	public SoftwareSystem getSoftwareSystem() {
+		return softwareSystem;
 	}
 
-	public void setCodebase(Codebase codebase) {
-		this.codebase = codebase;
-	}
-
-	public List<Decomposition> getDecompositions() {
-		return decompositions;
-	}
-
-	public Decomposition getDecompositionByName(String decompositionName) {
-		return this.decompositions.stream().filter(decomposition -> decomposition.getName().equals(decompositionName)).findFirst().orElse(null);
-	}
-
-	public void setDecompositions(List<Decomposition> decompositions) {
-		this.decompositions = decompositions;
-	}
-
-	public synchronized void addDecomposition(Decomposition decomposition) {
-		this.decompositions.add(decomposition);
-	}
-
-	public synchronized void removeDecomposition(String decompositionName) {
-		this.decompositions = this.decompositions.stream().filter(decomposition -> !decomposition.getName().equals(decompositionName))
-				.collect(Collectors.toList());
-	}
-
-	public List<Similarity> getSimilarities() {
-		return similarities;
-	}
-
-	public void setSimilarities(List<Similarity> similarities) {
-		this.similarities = similarities;
-	}
-
-	public void addSimilarity(Similarity similarity) {
-		getSimilarities().add(similarity);
-	}
-
-	public void removeSimilarity(String similarityName) {
-		setSimilarities(getSimilarities().stream().filter(similarity -> !similarity.getName().equals(similarityName)).collect(Collectors.toList()));
-	}
-
-	public boolean containsSimilarityName(String name) {
-		return this.similarities.stream().anyMatch(similarity -> similarity.getName().equals(name));
-	}
-
-	public Similarity getSimilarityByName(String name) {
-		return this.similarities.stream()
-				.filter(similarity -> similarity.getName().equals(name))
-				.findAny()
-				.orElse(null);
-	}
-
-	public List<Recommendation> getRecommendations() {
-		return recommendations;
-	}
-
-	public void setRecommendations(List<Recommendation> recommendations) {
-		this.recommendations = recommendations;
-	}
-
-	public boolean containsRecommendationName(String name) {
-		return this.recommendations.stream().anyMatch(recommendation -> recommendation.getName().equals(name));
-	}
-
-	public void addRecommendation(Recommendation recommendation) {
-		getRecommendations().add(recommendation);
+	public void setSoftwareSystem(SoftwareSystem softwareSystem) {
+		this.softwareSystem = softwareSystem;
 	}
 
 	public List<String> getStrategyTypes() {

@@ -21,7 +21,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKindIn;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.*;
 import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
@@ -54,15 +53,15 @@ public class SciPyClustering extends Clustering {
 	}
 
 	@Override
-	public Decomposition generateDecomposition(Similarity s, DecompositionRequest request) throws Exception {
+	public Decomposition generateDecomposition(Similarity s, DecompositionRequest request, Set<String> decompositionNames) throws Exception {
 		SciPyRequestDto dto = (SciPyRequestDto) request;
 		SimilarityScipy similarity = (SimilarityScipy) s;
 
 		PartitionsDecomposition decomposition = new PartitionsDecomposition(similarity);
 
-		decomposition.setName(getDecompositionName(similarity, dto.getCutType(), dto.getCutValue()));
+		decomposition.setName(getDecompositionName(similarity, dto.getCutType(), dto.getCutValue(), decompositionNames));
 
-		JSONObject clustersJSON = invokePythonCut(decomposition, similarity.getName(), similarity.getLinkageType(), dto.getCutType(), dto.getCutValue());
+		JSONObject clustersJSON = invokePythonCut(decomposition, similarity.getId(), similarity.getLinkageType(), dto.getCutType(), dto.getCutValue());
 
 		Map<Short, String> idToEntity = similarity.getIDToEntityName();
 		addClustersAndEntities(decomposition, clustersJSON, idToEntity);
@@ -90,9 +89,8 @@ public class SciPyClustering extends Clustering {
 		}
 	}
 
-	public String getDecompositionName(Similarity similarity, String cutType, float cutValue) {
+	public String getDecompositionName(Similarity similarity, String cutType, float cutValue, Set<String> decompositionNames) {
 		String cutValueString = Float.valueOf(cutValue).toString().replaceAll("\\.?0*$", "");
-		List<String> decompositionNames = similarity.getDecompositions().stream().map(Decomposition::getName).collect(Collectors.toList());
 
 		if (decompositionNames.contains(similarity.getName() + " " + cutType + cutValueString)) {
 			int i = 2;

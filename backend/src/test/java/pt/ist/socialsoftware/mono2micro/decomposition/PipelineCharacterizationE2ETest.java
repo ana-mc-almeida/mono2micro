@@ -14,6 +14,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,7 +44,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * {@link HttpDecompositionPipeline}. When a ticket changes an endpoint, it changes the path or
  * payload there and nothing here, so a red test after a port is a regression.
  *
- * <p>Each test builds its own codebase from the {@code quizzes-tutor} fixture with the
+ * <p>Each test builds its own software system from the {@code quizzes-tutor} fixture with the
  * Accesses strategy, whose algorithm run (average linkage, cut N=3) gives:
  *
  * <pre>
@@ -75,6 +77,10 @@ class PipelineCharacterizationE2ETest {
 
 	@Autowired
 	private TestRestTemplate rest;
+	@Autowired
+	private SimilarityService similarityService;
+	@Autowired
+	private DecompositionRepository decompositionRepository;
 
 	private final List<Runnable> cleanups = new ArrayList<>();
 
@@ -88,7 +94,7 @@ class PipelineCharacterizationE2ETest {
 	}
 
 	@AfterEach
-	void removeCreatedCodebases() {
+	void removeCreatedSoftwareSystems() {
 		for (Runnable cleanup : cleanups) {
 			try {
 				cleanup.run();
@@ -335,6 +341,37 @@ class PipelineCharacterizationE2ETest {
 		Golden.assertMatches("metrics/" + CASE + "/accesses/expert-decomposition.json", metricsOf(decomposition));
 	}
 
+	@Test
+	@DisplayName("A second expert import under the same name is refused")
+	void expertImportTwice() {
+		Built built = build(CASE, StrategyCase.accesses());
+		built.pipeline.createExpertDecomposition(built.similarity, "Expert", expertClustering(built));
+
+		// Before ids, the second import overwrote the first, because the name was the _id.
+		assertThat(built.pipeline.importExpertClustering(built.similarity, "Expert", expertClustering(built)).getStatusCode())
+				.isEqualTo(HttpStatus.UNAUTHORIZED);
+
+		int experts = 0;
+		for (JsonNode decomposition : built.pipeline.getDecompositions(built.similarity))
+			if (decomposition.path("expert").asBoolean())
+				experts++;
+		assertThat(experts).isEqualTo(1);
+	}
+
+	// Deletion.
+
+	@Test
+	@DisplayName("Deleting a similarity deletes its decompositions")
+	void deleteSimilarity() {
+		Built built = build(CASE, StrategyCase.accesses());
+
+		// Through the service: deleting a strategy deletes its decompositions before its
+		// similarities, so no endpoint reaches this path with decompositions still there.
+		similarityService.deleteSimilarity(similarityService.getSimilarityById(built.similarity));
+
+		assertThat(decompositionRepository.findBySimilarityId(built.similarity)).isEmpty();
+	}
+
 	// Export to Context Mapper.
 
 	@Test
@@ -366,7 +403,7 @@ class PipelineCharacterizationE2ETest {
 
 		JsonNode contract = zipEntry(response.getBody(), "m2m_decomposition.json");
 
-		assertThat(contract.path("name").asText()).as("the contract is named after the codebase").isEqualTo(built.codebase);
+		assertThat(contract.path("name").asText()).as("the contract is named after the software system").isEqualTo(built.softwareSystemName);
 		assertThat(contract.path("entities").size()).as("entities, from the Structure data").isGreaterThan(0);
 		assertThat(contract.path("functionalities").size()).as("functionalities, from the refactoring").isGreaterThan(0);
 
@@ -401,24 +438,24 @@ class PipelineCharacterizationE2ETest {
 
 	// Building blocks.
 
-	/** A codebase with one algorithm run, removed after the test. */
+	/** A software system with one algorithm run, removed after the test. */
 	private Built build(String caseName, StrategyCase strategyCase) {
 		List<String> missing = RepresentationFiles.missing(caseName, strategyCase.fixtureSuffixes());
 		assumeTrue(missing.isEmpty(), "No fixture for " + caseName + " / " + strategyCase.label() + ": missing "
 				+ String.join(", ", missing) + " under representations/" + caseName + "/. See that folder's README.md.");
 
 		HttpDecompositionPipeline pipeline = new HttpDecompositionPipeline(rest, port, caseName);
-		String codebase = caseName + "-characterization-" + System.nanoTime();
+		String softwareSystemName = caseName + "-characterization-" + System.nanoTime();
 
-		pipeline.createCodebase(codebase);
-		cleanups.add(() -> pipeline.deleteCodebase(codebase));
-		pipeline.addRepresentations(codebase, strategyCase);
+		String softwareSystem = pipeline.createSoftwareSystem(softwareSystemName);
+		cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystem));
+		pipeline.addRepresentations(softwareSystem, strategyCase);
 
-		String strategy = pipeline.createStrategy(codebase, strategyCase);
+		String strategy = pipeline.createStrategy(softwareSystem, strategyCase);
 		String similarity = pipeline.createSimilarity(strategy, strategyCase);
 		String decomposition = pipeline.createDecomposition(similarity);
 
-		return new Built(pipeline, codebase, similarity, decomposition);
+		return new Built(pipeline, softwareSystemName, similarity, decomposition);
 	}
 
 	/** Two clusters that cut across the algorithm's three, so the comparison has something to find. */
@@ -499,18 +536,18 @@ class PipelineCharacterizationE2ETest {
 		return node;
 	}
 
-	/** One codebase's names, and the pipeline that built it. */
+	/** One software system's name, its similarity and decomposition ids, and the pipeline that built them. */
 	private static final class Built {
 		final HttpDecompositionPipeline pipeline;
-		final String codebase;
+		final String softwareSystemName;
 		final String similarity;
 		final String decomposition;
 
 		private Map<String, Short> ids;
 
-		Built(HttpDecompositionPipeline pipeline, String codebase, String similarity, String decomposition) {
+		Built(HttpDecompositionPipeline pipeline, String softwareSystemName, String similarity, String decomposition) {
 			this.pipeline = pipeline;
-			this.codebase = codebase;
+			this.softwareSystemName = softwareSystemName;
 			this.similarity = similarity;
 			this.decomposition = decomposition;
 		}

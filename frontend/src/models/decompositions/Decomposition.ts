@@ -1,6 +1,10 @@
 export default abstract class Decomposition {
-    codebaseName: string;
+    id: string;
+    softwareSystemId: string;
+    softwareSystemName: string;
+    strategyId: string;
     strategyName: string;
+    similarityId: string;
     similarityName: string;
     name: string;
     type: string;
@@ -10,8 +14,12 @@ export default abstract class Decomposition {
     representationInformations: string[];
 
     protected constructor(decomposition: any) {
-        this.codebaseName = decomposition.codebaseName;
+        this.id = decomposition.id;
+        this.softwareSystemId = decomposition.softwareSystemId;
+        this.softwareSystemName = decomposition.softwareSystemName;
+        this.strategyId = decomposition.strategyId;
         this.strategyName = decomposition.strategyName;
+        this.similarityId = decomposition.similarityId;
         this.similarityName = decomposition.similarityName;
         this.name = decomposition.name;
         this.type = decomposition.type;
@@ -23,7 +31,7 @@ export default abstract class Decomposition {
 
     abstract printCard(
         reloadDecompositions: () => void,
-        handleDeleteDecomposition: (collector: string) => void,
-        handleExportDecomposition: (collector: string) => void
+        handleDeleteDecomposition: (decomposition: Decomposition) => void,
+        handleExportDecomposition: (decomposition: Decomposition) => void
     ): JSX.Element;
 }

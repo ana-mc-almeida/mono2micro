@@ -40,25 +40,25 @@ import java.util.Map;
  */
 interface DecompositionPipeline {
 
-	/** Step 1. Throws if the codebase already exists. */
-	void createCodebase(String codebaseName);
+	/** Step 1. Returns the new software system's id. Throws if a software system with that name already exists. */
+	String createSoftwareSystem(String softwareSystemName);
 
 	/**
 	 * Step 2. Uploads every file the case's representation group requires, in one request.
 	 *
 	 * <p>It has to be one request: {@code RepresentationService} rejects a second upload of a
-	 * type the codebase already holds with "Re-sending representations is not allowed."
+	 * type the software system already holds with "Re-sending representations is not allowed."
 	 */
-	void addRepresentations(String codebaseName, StrategyCase strategyCase);
+	void addRepresentations(String softwareSystemId, StrategyCase strategyCase);
 
-	/** Step 3. Returns the strategy name, which is deterministic — see {@link StrategyCase#strategyName}. */
-	String createStrategy(String codebaseName, StrategyCase strategyCase);
+	/** Step 3. Returns the strategy's id. */
+	String createStrategy(String softwareSystemId, StrategyCase strategyCase);
 
-	/** Step 4. Returns the generated similarity name, read back from the strategy. */
-	String createSimilarity(String strategyName, StrategyCase strategyCase);
+	/** Step 4. Returns the similarity's id. */
+	String createSimilarity(String strategyId, StrategyCase strategyCase);
 
-	/** Step 5. Returns the generated decomposition name, read back from the similarity. */
-	String createDecomposition(String similarityName);
+	/** Step 5. Returns the generated decomposition's id, read back from the similarity. */
+	String createDecomposition(String similarityId);
 
 	/**
 	 * Step 6. The clusters of the finished decomposition, as cluster name → entity names, both
@@ -67,19 +67,19 @@ interface DecompositionPipeline {
 	 * <p>Plain strings rather than the domain's cluster class, so that an assertion on them
 	 * survives that class being renamed or moved.
 	 */
-	Map<String, List<String>> getClusters(String decompositionName);
+	Map<String, List<String>> getClusters(String decompositionId);
 
 	/**
-	 * How many representations the codebase currently holds.
+	 * How many representations the software system currently holds.
 	 *
 	 * <p>Not part of the pipeline — it guards step 2. {@code RepresentationService} returns
 	 * <em>silently</em> when both request parameters bind to null, so a malformed upload
 	 * reports success and fails several steps later with an unrelated error.
 	 */
-	int representationCount(String codebaseName);
+	int representationCount(String softwareSystemId);
 
 	/** Cleanup. Mongo state persists in the {@code mongodata} volume across runs. */
-	void deleteCodebase(String codebaseName);
+	void deleteSoftwareSystem(String softwareSystemId);
 
 	/** Names the layer under test, for the parameterized test's display name. */
 	String layer();

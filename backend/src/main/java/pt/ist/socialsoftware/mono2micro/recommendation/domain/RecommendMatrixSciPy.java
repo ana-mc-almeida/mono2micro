@@ -21,6 +21,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyStructureD
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.WeightsFactory;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,8 +146,9 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	public Set<Short> fillElements(GridFsService gridFsService) throws IOException {
-		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		Map<Short, String> idToEntity = new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntityRepresentation.getName()),
+		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
+		Map<Short, String> idToEntity = new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntityRepresentation.getId()),
 				new TypeReference<Map<Short, String>>() {});
 		return new TreeSet<>(idToEntity.keySet());
 	}
@@ -160,8 +162,8 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	public Map<Short, String> getIDToEntityName(GridFsService gridFsService) throws IOException {
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getName()), new TypeReference<Map<Short, String>>() {});
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
+		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 
 	@Override
@@ -193,12 +195,9 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	@Override
-	public void createDecompositions(List<String> decompositionNames) throws Exception {
+	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames) throws Exception {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 		DecompositionService decompositionService = ContextManager.get().getBean(DecompositionService.class);
-
-		List<Similarity> similarities = getStrategy().getSimilarities();
-		SciPyClustering clusteringAlgorithm = new SciPyClustering();
 
 		for (String name : decompositionNames) {
 			String[] properties = name.split(",");
@@ -226,18 +225,18 @@ public class RecommendMatrixSciPy extends Recommendation {
 					.filter(possibleSimilarity -> possibleSimilarity.equalsDto(similarityInformation)).findFirst().orElse(null);
 
 			if (similarity == null) {
-				similarity = SimilarityFactory.getSimilarity(getStrategy(), similarityInformation);
+				similarity = SimilarityFactory.createSimilarity(getStrategy(), similarityInformation);
 
 				InputStream inputStream = gridFsService.getFile(name.substring(0, name.lastIndexOf(","))); // Gets the previously produced similarity matrix
-				gridFsService.saveFile(inputStream, similarity.getName()); // And saves it with a different name
+				gridFsService.saveFile(inputStream, similarity.getId()); // And saves it under the new similarity's id
 
 				// generate dendrogram image
-				similarity.setDendrogram(new Dendrogram(similarity.getName(), similarity.getName(), similarity.getLinkageType()));
+				similarity.setDendrogram(new Dendrogram(similarity.getId(), similarity.getId(), similarity.getLinkageType()));
+				similarities.add(similarity); // a later candidate with the same weights reuses it
 			}
 
-			Decomposition decomposition = clusteringAlgorithm.generateDecomposition(similarity,
-					new SciPyRequestDto(similarity.getName(), "N", Float.parseFloat(properties[properties.length - 1])));
-			decompositionService.setupDecomposition(decomposition);
+			decompositionService.createDecomposition(similarity,
+					new SciPyRequestDto(similarity.getId(), "N", Float.parseFloat(properties[properties.length - 1])));
 		}
 	}
 

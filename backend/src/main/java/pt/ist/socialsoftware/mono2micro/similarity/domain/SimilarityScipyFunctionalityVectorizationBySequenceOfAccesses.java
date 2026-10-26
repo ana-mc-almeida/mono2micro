@@ -20,6 +20,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyFunctional
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	}
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(RecommendMatrixSciPy recommendation) {
-		super(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		super(recommendation);
 	}
 
 	@Override
@@ -58,7 +59,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyName().equals(this.getStrategy().getName()) &&
+		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
 	}
@@ -97,14 +98,15 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		List<HashMap> entitiesVectors = this.computeEntitiesVectors(codeEmbeddings, entityToId);
 		this.computeSequenceOfAccessesFunctionalityVectors(matrix, functionalityTraces, entitiesVectors);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) similarity.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
-		matrix.put("translationFileName", idToEntity.getName());
-		matrix.put("accessesFileName", accessesInfo.getName());
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
+		matrix.put("translationFileName", idToEntity.getId());
+		matrix.put("accessesFileName", accessesInfo.getId());
 
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getName());
+		gridFsService.saveFile(new ByteArrayInputStream(matrixJSON.toString().getBytes()), getId());
 	}
 
 	private void computeSequenceOfAccessesFunctionalityVectors(
@@ -277,9 +279,9 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) strategy.getCodebase().getRepresentationByFileType(ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
-				gridFsService.getFileAsString(entityToId.getName()),
+				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
 		);
 	}
@@ -287,9 +289,9 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	private Map<String, Short> getTranslationIdToEntity(Strategy strategy) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) strategy.getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ID_TO_ENTITY);
 		return new ObjectMapper().readValue(
-				gridFsService.getFileAsString(idToEntity.getName()),
+				gridFsService.getFileAsString(idToEntity.getId()),
 				new TypeReference<Map<Short, String>>() {}
 		);
 	}
@@ -297,9 +299,9 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	private JSONObject getFunctionalityTraces(Strategy strategy) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) strategy.getCodebase().getRepresentationByFileType(ACCESSES);
+		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ACCESSES);
 		return new JSONObject(
-				gridFsService.getFileAsString(accessesRepresentation.getName())
+				gridFsService.getFileAsString(accessesRepresentation.getId())
 		);
 	}
 
@@ -313,8 +315,10 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
 		JSONObject functionalityTraces = getFunctionalityTraces(recommendation.getStrategy());
 		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) recommendation.getStrategy().getCodebase().getRepresentationByFileType(ACCESSES);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+				ID_TO_ENTITY);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+				ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];
 		weights[0] = INTERVAL;
@@ -322,7 +326,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		remainders[0] = INTERVAL;
 
 		Set<String> similarityMatrices = new HashSet<>();
-		getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, idToEntity.getName(), accessesInfo.getName(), entityToId, weights,
+		getMatrixCombinations(similarityMatrices, codeEmbeddings, functionalityTraces, idToEntity.getId(), accessesInfo.getId(), entityToId, weights,
 				remainders, 0);
 		return similarityMatrices;
 	}
@@ -380,7 +384,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		matrix.put("accessesFileName", accessesFileName);
 		JSONObject matrixJSON = new JSONObject(matrix);
 
-		StringBuilder similarityMatrixName = new StringBuilder(getName());
+		StringBuilder similarityMatrixName = new StringBuilder(getId());
 		for (float weight : weights)
 			similarityMatrixName.append(",").append(getWeightAsString(weight));
 

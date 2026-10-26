@@ -8,14 +8,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StrategyDto {
-	String codebaseName;
+	String id;
+	String softwareSystemId;
+	String softwareSystemName;
 	String name;
 	String algorithmType;
 	List<String> strategyTypes;
 	List<String> parameterTypes;
 
 	public StrategyDto(Strategy strategy) {
-		this.codebaseName = strategy.getCodebase().getName();
+		this.id = strategy.getId();
+		this.softwareSystemId = strategy.getSoftwareSystem().getId();
+		this.softwareSystemName = strategy.getSoftwareSystem().getName();
 		this.name = strategy.getName();
 		this.algorithmType = strategy.getAlgorithmType();
 		this.strategyTypes = strategy.getStrategyTypes();
@@ -30,12 +34,28 @@ public class StrategyDto {
 		}
 	}
 
-	public String getCodebaseName() {
-		return codebaseName;
+	public String getId() {
+		return id;
 	}
 
-	public void setCodebaseName(String codebaseName) {
-		this.codebaseName = codebaseName;
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
+	}
+
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
+	}
+
+	public String getSoftwareSystemName() {
+		return softwareSystemName;
+	}
+
+	public void setSoftwareSystemName(String softwareSystemName) {
+		this.softwareSystemName = softwareSystemName;
 	}
 
 	public String getName() {

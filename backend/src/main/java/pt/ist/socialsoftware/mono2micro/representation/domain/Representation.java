@@ -1,9 +1,12 @@
 package pt.ist.socialsoftware.mono2micro.representation.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
+import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,7 +21,7 @@ import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.I
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 
 /**
- * Represents an imported file during the creation of the Codebase
+ * Represents an imported file during the creation of the software system
  * Inheritors might contain additional information relevant to the imported file
  */
 public abstract class Representation {
@@ -35,15 +38,34 @@ public abstract class Representation {
 	).collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
 
 	@Id
+	protected String id = new ObjectId().toHexString();
 	protected String name;
 
 	@DBRef(lazy = true)
-	protected Codebase codebase;
+	protected SoftwareSystem softwareSystem;
 
-	public abstract String init(Codebase codebase, byte[] representationFile) throws Exception;
+	public abstract String init(SoftwareSystem softwareSystem, byte[] representationFile) throws Exception;
 
 	@JsonIgnore
 	public abstract String getType();
+
+	/**
+	 * The representation of the given kind that a software system collected, or null if it has none. A software system
+	 * holds at most one per kind, and keeps no list of them: this is a repository query (D-016).
+	 */
+	public static Representation ofSoftwareSystem(SoftwareSystem softwareSystem, String type) {
+		return ContextManager.get().getBean(RepresentationRepository.class)
+				.findBySoftwareSystemIdAndType(softwareSystem.getId(), type)
+				.orElse(null);
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
@@ -53,11 +75,11 @@ public abstract class Representation {
 		this.name = name;
 	}
 
-	public Codebase getCodebase() {
-		return codebase;
+	public SoftwareSystem getSoftwareSystem() {
+		return softwareSystem;
 	}
 
-	public void setCodebase(Codebase codebase) {
-		this.codebase = codebase;
+	public void setSoftwareSystem(SoftwareSystem softwareSystem) {
+		this.softwareSystem = softwareSystem;
 	}
 }

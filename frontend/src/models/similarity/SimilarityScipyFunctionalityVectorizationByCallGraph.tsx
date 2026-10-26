@@ -23,10 +23,10 @@ export default class SimilarityScipyFunctionalityVectorizationByCallGraph extend
     }
 
     printCard(handleDeleteSimilarity: (similarity: Similarity) => void): JSX.Element {
-        return <Card key={this.name} className="mb-4" style={{ width: '20rem' }}>
+        return <Card key={this.id} className="mb-4" style={{ width: '20rem' }}>
             <Card.Img
                 variant="top"
-                src={URL + "/similarity/" + this.name + "/image?" + new Date().getTime()}
+                src={URL + "/similarity/" + this.id + "/image?" + new Date().getTime()}
             />
             <Card.Body>
                 <Card.Title>{this.name}</Card.Title>
@@ -37,7 +37,7 @@ export default class SimilarityScipyFunctionalityVectorizationByCallGraph extend
                         Object.entries(weights.weightsLabel).map(([key, value]) => <span key={key}>{value + ": " + weights[key] + "%"} <br/></span>)
                     )}
                 </Card.Text>
-                <Button href={`/codebases/${this.codebaseName}/${this.strategyName}/${this.name}/decomposition`}
+                <Button href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.id}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

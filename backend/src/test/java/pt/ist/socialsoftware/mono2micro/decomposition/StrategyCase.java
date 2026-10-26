@@ -273,26 +273,6 @@ final class StrategyCase {
 		return extra;
 	}
 
-	/**
-	 * The strategy name the backend will generate, from {@code Strategy}'s constructor
-	 * (Strategy.java:76-90): the initial of every word of every strategy type, types joined
-	 * with {@code +}. So {@code "Class Vectorization"} gives {@code CV} and
-	 * {@code ["Accesses","Repository"]} gives {@code A+R}.
-	 *
-	 * <p>Reproduced rather than read back because it is needed <em>before</em> anything exists
-	 * to read it from — unlike the similarity and decomposition names, which are read back.
-	 */
-	String strategyName(String codebaseName) {
-		StringBuilder shortForm = new StringBuilder();
-		for (int i = 0; i < strategyTypes.size(); i++) {
-			if (i > 0)
-				shortForm.append("+");
-			for (String word : strategyTypes.get(i).split(" "))
-				shortForm.append(word.charAt(0));
-		}
-		return codebaseName + " - " + shortForm + " Strategy";
-	}
-
 	/** Fixture suffixes this case needs present, for the up-front precondition check. */
 	List<String> fixtureSuffixes() {
 		return new java.util.ArrayList<>(representations.values());
