@@ -69,6 +69,10 @@ public class AvailabilityContext {
 		return present;
 	}
 
+	FeatureFamilies getFamilies() {
+		return families;
+	}
+
 	public Set<String> getRepresentationKinds() {
 		return representationKinds;
 	}
