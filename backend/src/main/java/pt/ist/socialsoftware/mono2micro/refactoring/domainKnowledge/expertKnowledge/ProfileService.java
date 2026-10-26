@@ -10,7 +10,12 @@ import pt.ist.socialsoftware.mono2micro.representation.repository.Representation
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
