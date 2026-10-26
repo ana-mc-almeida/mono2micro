@@ -6,9 +6,8 @@ import FormControl from "react-bootstrap/FormControl";
 import {APIService} from "../../../services/APIService";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import Dropdown from "react-bootstrap/Dropdown";
 import {RepresentationFile} from "../../../models/representation/Representation";
+import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType, RepresentationInfoParameters} from "../../../type-declarations/types";
 import {SIMILARITY_SCIPY_ACCESSES_REPOSITORY} from "../../../models/similarity/SimilarityScipyAccessesAndRepository";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
@@ -17,8 +16,7 @@ import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
-    const [profiles, setProfiles] = useState([]);
-    const [profile, setProfile] = useState("Generic")
+    const [profileId, setProfileId] = useState(null);
     const [linkageType, setLinkageType] = useState("average");
     const [tracesMaxLimit, setTracesMaxLimit] = useState(0);
     const [traceType, setTraceType] = useState(TraceType.ALL);
@@ -27,7 +25,6 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        loadProfiles();
         setWeightsList(WeightsFactory.getWeightListByStrategyType(strategy.strategyTypes));
     }, [])
 
@@ -39,7 +36,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
             strategyId: strategy.id,
             type: SIMILARITY_SCIPY_ACCESSES_REPOSITORY,
             weightsList,
-            profile,
+            profileId,
             linkageType,
             tracesMaxLimit,
             traceType
@@ -59,11 +56,6 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
                     setIsUploaded("Upload failed.");
                 }
             });
-    }
-
-    function loadProfiles() {
-        service.getSoftwareSystemRepresentation(softwareSystemId, RepresentationFile.ACCESSES)
-            .then((response) => setProfiles(response.profiles));
     }
 
     function changeMetricWeight(event, weightName) {
@@ -88,10 +80,6 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
         setLinkageType(event.target.id);
     }
 
-    function handleChangeProfile(profile) {
-        setProfile(profile);
-    }
-
     function handleChangeTracesMaxLimit(event) {
         setTracesMaxLimit(Number(event.target.value));
     }
@@ -103,24 +91,12 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
     return (
         <>
             <Form onSubmit={handleSubmit} className="mt-2 mb-3">
-                <Form.Group as={Row} controlId="selectFunctionalityProfiles" className="align-items-center mb-3">
-                    <Form.Label column sm={2}>
-                        Select Software System Profile
-                    </Form.Label>
-                    <Col sm={2}>
-                        <DropdownButton title={profile === ""? 'Functionality Profiles': profile}>
-                            {profiles !== [] && Object.keys(profiles).map(profile =>
-                                <Dropdown.Item
-                                    key={profile}
-                                    onClick={() => handleChangeProfile(profile)}
-                                    active={profile === profile}
-                                >
-                                    {profile}
-                                </Dropdown.Item>
-                            )}
-                        </DropdownButton>
-                    </Col>
-                </Form.Group>
+                <ProfileSelect
+                    softwareSystemId={softwareSystemId}
+                    representationType={RepresentationFile.ACCESSES}
+                    profileId={profileId}
+                    setProfileId={setProfileId}
+                />
                 <Form.Group as={Row} controlId="amountOfTraces" className="mb-3">
                     <Form.Label column sm={2}>
                         Amount of Traces per Functionality
@@ -187,7 +163,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
                         <Button
                             type="submit"
                             disabled={isUploaded === "Uploading..." ||
-                            !(weightSum === 100 && profile !== "" && traceType !== "")
+                            !(weightSum === 100 && traceType !== "")
                             }
                         >
                             Generate Similarity Distances

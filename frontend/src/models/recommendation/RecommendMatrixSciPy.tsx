@@ -2,7 +2,8 @@ import {TraceType} from "../../type-declarations/types";
 import Recommendation from "./Recommendation";
 
 export default class RecommendMatrixSciPy extends Recommendation {
-    profile: string;
+    profileId: string | null;
+    profileName: string | null;
     linkageType: string[];
     traceType: TraceType[];
     tracesMaxLimit: number;
@@ -10,7 +11,8 @@ export default class RecommendMatrixSciPy extends Recommendation {
 
     constructor(recommendation: any) {
         super(recommendation);
-        this.profile =                  recommendation.profile              ||     "Generic";
+        this.profileId =                recommendation.profileId            ||     null;
+        this.profileName =              recommendation.profileName          ||     null;
         this.tracesMaxLimit =           recommendation.tracesMaxLimit       ||     0;
         this.traceType =                recommendation.traceType            ||     TraceType.ALL;
         this.linkageType =              recommendation.linkageType          ||     "average";

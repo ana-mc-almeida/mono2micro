@@ -4,11 +4,8 @@ import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 
 export default class StructureRepresentation extends Representation {
-    profiles!: Map<string, string>;
-
     constructor(representation: StructureRepresentation) {
         super(representation);
-        this.profiles = representation.profiles;
     }
 
     printCard(handleDeleteRepresentation: (representation: Representation) => void): JSX.Element {
@@ -19,7 +16,7 @@ export default class StructureRepresentation extends Representation {
                     href={`/softwareSystems/${this.softwareSystemId}/${this.id}/profiles`}
                     className="mb-2"
                 >
-                    Change Profile
+                    Profiles
                 </Button>
                 <br/>
                 <Button
