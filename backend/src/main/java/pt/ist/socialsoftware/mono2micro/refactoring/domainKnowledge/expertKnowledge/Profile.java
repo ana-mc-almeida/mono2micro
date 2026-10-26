@@ -25,7 +25,7 @@ public class Profile {
 	private String id = new ObjectId().toHexString();
 	private String name;
 	private Set<String> units;
-	@DBRef(lazy = true)
+	@DBRef // eager: Representation is abstract, and a lazy proxy of it cannot be downcast (D-024)
 	private Representation representation;
 	private boolean retired;
 
