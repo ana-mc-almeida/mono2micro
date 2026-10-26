@@ -4,6 +4,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
@@ -16,6 +17,9 @@ public abstract class Recommendation {
 	String name;
 	@DBRef(lazy = true)
 	Strategy strategy;
+	/** The profile that scopes the recommended Similarities, or null for none (D-017). */
+	@DBRef(lazy = true)
+	Profile profile;
 	String recommendationResultName;
 	boolean isCompleted; // true when all the decompositions are calculated
 
@@ -41,6 +45,18 @@ public abstract class Recommendation {
 
 	public void setStrategy(Strategy strategy) {
 		this.strategy = strategy;
+	}
+
+	public Profile getProfile() {
+		return profile;
+	}
+
+	public void setProfile(Profile profile) {
+		this.profile = profile;
+	}
+
+	public String getProfileId() {
+		return profile == null ? null : profile.getId();
 	}
 
 	public abstract String getType();

@@ -147,8 +147,6 @@ public abstract class SimilarityScipy extends Similarity {
 		this.dendrogram = dendrogram;
 	}
 
-	public abstract String getProfile();
-
 	public abstract int getTracesMaxLimit();
 
 	public abstract Constants.TraceType getTraceType();

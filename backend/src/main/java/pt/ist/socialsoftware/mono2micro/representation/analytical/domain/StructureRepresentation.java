@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
@@ -54,7 +55,7 @@ public class StructureRepresentation extends Representation {
 	}
 
 	@Override
-	public Set<String> readUnits(byte[] representationFile) throws Exception {
+	public Set<String> readUnits(byte[] representationFile) throws JSONException {
 		// getEntitiesNamesFromRepresentationFile
 		JSONObject representationFileJSON = new JSONObject(new String(representationFile));
 		Set<String> entitiesNames = new HashSet<>();

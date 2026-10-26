@@ -89,6 +89,99 @@ class ProfileE2ETest {
 		assertThat(strings(profiles.path("unassigned"))).containsExactlyElementsOf(every);
 	}
 
+	@Test
+	@DisplayName("A move leaves what an existing Similarity scoped by the profile produces unchanged")
+	void moveLeavesAScopedSimilarityUnchanged() {
+		List<String> selected = strings(pipeline.getProfiles(accesses).path("unassigned")).subList(0, 20);
+		pipeline.moveUnits(accesses, selected, pipeline.createProfile(accesses, "Quizzes"));
+		String similarity = scopedSimilarity(profileId("Quizzes"));
+		assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity))).isEqualTo(selected);
+
+		pipeline.moveUnits(accesses, selected.subList(0, 5), null);
+
+		assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity)))
+				.as("a decomposition made after the move")
+				.isEqualTo(selected);
+	}
+
+	@Test
+	@DisplayName("Deleting a profile a Similarity uses retires it, and the Similarity keeps working")
+	void deleteRetiresAProfileInUse() {
+		List<String> every = strings(pipeline.getProfiles(accesses).path("unassigned"));
+		List<String> selected = every.subList(0, 20);
+		pipeline.moveUnits(accesses, selected, pipeline.createProfile(accesses, "Quizzes"));
+		String similarity = scopedSimilarity(profileId("Quizzes"));
+
+		pipeline.deleteProfile(profileId("Quizzes"));
+
+		JsonNode profiles = pipeline.getProfiles(accesses);
+		assertThat(profiles.path("profiles")).as("a retired profile is not offered").isEmpty();
+		assertThat(strings(profiles.path("unassigned"))).containsExactlyElementsOf(every);
+		assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity))).isEqualTo(selected);
+	}
+
+	@Test
+	@DisplayName("A Similarity with no profile is built on every functionality")
+	void noProfileMeansEveryFunctionality() {
+		List<String> every = strings(pipeline.getProfiles(accesses).path("unassigned"));
+		pipeline.moveUnits(accesses, every.subList(0, 20), pipeline.createProfile(accesses, "Quizzes"));
+		StrategyCase unscoped = StrategyCase.accesses();
+
+		String similarity = pipeline.createSimilarity(pipeline.createStrategy(softwareSystem, unscoped), unscoped);
+
+		assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity))).isEqualTo(every);
+	}
+
+	/**
+	 * Behavior change allowed by D-017: a vectorization kind takes no profile, so it is built on every functionality.
+	 * Before, it read the {@code Generic} profile, which lost every functionality moved out of it.
+	 */
+	@Test
+	@DisplayName("A vectorization Similarity keeps the functionalities moved into a profile")
+	void vectorizationKeepsMovedFunctionalities() {
+		StrategyCase entityVectorization = StrategyCase.entityVectorization();
+		assumeTrue(RepresentationFiles.missing(CASE, entityVectorization.fixtureSuffixes()).isEmpty(), "No code embeddings fixture for " + CASE);
+		String system = pipeline.createSoftwareSystem(CASE + "-profiles-vectorization-" + System.nanoTime());
+		try {
+			pipeline.addRepresentations(system, entityVectorization);
+			String systemAccesses = pipeline.representationId(system, "Accesses");
+			List<String> every = strings(pipeline.getProfiles(systemAccesses).path("unassigned"));
+			pipeline.moveUnits(systemAccesses, every.subList(0, 20), pipeline.createProfile(systemAccesses, "Quizzes"));
+
+			String similarity = pipeline.createSimilarity(pipeline.createStrategy(system, entityVectorization), entityVectorization);
+
+			assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity))).isEqualTo(every);
+		} finally {
+			pipeline.deleteSoftwareSystem(system);
+		}
+	}
+
+	@Test
+	@DisplayName("A Similarity request is a duplicate only under the same profile version")
+	void duplicateCheckComparesTheProfileId() {
+		List<String> every = strings(pipeline.getProfiles(accesses).path("unassigned"));
+		pipeline.moveUnits(accesses, every.subList(0, 20), pipeline.createProfile(accesses, "Quizzes"));
+		String version1 = profileId("Quizzes");
+		String similarity = scopedSimilarity(version1);
+		assertThat(scopedSimilarity(version1)).as("the same request again").isEqualTo(similarity);
+
+		pipeline.moveUnits(accesses, every.subList(0, 5), null);
+
+		assertThat(scopedSimilarity(profileId("Quizzes"))).as("the same name, a new version").isNotEqualTo(similarity);
+	}
+
+	private String scopedSimilarity(String profileId) {
+		StrategyCase scoped = StrategyCase.accesses().withProfile(profileId);
+		return pipeline.createSimilarity(pipeline.createStrategy(softwareSystem, scoped), scoped);
+	}
+
+	private String profileId(String profileName) {
+		for (JsonNode profile : pipeline.getProfiles(accesses).path("profiles"))
+			if (profile.path("name").asText().equals(profileName))
+				return profile.path("id").asText();
+		throw new AssertionError("No profile " + profileName + " offered.");
+	}
+
 	private static List<String> strings(JsonNode array) {
 		List<String> strings = new ArrayList<>();
 		array.forEach(element -> strings.add(element.asText()));

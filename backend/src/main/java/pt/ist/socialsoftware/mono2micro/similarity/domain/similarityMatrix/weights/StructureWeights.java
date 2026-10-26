@@ -1,9 +1,11 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.FieldDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
@@ -14,6 +16,7 @@ import pt.ist.socialsoftware.mono2micro.utils.SimilarityStructureIterator;
 import pt.ist.socialsoftware.mono2micro.utils.Pair;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -111,7 +114,10 @@ public class StructureWeights extends Weights {
 			throws IOException, JSONException {
 		SimilarityScipyStructure s = (SimilarityScipyStructure) similarity;
 		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), STRUCTURE);
-		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getId()), structure.getProfile(s.getProfile()), getWeights());
+		byte[] structureFile = IOUtils.toByteArray(gridFsService.getFile(structure.getId()));
+		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, new ByteArrayInputStream(structureFile),
+				Profile.unitsOf(s.getProfile(), structure, structureFile),
+				getWeights());
 	}
 
 	@Override
@@ -120,7 +126,10 @@ public class StructureWeights extends Weights {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
 		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
 				STRUCTURE);
-		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, gridFsService.getFile(structure.getId()), structure.getProfile(r.getProfile()), getWeights());
+		byte[] structureFile = IOUtils.toByteArray(gridFsService.getFile(structure.getId()));
+		fillRawMatrixFromStructures(rawMatrix, fillFromIndex, new ByteArrayInputStream(structureFile),
+				Profile.unitsOf(r.getProfile(), structure, structureFile),
+				getWeights());
 	}
 
 	public static void fillRawMatrixFromStructures(

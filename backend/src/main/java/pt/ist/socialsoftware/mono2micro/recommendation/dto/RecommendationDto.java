@@ -21,6 +21,9 @@ public abstract class RecommendationDto {
 	String strategyName;
 	String name;
 	boolean isCompleted;
+	/** Null for no profile (D-017). */
+	String profileId;
+	String profileName;
 
 	public String getType() {
 		return type;
@@ -28,6 +31,22 @@ public abstract class RecommendationDto {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public String getProfileId() {
+		return profileId;
+	}
+
+	public void setProfileId(String profileId) {
+		this.profileId = profileId;
+	}
+
+	public String getProfileName() {
+		return profileName;
+	}
+
+	public void setProfileName(String profileName) {
+		this.profileName = profileName;
 	}
 
 	public String getId() {

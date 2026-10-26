@@ -13,6 +13,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityRepository;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
@@ -124,7 +125,7 @@ public class AccessesInformation extends RepresentationInformation {
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
 		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), ACCESSES);
 		InputStream inputStream = gridFsService.getFile(accesses.getId());
-		Set<String> profileFunctionalities = accesses.getProfile(similarity.getProfile());
+		Profile profile = similarity.getProfile(); // null: every functionality (D-017)
 
 		FunctionalityTracesIterator iter = new FunctionalityTracesIterator(inputStream, similarity.getTracesMaxLimit());
 		Map<String, DirectedAcyclicGraph<LocalTransaction, DefaultEdge>> localTransactionsGraphs = new HashMap<>();
@@ -133,7 +134,7 @@ public class AccessesInformation extends RepresentationInformation {
 		Iterator<String> availableFunctionalities = iter.getFunctionalitiesNames();
 		while (availableFunctionalities.hasNext()) {
 			String functionalityName = availableFunctionalities.next();
-			if (!profileFunctionalities.contains(functionalityName) || this.functionalityExists(functionalityName))
+			if ((profile != null && !profile.getUnits().contains(functionalityName)) || this.functionalityExists(functionalityName))
 				continue;
 
 			iter.getFunctionalityWithName(functionalityName);

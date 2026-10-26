@@ -67,7 +67,7 @@ final class StrategyCase {
 	private final String similarityType;
 	private final List<Map<String, Object>> weights;
 
-	/** profile / traceType / tracesMaxLimit / depth, only where the DTO has the field. */
+	/** profileId / traceType / tracesMaxLimit / depth, only where the DTO has the field. */
 	private final Map<String, Object> extraSimilarityFields;
 
 	private StrategyCase(
@@ -221,10 +221,9 @@ final class StrategyCase {
 		weights.put("oneToManyWeight", 33);
 		weights.put("heritageWeight", 34);   // 34 so the three total 100
 
-		// SimilarityScipyStructureDto has profile and traceType but, unlike the accesses DTO,
-		// no tracesMaxLimit.
+		// SimilarityScipyStructureDto has traceType but, unlike the accesses DTO, no
+		// tracesMaxLimit. No profileId: the Similarity is built on every entity (D-017).
 		Map<String, Object> extra = new LinkedHashMap<>();
-		extra.put("profile", "Generic");
 		extra.put("traceType", "ALL");
 
 		return new StrategyCase(
@@ -264,10 +263,12 @@ final class StrategyCase {
 		return weights;
 	}
 
-	/** {@code Generic} is the only profile {@code AccessesRepresentation.init} creates. */
+	/**
+	 * No profileId: the Similarity is built on every functionality (D-017). This replaces {@code "profile": "Generic"},
+	 * which named the default profile {@code AccessesRepresentation.init} used to create.
+	 */
 	private static Map<String, Object> accessesProfileFields() {
 		Map<String, Object> extra = new LinkedHashMap<>();
-		extra.put("profile", "Generic");
 		extra.put("tracesMaxLimit", 0);
 		extra.put("traceType", "ALL");
 		return extra;
@@ -304,6 +305,13 @@ final class StrategyCase {
 
 	Map<String, Object> extraSimilarityFields() {
 		return extraSimilarityFields;
+	}
+
+	/** The same case, with its Similarity scoped by the given profile (D-017). Without it, the Similarity has none. */
+	StrategyCase withProfile(String profileId) {
+		Map<String, Object> extra = new LinkedHashMap<>(extraSimilarityFields);
+		extra.put("profileId", profileId);
+		return new StrategyCase(label, strategyTypes, representationGroup, representations, similarityType, weights, extra);
 	}
 
 	@Override

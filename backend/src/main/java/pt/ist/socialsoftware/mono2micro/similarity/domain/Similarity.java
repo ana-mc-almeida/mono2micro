@@ -4,6 +4,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
@@ -15,6 +16,9 @@ public abstract class Similarity {
 	protected String name;
 	@DBRef(lazy = true)
 	private Strategy strategy;
+	/** The profile that scopes this Similarity, or null for none: then it is built on every unit (D-017). */
+	@DBRef(lazy = true)
+	private Profile profile;
 
 	public Similarity() {}
 
@@ -47,6 +51,18 @@ public abstract class Similarity {
 
 	public void setStrategy(Strategy strategy) {
 		this.strategy = strategy;
+	}
+
+	public Profile getProfile() {
+		return profile;
+	}
+
+	public void setProfile(Profile profile) {
+		this.profile = profile;
+	}
+
+	public String getProfileId() {
+		return profile == null ? null : profile.getId();
 	}
 
 	public abstract Clustering getClustering();

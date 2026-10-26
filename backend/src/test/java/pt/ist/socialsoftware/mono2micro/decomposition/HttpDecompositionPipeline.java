@@ -262,6 +262,14 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return getJson("/accesses/{id}/getFunctionalitiesAndFunctionalitiesClusters", decompositionId);
 	}
 
+	/** The names of the decomposition's functionalities, sorted. */
+	List<String> functionalityNames(String decompositionId) {
+		List<String> names = new ArrayList<>();
+		getFunctionalities(decompositionId).path("functionalities").forEach(functionality -> names.add(functionality.path("name").asText()));
+		Collections.sort(names);
+		return names;
+	}
+
 	/** MoJo and Purity of the second decomposition against the first, under {@code analysisList}. */
 	JsonNode compare(String decomposition1Id, String decomposition2Id) {
 		ResponseEntity<JsonNode> response = rest.postForEntity(

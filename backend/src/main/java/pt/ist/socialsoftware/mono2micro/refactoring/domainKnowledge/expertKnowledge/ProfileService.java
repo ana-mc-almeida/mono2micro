@@ -4,8 +4,10 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.*;
@@ -18,6 +20,12 @@ public class ProfileService {
 
 	@Autowired
 	RepresentationRepository representationRepository;
+
+	@Autowired
+	SimilarityRepository similarityRepository;
+
+	@Autowired
+	RecommendationRepository recommendationRepository;
 
 	@Autowired
 	GridFsService gridFsService;
@@ -45,14 +53,37 @@ public class ProfileService {
 			boolean changed = profile.getId().equals(targetProfileId) ? versionUnits.addAll(units) : versionUnits.removeAll(units);
 			if (changed) {
 				profileRepository.save(profile.withUnits(versionUnits));
-				profileRepository.delete(profile);
+				discard(profile);
 			}
 		}
 	}
 
 	/** The profile's units go back to Unassigned. */
 	public void deleteProfile(String profileId) {
-		profileRepository.delete(profileRepository.getById(profileId));
+		discard(profileRepository.getById(profileId));
+	}
+
+	/**
+	 * The profile a new Similarity or recommendation of the software system is scoped by, or null for none. Only an
+	 * offered profile of that software system can scope one.
+	 */
+	public Profile getScopingProfile(String profileId, String softwareSystemId) {
+		if (profileId == null)
+			return null;
+
+		Profile profile = profileRepository.getById(profileId);
+		if (profile.isRetired() || !profile.getRepresentation().getSoftwareSystem().getId().equals(softwareSystemId))
+			throw new IllegalArgumentException("Profile " + profileId + " is not offered for software system " + softwareSystemId + ".");
+		return profile;
+	}
+
+	/** Stops offering the profile: retires it while a Similarity or recommendation uses it, and deletes it otherwise. */
+	private void discard(Profile profile) {
+		if (similarityRepository.existsByProfile_Id(profile.getId()) || recommendationRepository.existsByProfile_Id(profile.getId())) {
+			profile.retire();
+			profileRepository.save(profile);
+		} else
+			profileRepository.delete(profile);
 	}
 
 	public ProfilesDto getProfiles(String representationId) throws Exception {

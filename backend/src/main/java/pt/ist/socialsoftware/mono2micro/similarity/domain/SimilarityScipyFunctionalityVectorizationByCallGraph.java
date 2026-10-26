@@ -81,11 +81,6 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 	}
 
 	@Override
-	public String getProfile() {
-		return "Generic";
-	}
-
-	@Override
 	public int getTracesMaxLimit() {
 		return 0;
 	}

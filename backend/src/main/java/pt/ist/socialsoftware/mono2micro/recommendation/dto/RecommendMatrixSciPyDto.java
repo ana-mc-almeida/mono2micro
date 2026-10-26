@@ -7,7 +7,6 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import java.util.List;
 
 public class RecommendMatrixSciPyDto extends RecommendationDto {
-	private String profile;
 	private String linkageType;
 	private Constants.TraceType traceType;
 	private int tracesMaxLimit;
@@ -21,20 +20,13 @@ public class RecommendMatrixSciPyDto extends RecommendationDto {
 		this.setStrategyId(recommendation.getStrategy().getId());
 		this.setStrategyName(recommendation.getStrategy().getName());
 		this.name = recommendation.getName();
-		this.profile = recommendation.getProfile();
+		this.profileId = recommendation.getProfileId();
+		this.profileName = recommendation.getProfile() == null ? null : recommendation.getProfile().getName();
 		this.linkageType = recommendation.getLinkageType();
 		this.tracesMaxLimit = recommendation.getTracesMaxLimit();
 		this.isCompleted = recommendation.isCompleted();
 		this.traceType = recommendation.getTraceType();
 		this.weightsList = recommendation.getWeightsList();
-	}
-
-	public String getProfile() {
-		return profile;
-	}
-
-	public void setProfile(String profile) {
-		this.profile = profile;
 	}
 
 	public String getLinkageType() {

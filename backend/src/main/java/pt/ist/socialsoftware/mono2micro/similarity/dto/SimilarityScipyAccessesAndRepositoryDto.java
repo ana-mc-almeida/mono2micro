@@ -15,7 +15,6 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 	private String linkageType;
 	private int tracesMaxLimit;
 	private Constants.TraceType traceType;
-	private String profile;
 
 	public SimilarityScipyAccessesAndRepositoryDto() { this.type = SIMILARITY_SCIPY_ACCESSES_REPOSITORY; }
 
@@ -27,7 +26,7 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.weightsList = similarity.getWeightsList();
-		this.profile = similarity.getProfile();
+		copyProfile(similarity.getProfile());
 		this.linkageType = similarity.getLinkageType();
 		this.tracesMaxLimit = similarity.getTracesMaxLimit();
 		this.traceType = similarity.getTraceType();
@@ -38,7 +37,7 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		this.strategyName = recommend.getStrategy().getName();
 		this.type = SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 		this.weightsList = weightsList;
-		this.profile = recommend.getProfile();
+		copyProfile(recommend.getProfile());
 		this.linkageType = recommend.getLinkageType();
 		this.tracesMaxLimit = recommend.getTracesMaxLimit();
 		this.traceType = recommend.getTraceType();
@@ -47,7 +46,7 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 	public String getName() {
 		if (this.name == null) {
 			this.name = this.strategyName + " "
-					+ "params" + "(" + this.linkageType + "," + this.profile + "," + this.tracesMaxLimit + "," + this.traceType + ") "
+					+ "params" + "(" + this.linkageType + "," + profileLabel() + "," + this.tracesMaxLimit + "," + this.traceType + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
 							.collect(Collectors.joining(", "));
@@ -62,14 +61,6 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 
 	public void setWeightsList(List<Weights> weightsList) {
 		this.weightsList = weightsList;
-	}
-
-	public String getProfile() {
-		return profile;
-	}
-
-	public void setProfile(String profile) {
-		this.profile = profile;
 	}
 
 	public int getTracesMaxLimit() {

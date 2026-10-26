@@ -7,6 +7,8 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
@@ -33,16 +35,22 @@ public class SimilarityService {
 	DecompositionService decompositionService;
 
 	@Autowired
+	ProfileService profileService;
+
+	@Autowired
 	GridFsService gridFsService;
 
 	/** Returns the new similarity, or the existing one equal to the request. */
 	public Similarity createSimilarity(SimilarityDto similarityDto) throws Exception {
 		Strategy strategy = strategyRepository.getById(similarityDto.getStrategyId());
 		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
+		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), strategy.getSoftwareSystem().getId());
+		similarityDto.setProfileName(profile == null ? null : profile.getName()); // and shows the profile
 		for (Similarity existing : similarityRepository.findByStrategyId(strategy.getId()))
 			if (existing.equalsDto(similarityDto))
 				return existing;
 		Similarity similarity = SimilarityFactory.createSimilarity(strategy, similarityDto);
+		similarity.setProfile(profile);
 
 		similarity.generate();
 

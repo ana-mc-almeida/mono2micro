@@ -1,9 +1,11 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.TraceDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
@@ -14,6 +16,7 @@ import pt.ist.socialsoftware.mono2micro.utils.FunctionalityTracesIterator;
 import pt.ist.socialsoftware.mono2micro.utils.Pair;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -130,8 +133,9 @@ public class AccessesWeights extends Weights {
 			throws IOException, JSONException {
 		SimilarityScipyAccessesAndRepository s = (SimilarityScipyAccessesAndRepository) similarity;
 		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getId()), accesses.getProfile(s.getProfile()), s.getTraceType(),
-				s.getTracesMaxLimit());
+		byte[] accessesFile = IOUtils.toByteArray(gridFsService.getFile(accesses.getId()));
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, new ByteArrayInputStream(accessesFile), Profile.unitsOf(s.getProfile(), accesses, accessesFile),
+				s.getTraceType(), s.getTracesMaxLimit());
 	}
 
 	@Override
@@ -139,8 +143,9 @@ public class AccessesWeights extends Weights {
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
 		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), ACCESSES);
-		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, gridFsService.getFile(accesses.getId()), accesses.getProfile(r.getProfile()), r.getTraceType(),
-				r.getTracesMaxLimit());
+		byte[] accessesFile = IOUtils.toByteArray(gridFsService.getFile(accesses.getId()));
+		fillRawMatrixFromAccesses(rawMatrix, fillFromIndex, new ByteArrayInputStream(accessesFile), Profile.unitsOf(r.getProfile(), accesses, accessesFile),
+				r.getTraceType(), r.getTracesMaxLimit());
 	}
 
 	public static void fillRawMatrixFromAccesses(

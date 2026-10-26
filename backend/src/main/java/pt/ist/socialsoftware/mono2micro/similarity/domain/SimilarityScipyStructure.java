@@ -29,20 +29,18 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 	private static final int STEP = 10;
 
 	// Used during Similarity Generation
-	private String profile;
 	private Constants.TraceType traceType;
 
 	public SimilarityScipyStructure() {}
 
 	public SimilarityScipyStructure(Strategy strategy, String name, SimilarityScipyStructureDto dto) {
 		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
-		this.profile = dto.getProfile();
 		this.traceType = dto.getTraceType();
 	}
 
 	public SimilarityScipyStructure(RecommendMatrixSciPy recommendation) {
 		super(recommendation);
-		this.profile = recommendation.getProfile();
+		setProfile(recommendation.getProfile());
 		this.traceType = recommendation.getTraceType();
 	}
 
@@ -58,7 +56,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 
 		SimilarityScipyStructureDto similarityDto = (SimilarityScipyStructureDto) dto;
 		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
-				similarityDto.getProfile().equals(this.profile) &&
+				Objects.equals(similarityDto.getProfileId(), getProfileId()) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
 	}
@@ -91,11 +89,6 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 				allWeightsAsArray[i++] = weight;
 		}
 		return allWeightsAsArray;
-	}
-
-	@Override
-	public String getProfile() {
-		return "Generic";
 	}
 
 	@Override

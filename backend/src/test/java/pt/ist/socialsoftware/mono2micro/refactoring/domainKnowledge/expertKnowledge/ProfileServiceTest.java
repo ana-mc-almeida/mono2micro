@@ -6,9 +6,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.io.ByteArrayInputStream;
@@ -36,6 +38,10 @@ public class ProfileServiceTest {
 	private RepresentationRepository representationRepository;
 	@Mock
 	private GridFsService gridFsService;
+	@Mock
+	private SimilarityRepository similarityRepository;
+	@Mock
+	private RecommendationRepository recommendationRepository;
 
 	@InjectMocks
 	private ProfileService profileService;

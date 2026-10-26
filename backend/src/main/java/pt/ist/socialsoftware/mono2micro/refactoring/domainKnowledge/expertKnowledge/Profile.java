@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge;
 
 import org.bson.types.ObjectId;
+import org.json.JSONException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -36,6 +37,14 @@ public class Profile {
 		this.representation = representation;
 	}
 
+	/**
+	 * The units a Similarity scoped by the given profile is built on. A null profile means no profile: every unit of
+	 * the representation (D-017).
+	 */
+	public static Set<String> unitsOf(Profile profile, Representation representation, byte[] representationFile) throws JSONException {
+		return profile == null ? representation.readUnits(representationFile) : profile.getUnits();
+	}
+
 	/** A new version of this profile, under the same name, that selects the given units instead. */
 	public Profile withUnits(Set<String> units) {
 		return new Profile(name, units, representation);
@@ -59,5 +68,10 @@ public class Profile {
 
 	public boolean isRetired() {
 		return retired;
+	}
+
+	/** No longer offered, but kept for the Similarities and recommendations that use it. */
+	public void retire() {
+		this.retired = true;
 	}
 }

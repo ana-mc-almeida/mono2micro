@@ -2,6 +2,7 @@ package pt.ist.socialsoftware.mono2micro.representation.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bson.types.ObjectId;
+import org.json.JSONException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
@@ -58,7 +59,7 @@ public abstract class Representation {
 	 * general: Structure clusters the entities a profile selects, but Accesses clusters entities while its profile's
 	 * functionalities only scope the traces the similarity matrix is built from.
 	 */
-	public Set<String> readUnits(byte[] representationFile) throws Exception {
+	public Set<String> readUnits(byte[] representationFile) throws JSONException {
 		return null;
 	}
 
