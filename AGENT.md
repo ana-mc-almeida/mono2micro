@@ -294,7 +294,8 @@ Fixture offered  = SoftwareSystemFixtures.repositoryBased();  // has authorship 
 Fixture withheld = SoftwareSystemFixtures.accessesBased();    // deliberately does not
 ```
 
-Availability is derived from representation **types** alone, so a fixture is plain objects:
+Availability is derived from which representations a software system holds, by class and
+never by content, so a fixture is plain objects:
 nothing is persisted and no database is contacted. Tests using them run in milliseconds,
 offline, with the same result on any machine. For a service that looks representations up,
 stub the repository with `SoftwareSystemFixtures.stubbed(repository, fixtures...)` rather than
@@ -383,7 +384,7 @@ through `ContextManager` until ticket 18 removes it.
 | **Metrics** | `<pkg>/qualityAssessment/metrics/` | `singleDecomposition/` (Cohesion, Complexity, Coupling, Performance, TSR), with `functionality/` and `functionalityRedesign/` under it |
 | **Operation** | `<pkg>/operation/` | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/` |
 | **comparisonTool** | `<pkg>/qualityAssessment/metrics/severalDecompositions/` | MoJoFM and Purity; vendored MoJo in `mojo/` |
-| **VariableFeature** | `<pkg>/feature/` | A feature's `requirements()` and an always-empty `excludes()`, read by the one `AvailabilityCheck` into a derivation record (D-019, D-025). A requirement names a feature or a family by class (`Requires.of`, `Requires.anyOf`), and its record line is generated from the family's label. Every feature belongs to one `FeatureFamily`, which lives with the data and decides presence: `representation/RepresentationKindFamily`, `similarity/kind/SimilarityKindFamily` (shares IDToEntity and Accesses), `clusteringAlgorithm/ClusteringAlgorithmFamily`. A feature's id is its class and its name its `@JsonTypeName`; `utils/SelfRegistration` scans features and families. `feature/` imports no module (D-022), and `FeatureRegistrationCheck` fails the boot when the families do not add up |
+| **VariableFeature** | `<pkg>/feature/` | A feature's `requirements()` and an always-empty `excludes()`, read by the one `AvailabilityCheck` into a derivation record (D-019, D-025). The context is the set of present features: built once per software system by asking each family which of its features the system holds, and extended by `withInput`, which asks the families again for an input; every requirement is then a lookup in that set. A requirement has three shapes, all built in `feature/`: `Requires.of(FeatureClass.class)` (that feature), `Requires.of(MemberType.class)` (some feature of that family, as SciPy's `Requires.of(SimilarityKind.class)`), and `Requires.anyOf(...)` over either. Its record line is generated from the family's label. Every feature belongs to one `FeatureFamily`, which lives with the data and decides presence: `representation/RepresentationKindFamily`, `similarity/kind/SimilarityKindFamily` (shares IDToEntity and Accesses), `clusteringAlgorithm/ClusteringAlgorithmFamily`. A feature's id is its class and its name its `@JsonTypeName`; `utils/SelfRegistration` scans features and families. `feature/` imports no module (D-022), and `FeatureRegistrationCheck` fails the boot when the families do not add up |
 <!-- prettier-ignore-end -->
 
 ## Extension points

@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * The one self-registration scan: a family's members are found on the classpath, not listed in a
@@ -50,14 +51,15 @@ public final class SelfRegistration {
 	 * One instance of every concrete class assignable to {@code type}, in class-name order, for types whose members need no name, such as the
 	 * feature families.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <T> List<T> instances(Class<T> type) {
-		return (List<T>) INSTANCES.computeIfAbsent(type, SelfRegistration::scanInstances);
+		return INSTANCES.computeIfAbsent(type, SelfRegistration::scanInstances).stream()
+				.map(type::cast)
+				.collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 	}
 
 	private static <T> List<T> scanInstances(Class<T> type) {
 		List<T> instances = new ArrayList<>();
-		for (Class<? extends T> member : candidates(type))
+		for (Class<? extends T> member : types(type))
 			instances.add(instantiate(member));
 		return Collections.unmodifiableList(instances);
 	}
@@ -106,10 +108,6 @@ public final class SelfRegistration {
 
 	/** Every concrete class assignable to {@code type}, in class-name order. */
 	public static <T> List<Class<? extends T>> types(Class<T> type) {
-		return candidates(type);
-	}
-
-	private static <T> List<Class<? extends T>> candidates(Class<T> type) {
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 		scanner.addIncludeFilter(new AssignableTypeFilter(type));
 		List<Class<? extends T>> types = new ArrayList<>();
@@ -121,7 +119,7 @@ public final class SelfRegistration {
 
 	private static <T> SortedMap<String, T> scan(Class<T> family) {
 		SortedMap<String, T> members = new TreeMap<>();
-		for (Class<? extends T> type : candidates(family)) {
+		for (Class<? extends T> type : types(family)) {
 			JsonTypeName name = type.getDeclaredAnnotation(JsonTypeName.class);
 			if (name == null)
 				throw new IllegalStateException(type.getName() + " is a " + family.getSimpleName() + " without a @JsonTypeName");

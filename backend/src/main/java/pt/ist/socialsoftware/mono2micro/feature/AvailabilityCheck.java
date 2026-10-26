@@ -29,13 +29,14 @@ public final class AvailabilityCheck {
 
 	/** The names of the requirements the feature fails, then of the present features it excludes. */
 	private static List<String> failuresOf(VariableFeature feature, AvailabilityContext context) {
-		List<String> failures = requirementsOf(feature, context.getFamilies()).stream()
+		FeatureFamilies families = context.getFamilies();
+		List<String> failures = requirementsOf(feature, families).stream()
 				.filter(requirement -> !requirement.isMetBy(context))
-				.map(requirement -> requirement.name(context.getFamilies()))
+				.map(requirement -> requirement.name(families))
 				.collect(Collectors.toList());
 		feature.excludes().stream()
 				.filter(context::isPresent)
-				.map(excluded -> "excludes " + context.getFamilies().describe(excluded))
+				.map(excluded -> "excludes " + families.describe(excluded))
 				.forEach(failures::add);
 		return failures;
 	}

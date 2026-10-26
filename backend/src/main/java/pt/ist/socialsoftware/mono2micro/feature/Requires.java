@@ -26,10 +26,6 @@ public final class Requires extends Requirement {
 		return new AnyOf(alternatives);
 	}
 
-	public Class<?> getTarget() {
-		return target;
-	}
-
 	@Override
 	String target(FeatureFamilies families) {
 		return families.describe(target);

@@ -32,10 +32,6 @@ public final class FeatureFamilies {
 		return new FeatureFamilies(families);
 	}
 
-	public List<FeatureFamily<?>> getFamilies() {
-		return families;
-	}
-
 	/** The family that owns {@code feature}, if any does. */
 	public Optional<FeatureFamily<?>> familyOf(FeatureId feature) {
 		return families.stream().filter(family -> family.features().contains(feature)).findFirst();

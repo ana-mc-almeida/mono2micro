@@ -16,6 +16,7 @@ public class EntityVectorizationKind extends SimilarityKind {
 
 	@Override
 	public List<Requirement> requirements() {
+		// FIXME (ticket 19): the four vectorization kinds repeat this pair of requirements; declare it once
 		return Arrays.asList(
 				Requires.of(EntityToIDRepresentation.class),
 				Requires.of(CodeEmbeddingsRepresentation.class));
