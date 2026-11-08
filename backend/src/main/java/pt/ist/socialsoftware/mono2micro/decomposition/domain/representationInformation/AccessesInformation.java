@@ -123,7 +123,7 @@ public class AccessesInformation extends RepresentationInformation {
 		FunctionalityRepository functionalityRepository = ContextManager.get().getBean(FunctionalityRepository.class);
 
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
-		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(decomposition.getStrategy().getSoftwareSystem(), ACCESSES);
+		AccessesRepresentation accesses = (AccessesRepresentation) Representation.ofSoftwareSystem(decomposition.getSoftwareSystem(), ACCESSES);
 		byte[] accessesFile = IOUtils.toByteArray(gridFsService.getFile(accesses.getId()));
 		Set<String> profileFunctionalities = Profile.unitsOf(similarity.getProfile(), accesses, accessesFile);
 

@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
 import org.bson.types.ObjectId;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
@@ -47,6 +48,11 @@ public abstract class Similarity {
 
 	public Strategy getStrategy() {
 		return strategy;
+	}
+
+	/** The software system it belongs to. Every reader asks this, not its strategy, so the strategy can go (ticket 09). */
+	public SoftwareSystem getSoftwareSystem() {
+		return strategy.getSoftwareSystem();
 	}
 
 	public void setStrategy(Strategy strategy) {

@@ -135,7 +135,7 @@ public class AccessesWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		SimilarityScipyAccessesAndRepository s = (SimilarityScipyAccessesAndRepository) similarity;
-		fillMatrixFromAccesses(gridFsService, similarity.getStrategy().getSoftwareSystem(), s.getProfile(), rawMatrix, fillFromIndex, s.getTraceType(),
+		fillMatrixFromAccesses(gridFsService, similarity.getSoftwareSystem(), s.getProfile(), rawMatrix, fillFromIndex, s.getTraceType(),
 				s.getTracesMaxLimit());
 	}
 
@@ -143,7 +143,7 @@ public class AccessesWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-		fillMatrixFromAccesses(gridFsService, recommendation.getStrategy().getSoftwareSystem(), r.getProfile(), rawMatrix, fillFromIndex, r.getTraceType(),
+		fillMatrixFromAccesses(gridFsService, recommendation.getSoftwareSystem(), r.getProfile(), rawMatrix, fillFromIndex, r.getTraceType(),
 				r.getTracesMaxLimit());
 	}
 

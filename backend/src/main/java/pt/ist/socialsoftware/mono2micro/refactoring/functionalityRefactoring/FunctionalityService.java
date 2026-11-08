@@ -221,7 +221,7 @@ public class FunctionalityService {
 			functionality.setFunctionalityRedesignNameUsedForMetrics(functionalityRedesign.getName());
 
 			Representation representation = representationRepository
-					.findBySoftwareSystemIdAndType(similarity.getStrategy().getSoftwareSystem().getId(), ACCESSES)
+					.findBySoftwareSystemIdAndType(similarity.getSoftwareSystem().getId(), ACCESSES)
 					.orElseThrow(() -> new RuntimeException("No representation with type " + ACCESSES));
 
 			DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)

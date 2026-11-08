@@ -20,7 +20,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses similarity) {
 		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
 		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();
 		this.name = similarity.getName();

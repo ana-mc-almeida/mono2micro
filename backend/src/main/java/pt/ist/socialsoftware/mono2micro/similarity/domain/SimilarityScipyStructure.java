@@ -122,7 +122,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 
 	public Set<Short> fillElements(GridFsService gridFsService, Similarity similarity) throws IOException {
 		EntityToIDRepresentation entityToIDRepresentation = (EntityToIDRepresentation) Representation.ofSoftwareSystem(
-				similarity.getStrategy().getSoftwareSystem(),
+				similarity.getSoftwareSystem(),
 				ENTITY_TO_ID);
 		Map<String, Short> entityToId = new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToIDRepresentation.getId()),

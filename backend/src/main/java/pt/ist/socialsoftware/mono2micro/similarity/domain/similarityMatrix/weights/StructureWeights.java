@@ -116,14 +116,14 @@ public class StructureWeights extends Weights {
 	public void fillMatrix(GridFsService gridFsService, Similarity similarity, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		SimilarityScipyStructure s = (SimilarityScipyStructure) similarity;
-		fillMatrixFromStructure(gridFsService, similarity.getStrategy().getSoftwareSystem(), s.getProfile(), rawMatrix, fillFromIndex);
+		fillMatrixFromStructure(gridFsService, similarity.getSoftwareSystem(), s.getProfile(), rawMatrix, fillFromIndex);
 	}
 
 	@Override
 	public void fillMatrix(GridFsService gridFsService, Recommendation recommendation, float[][][] rawMatrix, Set<Short> elements, int fillFromIndex)
 			throws IOException, JSONException {
 		RecommendMatrixSciPy r = (RecommendMatrixSciPy) recommendation;
-		fillMatrixFromStructure(gridFsService, recommendation.getStrategy().getSoftwareSystem(), r.getProfile(), rawMatrix, fillFromIndex);
+		fillMatrixFromStructure(gridFsService, recommendation.getSoftwareSystem(), r.getProfile(), rawMatrix, fillFromIndex);
 	}
 
 	/** Fills from the software system's Structure file, on the profile's entities; a null profile means all of them (D-017). */

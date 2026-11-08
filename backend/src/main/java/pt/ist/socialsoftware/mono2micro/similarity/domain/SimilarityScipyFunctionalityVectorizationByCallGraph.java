@@ -91,15 +91,15 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 	}
 
 	public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
+		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getSoftwareSystem());
 		this.matchEntitiesTranslationIds(codeEmbeddings);
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeMethodCallsFeaturesVectors(matrix, codeEmbeddings);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(),
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getSoftwareSystem(),
 				ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getSoftwareSystem(), ACCESSES);
 		matrix.put("translationFileName", idToEntity.getId());
 		matrix.put("accessesFileName", accessesInfo.getId());
 
@@ -268,10 +268,10 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			Set<Short> elements,
 			int totalNumberOfWeights
 	) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getSoftwareSystem());
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(),
 				ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(),
 				ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];

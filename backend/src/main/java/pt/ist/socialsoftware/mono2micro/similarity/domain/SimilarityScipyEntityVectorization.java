@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,8 +66,8 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 	}
 
 	public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getStrategy());
+		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getSoftwareSystem());
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeEntitiesVectors(matrix, codeEmbeddings, entityToId);
@@ -169,10 +170,10 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 		return null;
 	}
 
-	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
+	private Map<String, Short> getEntitiesNamesToIds(SoftwareSystem softwareSystem) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(softwareSystem, ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
@@ -186,8 +187,8 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 			Set<Short> elements,
 			int totalNumberOfWeights
 	) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
+		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getSoftwareSystem());
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeEntitiesVectors(matrix, codeEmbeddings, entityToId);

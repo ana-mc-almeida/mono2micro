@@ -94,10 +94,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), AUTHOR).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getSoftwareSystem(), AUTHOR).getId()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), COMMIT).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getSoftwareSystem(), COMMIT).getId()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 
@@ -106,10 +106,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), AUTHOR).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(), AUTHOR).getId()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), COMMIT).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(), COMMIT).getId()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 

@@ -136,7 +136,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	public Set<Short> fillElements(GridFsService gridFsService) throws IOException {
-		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(),
+		IDToEntityRepresentation idToEntityRepresentation = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getSoftwareSystem(),
 				ID_TO_ENTITY);
 		Map<Short, String> idToEntity = new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntityRepresentation.getId()),
 				new TypeReference<Map<Short, String>>() {});
@@ -152,7 +152,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	public Map<Short, String> getIDToEntityName(GridFsService gridFsService) throws IOException {
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getSoftwareSystem(), ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 

@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -85,17 +86,17 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	}
 
 	public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
-		JSONObject functionalityTraces = getFunctionalityTraces(similarity.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getStrategy());
+		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getSoftwareSystem());
+		JSONObject functionalityTraces = getFunctionalityTraces(similarity.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getSoftwareSystem());
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		List<HashMap> entitiesVectors = this.computeEntitiesVectors(codeEmbeddings, entityToId);
 		this.computeSequenceOfAccessesFunctionalityVectors(matrix, functionalityTraces, entitiesVectors);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(),
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getSoftwareSystem(),
 				ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getSoftwareSystem(), ACCESSES);
 		matrix.put("translationFileName", idToEntity.getId());
 		matrix.put("accessesFileName", accessesInfo.getId());
 
@@ -271,30 +272,31 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		return getWeightsList().stream().filter(weight -> weight.getType().equals(type)).findFirst().orElse(null);
 	}
 
-	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
+	private Map<String, Short> getEntitiesNamesToIds(SoftwareSystem softwareSystem) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(softwareSystem, ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
 		);
 	}
 
-	private Map<String, Short> getTranslationIdToEntity(Strategy strategy) throws IOException {
+	// FIXME: Maybe delete this method, since it's dead code
+	private Map<String, Short> getTranslationIdToEntity(SoftwareSystem softwareSystem) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(softwareSystem, ID_TO_ENTITY);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(idToEntity.getId()),
 				new TypeReference<Map<Short, String>>() {}
 		);
 	}
 
-	private JSONObject getFunctionalityTraces(Strategy strategy) throws IOException, JSONException {
+	private JSONObject getFunctionalityTraces(SoftwareSystem softwareSystem) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ACCESSES);
+		AccessesRepresentation accessesRepresentation = (AccessesRepresentation) Representation.ofSoftwareSystem(softwareSystem, ACCESSES);
 		return new JSONObject(
 				gridFsService.getFileAsString(accessesRepresentation.getId())
 		);
@@ -307,12 +309,12 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 			Set<Short> elements,
 			int totalNumberOfWeights
 	) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		JSONObject functionalityTraces = getFunctionalityTraces(recommendation.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getSoftwareSystem());
+		JSONObject functionalityTraces = getFunctionalityTraces(recommendation.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getSoftwareSystem());
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(),
 				ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(),
 				ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];

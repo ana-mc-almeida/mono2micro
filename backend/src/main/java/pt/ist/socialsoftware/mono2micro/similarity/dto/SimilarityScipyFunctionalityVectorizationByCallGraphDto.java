@@ -22,7 +22,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(SimilarityScipyFunctionalityVectorizationByCallGraph similarity) {
 		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
 		this.strategyId = similarity.getStrategy().getId();
 		this.strategyName = similarity.getStrategy().getName();
 		this.name = similarity.getName();

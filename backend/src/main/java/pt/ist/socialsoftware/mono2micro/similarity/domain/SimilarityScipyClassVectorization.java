@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,9 +65,9 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 	}
 
 	public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getStrategy());
-		this.matchEntitiesTranslationIds(similarity.getStrategy(), codeEmbeddings);
+		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getSoftwareSystem());
+		this.matchEntitiesTranslationIds(similarity.getSoftwareSystem(), codeEmbeddings);
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeClassesVectors(matrix, codeEmbeddings, entityToId);
@@ -180,9 +181,9 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 		return null;
 	}
 
-	public void matchEntitiesTranslationIds(Strategy strategy, JSONObject codeEmbeddings)
+	public void matchEntitiesTranslationIds(SoftwareSystem softwareSystem, JSONObject codeEmbeddings)
 			throws JSONException, IOException {
-		Map<String, Short> translationEntityToId = getEntitiesNamesToIds(strategy);
+		Map<String, Short> translationEntityToId = getEntitiesNamesToIds(softwareSystem);
 		JSONArray packages = codeEmbeddings.getJSONArray("packages");
 
 		for (int i = 0; i < packages.length(); i++) {
@@ -202,10 +203,10 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 		}
 	}
 
-	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
+	private Map<String, Short> getEntitiesNamesToIds(SoftwareSystem softwareSystem) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(softwareSystem, ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
@@ -219,9 +220,9 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 			Set<Short> elements,
 			int totalNumberOfWeights
 	) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
-		this.matchEntitiesTranslationIds(recommendation.getStrategy(), codeEmbeddings);
+		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getSoftwareSystem());
+		this.matchEntitiesTranslationIds(recommendation.getSoftwareSystem(), codeEmbeddings);
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeClassesVectors(matrix, codeEmbeddings, entityToId);

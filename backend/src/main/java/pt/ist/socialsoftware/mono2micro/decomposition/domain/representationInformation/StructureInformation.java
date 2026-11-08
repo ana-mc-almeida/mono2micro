@@ -120,7 +120,7 @@ public class StructureInformation extends RepresentationInformation {
 	private void setupEntities(Decomposition decomposition) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 		StructureRepresentation structureRepresentation = (StructureRepresentation) Representation.ofSoftwareSystem(
-				decomposition.getStrategy().getSoftwareSystem(),
+				decomposition.getSoftwareSystem(),
 				STRUCTURE);
 		String structureFile = gridFsService.getFileAsString(structureRepresentation.getId());
 		Map<String, Object> jsonData = new ObjectMapper().readValue(
@@ -133,7 +133,7 @@ public class StructureInformation extends RepresentationInformation {
 		/* Filter out all the primitive types */
 		SimilarityScipyStructure s = (SimilarityScipyStructure) decomposition.getSimilarity();
 		StructureRepresentation structure = (StructureRepresentation) Representation.ofSoftwareSystem(
-				decomposition.getSimilarity().getStrategy().getSoftwareSystem(),
+				decomposition.getSimilarity().getSoftwareSystem(),
 				STRUCTURE);
 		Set<String> entities = Profile.unitsOf(s.getProfile(), structure, structureFile.getBytes(StandardCharsets.UTF_8));
 		filterEntities(entitiesContainedMap, entities);

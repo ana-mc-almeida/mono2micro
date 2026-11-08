@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,13 +66,13 @@ public abstract class SimilarityScipy extends Similarity {
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getSoftwareSystem(), ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 
 	public Map<String, Short> getEntityToId() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(getSoftwareSystem(), ENTITY_TO_ID);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(entityToId.getId()), new TypeReference<Map<String, Short>>() {});
 	}
 
@@ -97,10 +98,10 @@ public abstract class SimilarityScipy extends Similarity {
 		}
 	}
 
-	public JSONObject getCodeEmbeddings(Strategy strategy) throws IOException, JSONException {
+	public JSONObject getCodeEmbeddings(SoftwareSystem softwareSystem) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(),
+		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) Representation.ofSoftwareSystem(softwareSystem,
 				CODE_EMBEDDINGS);
 		JSONObject codeEmbeddings = new JSONObject(
 				gridFsService.getFileAsString(codeEmbeddingsRepresentation.getId())
