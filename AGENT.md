@@ -448,15 +448,16 @@ The type string is duplicated across five registries and mirrored in TypeScript:
 1. `<pkg>/similarity/domain/SimilarityScipyXxx.java` — subclass `SimilarityScipy`
 2. `<pkg>/similarity/domain/SimilarityFactory.java` — case
 3. `<pkg>/similarity/domain/SimilarityScipyFactory.java` — case
-4. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` + `@JsonSubTypes` in `SimilarityDto.java`
+4. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` — `@JsonTypeName`; the self-registration
+   scan makes it a JSON subtype of `SimilarityDto` (`JsonSubtypeConfiguration`)
 5. `<pkg>/recommendation/domain/RecommendationsType.java` + `RecommendationFactory`
 6. `<pkg>/strategy/domain/Strategy.java` — constant + entries in **both** static maps
    (`strategiesToRepresentations` now feeds only the representation delete cascade)
 7. `<pkg>/similarity/kind/XxxKind.java` — `@JsonTypeName` + `requirements()` for what it
    needs beyond the IDToEntity and Accesses representations its family shares.
    `SimilarityKindFamily` finds it, and SciPy accepts it with no edit
-8. If new weight dimensions: `.../weights/XxxWeights.java` + `@JsonSubTypes` in
-   `Weights.java` + `WeightsFactory` case
+8. If new weight dimensions: `.../weights/XxxWeights.java` — `@JsonTypeName`; the scan makes
+   it a JSON subtype and `WeightsFactory` builds it by name
 9. Frontend: `models/similarity/` + `SimilarityFactory.ts`, `StrategyTypes.ts`,
    `RecommendationTypes.ts` + `RecommendationFactory.ts`, `models/weights/` +
    `WeightsFactory.ts`, a form under `components/similarity/forms/`

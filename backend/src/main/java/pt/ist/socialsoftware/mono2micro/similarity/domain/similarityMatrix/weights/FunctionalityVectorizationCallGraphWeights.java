@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.commons.lang3.NotImplementedException;
 import org.json.JSONException;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
@@ -9,6 +10,7 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import java.io.IOException;
 import java.util.*;
 
+@JsonTypeName(FunctionalityVectorizationCallGraphWeights.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS)
 public class FunctionalityVectorizationCallGraphWeights extends Weights {
 	public static final String FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS = "FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS";
 	private float controllersWeight;

@@ -104,4 +104,24 @@ public class SelfRegistrationTest {
 	public void aFeaturesNameIsItsJsonTypeName() {
 		assertThat(SelfRegistration.nameOf(new Lemon())).isEqualTo("Lemon");
 	}
+
+	@Test
+	public void theNamedScanFindsEveryConcreteClassThatDeclaresAName() {
+		assertThat(SelfRegistration.namedTypes()).contains(Apple.class, Pear.class, Lemon.class, FirstTwin.class, SecondTwin.class)
+				.doesNotContain(Fruit.class, Citrus.class, Forgotten.class);
+	}
+
+	@Test
+	public void aNewMemberIsAFreshInstanceOfTheClassThatHasTheName() {
+		Fruit apple = SelfRegistration.newMember(Fruit.class, "Apple");
+
+		assertThat(apple).isInstanceOf(Apple.class).isNotSameAs(SelfRegistration.prototypes(Fruit.class).get("Apple"));
+	}
+
+	@Test
+	public void aNewMemberOfAnUnknownNameIsRefused() {
+		assertThatThrownBy(() -> SelfRegistration.newMember(Fruit.class, "Plum"))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("No Fruit is named \"Plum\"");
+	}
 }

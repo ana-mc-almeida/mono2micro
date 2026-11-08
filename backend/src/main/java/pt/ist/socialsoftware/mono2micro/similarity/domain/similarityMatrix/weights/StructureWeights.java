@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
@@ -24,6 +25,7 @@ import java.util.*;
 
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 
+@JsonTypeName(StructureWeights.STRUCTURE_WEIGHTS)
 public class StructureWeights extends Weights {
 	public static final String STRUCTURE_WEIGHTS = "STRUCTURE_WEIGHTS";
 	private float oneToOneWeight;

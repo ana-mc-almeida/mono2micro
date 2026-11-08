@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses.SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
 
+@JsonTypeName(SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES)
 public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto extends SimilarityDto {
 	private String linkageType;
 

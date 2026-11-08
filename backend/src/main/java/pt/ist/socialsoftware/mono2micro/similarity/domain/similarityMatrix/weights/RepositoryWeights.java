@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
@@ -13,6 +14,7 @@ import java.util.*;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation.AUTHOR;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation.COMMIT;
 
+@JsonTypeName(RepositoryWeights.REPOSITORY_WEIGHTS)
 public class RepositoryWeights extends Weights {
 	public static final String REPOSITORY_WEIGHTS = "REPOSITORY_WEIGHTS";
 	private float authorMetricWeight;

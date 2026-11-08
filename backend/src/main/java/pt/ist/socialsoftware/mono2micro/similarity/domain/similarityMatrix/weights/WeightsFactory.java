@@ -1,24 +1,14 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class WeightsFactory {
+	/** A new Weights of the type named {@code type}, found by the self-registration scan. */
 	public static Weights getWeights(String type) {
-		switch (type) {
-		case AccessesWeights.ACCESSES_WEIGHTS:
-			return new AccessesWeights();
-		case RepositoryWeights.REPOSITORY_WEIGHTS:
-			return new RepositoryWeights();
-		case FunctionalityVectorizationCallGraphWeights.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS:
-			return new FunctionalityVectorizationCallGraphWeights();
-		case FunctionalityVectorizationSequenceOfAccessesWeights.FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS:
-			return new FunctionalityVectorizationSequenceOfAccessesWeights();
-		case StructureWeights.STRUCTURE_WEIGHTS:
-			return new StructureWeights();
-		default:
-			throw new RuntimeException("The type \"" + type + "\" is not a valid weight type.");
-		}
+		return SelfRegistration.newMember(Weights.class, type);
 	}
 
 	public static List<Weights> getWeightsList(List<String> types) {
