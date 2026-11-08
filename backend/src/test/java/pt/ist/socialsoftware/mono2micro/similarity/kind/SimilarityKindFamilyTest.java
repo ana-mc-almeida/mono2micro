@@ -19,7 +19,7 @@ import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.REPOSITO
 import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.STRUCTURE_STRATEGY;
 
 /**
- * The 7 Similarity kinds are one family (D-025). No kind is present in a software system; for an input, the family answers with the input's
+ * The 8 Similarity kinds are one family (D-025, D-026). No kind is present in a software system; for an input, the family answers with the input's
  * kind.
  */
 public class SimilarityKindFamilyTest {
@@ -38,7 +38,9 @@ public class SimilarityKindFamilyTest {
 						CLASS_VECTORIZATION_STRATEGY,
 						ENTITY_VECTORIZATION_STRATEGY,
 						FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-						FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY));
+						FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY,
+						// Accesses and Repository is its own kind beside Repository alone, as the strategy checkboxes allowed both (D-026)
+						AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY));
 	}
 
 	@Test

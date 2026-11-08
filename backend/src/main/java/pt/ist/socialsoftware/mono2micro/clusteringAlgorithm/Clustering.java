@@ -8,6 +8,7 @@ import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
+import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import java.util.Collections;
@@ -27,6 +28,8 @@ public abstract class Clustering implements VariableFeature {
 				.filter(kind -> AvailabilityCheck.derive(Collections.singletonList(this), noSystem.withInput(kind.getValue()))
 						.getFeatures().get(0).isAvailable())
 				.map(kind -> kind.getKey())
+				// FIXME (ticket 09): only the kinds a strategy can hold, until the strategy screen goes
+				.filter(Strategy::isStrategyType)
 				.collect(Collectors.toList());
 	}
 }

@@ -21,9 +21,13 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEnti
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -199,6 +203,24 @@ public class AvailabilityCharacterizationTest {
 				.containsExactlyInAnyOrder(ACCESSES_STRATEGY);
 		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(UNGROUPED_STRUCTURE_NAME))
 				.doesNotContain(STRUCTURE_TYPE);
+	}
+
+	/**
+	 * Accesses and Repository, which the strategy checkboxes allowed as a pair, is its own kind beside Repository alone (D-026), offered
+	 * wherever Repository is. The strategy screen does not list it: it offers the pair through its own checkboxes until it goes.
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("everyFixture")
+	public void accessesAndRepositoryIsOfferedExactlyWhereRepositoryIs(String softwareSystemId) {
+		List<String> offered = AvailabilityCheck.derive(SelfRegistration.prototypes(SimilarityKind.class).values(),
+				FeatureFamilies.scanned().contextFor(representationRepository.findBySoftwareSystemId(softwareSystemId))).availableNames();
+
+		assertThat(offered.contains(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY)).isEqualTo(offered.contains(REPOSITORY_STRATEGY));
+		assertThat(offeredKinds(softwareSystemId)).doesNotContain(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY);
+	}
+
+	static Stream<String> everyFixture() {
+		return Stream.concat(Arrays.stream(SoftwareSystemFixtures.all()).map(Fixture::getId), Stream.of(EVERYTHING_NAME, UNGROUPED_STRUCTURE_NAME));
 	}
 
 	// Similarity kinds the SciPy algorithm accepts

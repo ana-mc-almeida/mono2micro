@@ -82,8 +82,9 @@ public class SoftwareSystemService {
 	}
 
 	public List<String> getAllowableSoftwareSystemStrategyTypes(String softwareSystemId) {
+		// FIXME (ticket 09): offers only the kinds a strategy can hold, until the strategy screen goes
 		return AvailabilityCheck.derive(SelfRegistration.prototypes(SimilarityKind.class).values(), availabilityContext(softwareSystemId))
-				.availableNames();
+				.availableNames().stream().filter(Strategy::isStrategyType).collect(Collectors.toList());
 	}
 
 	/** The software system's context: each family is asked once which of its features the system's collected representations make present (D-025). */

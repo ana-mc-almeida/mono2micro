@@ -10,6 +10,7 @@ import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKind;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
@@ -46,7 +47,9 @@ public class FamilyScanTest {
 				CLASS_VECTORIZATION_STRATEGY,
 				ENTITY_VECTORIZATION_STRATEGY,
 				FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY);
+				FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY,
+				// Accesses and Repository is its own kind beside Repository alone, as the strategy checkboxes allowed both (D-026)
+				AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY);
 	}
 
 	@Test
@@ -72,10 +75,14 @@ public class FamilyScanTest {
 		assertThat(sciPy.getFailedRequirements()).containsExactly("requires a Similarity kind as input");
 	}
 
+	/** Asked of the check, not of {@code getAlgorithmSupportedStrategyTypes}, which offers the strategy screen only the kinds a strategy can hold. */
 	@Test
 	public void sciPyAcceptsEveryKindTheFamilyFinds() {
-		assertThat(SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY).getAlgorithmSupportedStrategyTypes())
-				.containsExactlyElementsOf(SelfRegistration.prototypes(SimilarityKind.class).keySet());
+		Clustering sciPy = SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY);
+
+		for (SimilarityKind kind : SelfRegistration.prototypes(SimilarityKind.class).values())
+			assertThat(AvailabilityCheck.derive(Collections.singletonList(sciPy), NOTHING_COLLECTED.withInput(kind)).availableNames())
+					.as(SelfRegistration.nameOf(kind)).containsExactly(SciPyClustering.SCIPY);
 	}
 
 	/** What the boot runs: every family, every variable feature on the classpath, and every requirement add up (D-025 point 7). */

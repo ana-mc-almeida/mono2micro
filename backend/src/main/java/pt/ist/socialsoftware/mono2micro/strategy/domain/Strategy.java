@@ -65,6 +65,15 @@ public class Strategy {
 			new AbstractMap.SimpleImmutableEntry<>(FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY,
 					new ArrayList<>(Arrays.asList(ACCESSES_TYPE, CODE_EMBEDDINGS_TYPE)))
 	).collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
+
+	/**
+	 * Whether a strategy can hold the Similarity kind named {@code kindName}. Accesses and Repository is a kind (D-026) but not a strategy
+	 * type: the strategy screen still offers it as the Accesses and Repository pair.
+	 */
+	public static boolean isStrategyType(String kindName) {
+		return strategiesToRepresentationTypes.containsKey(kindName);
+	}
+
 	@Id
 	private String id = new ObjectId().toHexString();
 	private String name;

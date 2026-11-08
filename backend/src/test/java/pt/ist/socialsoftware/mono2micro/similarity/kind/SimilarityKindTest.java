@@ -40,6 +40,8 @@ class SimilarityKindTest {
 		return Stream.of(
 				Arguments.of(AccessesKind.ACCESSES, Arrays.asList(ACCESSES_TYPE)),
 				Arguments.of(RepositoryKind.REPOSITORY, Arrays.asList(ACCESSES_TYPE, REPOSITORY_TYPE)),
+				// The Accesses and Repository strategy pair (D-026)
+				Arguments.of(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY, Arrays.asList(ACCESSES_TYPE, REPOSITORY_TYPE)),
 				Arguments.of(StructureKind.STRUCTURE, Arrays.asList(ACCESSES_TYPE, STRUCTURE_TYPE)),
 				Arguments.of(ClassVectorizationKind.CLASS_VECTORIZATION, Arrays.asList(ACCESSES_TYPE)),
 				Arguments.of(EntityVectorizationKind.ENTITY_VECTORIZATION, Arrays.asList(ACCESSES_TYPE)),
@@ -58,6 +60,7 @@ class SimilarityKindTest {
 		return Stream.of(
 				Arguments.of(AccessesKind.ACCESSES, Arrays.asList("ACCESSES_WEIGHTS")),
 				Arguments.of(RepositoryKind.REPOSITORY, Arrays.asList("REPOSITORY_WEIGHTS")),
+				Arguments.of(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY, Arrays.asList("ACCESSES_WEIGHTS", "REPOSITORY_WEIGHTS")),
 				Arguments.of(StructureKind.STRUCTURE, Arrays.asList("STRUCTURE_WEIGHTS")),
 				Arguments.of(ClassVectorizationKind.CLASS_VECTORIZATION, Collections.emptyList()),
 				Arguments.of(EntityVectorizationKind.ENTITY_VECTORIZATION, Collections.emptyList()),
