@@ -42,6 +42,12 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		this.depth = dto.getDepth();
 	}
 
+	public SimilarityScipyFunctionalityVectorizationByCallGraph(String kindName, List<Representation> representations, String name,
+			SimilarityScipyFunctionalityVectorizationByCallGraphDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
+		this.depth = dto.getDepth();
+	}
+
 	public SimilarityScipyFunctionalityVectorizationByCallGraph(RecommendMatrixSciPy recommendation) {
 		super(recommendation);
 	}
@@ -65,7 +71,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
 	}

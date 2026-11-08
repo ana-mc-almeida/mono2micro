@@ -40,4 +40,9 @@ public final class Requires extends Requirement {
 	Stream<Class<?>> targets() {
 		return Stream.of(target);
 	}
+
+	@Override
+	Stream<Class<?>> conjunctTargets() {
+		return targets();
+	}
 }

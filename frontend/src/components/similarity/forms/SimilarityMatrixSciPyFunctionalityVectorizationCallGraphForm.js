@@ -3,16 +3,14 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import FormControl from "react-bootstrap/FormControl";
-import {APIService} from "../../../services/APIService";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH} from "../../../models/similarity/SimilarityScipyFunctionalityVectorizationByCallGraph";
 import {RepresentationInfoParameters} from "../../../type-declarations/types";
-import {WeightsFactory} from "../../../models/weights/WeightsFactory";
+import {defaultWeights, submitSimilarity} from "./similaritySource";
 
 
-export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
-    const service = new APIService();
+export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({softwareSystemId, strategy, kindName, setUpdateStrategies}) => {
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");
     const [depth, setDepth] = useState(-1);
@@ -21,15 +19,14 @@ export const SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm = ({so
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByStrategyType(strategy.strategyTypes));
+        setWeightsList(defaultWeights(kindName, strategy));
     }, [])
 
     function handleSubmit(event) {
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        service.createSimilarity({
-            strategyId: strategy.id,
+        submitSimilarity(softwareSystemId, kindName, strategy, {
             type: SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
             linkageType,
             depth,

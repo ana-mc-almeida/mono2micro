@@ -30,4 +30,7 @@ public abstract class Requirement {
 
 	/** Every class this requirement names, so the boot check can verify that each is a feature or a family (D-025 point 7). */
 	abstract Stream<Class<?>> targets();
+
+	/** The classes this requirement needs present each on its own, unlike the alternatives of a disjunction, of which one is enough. */
+	abstract Stream<Class<?>> conjunctTargets();
 }

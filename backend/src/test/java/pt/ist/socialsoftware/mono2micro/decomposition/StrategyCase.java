@@ -287,6 +287,11 @@ final class StrategyCase {
 		return strategyTypes;
 	}
 
+	/** The Similarity kind the case's strategy stands for: its one type, or for the Accesses and Repository pair, that kind (D-026). */
+	String kindName() {
+		return strategyTypes.size() == 1 ? strategyTypes.get(0) : "Accesses and Repository";
+	}
+
 	String representationGroup() {
 		return representationGroup;
 	}

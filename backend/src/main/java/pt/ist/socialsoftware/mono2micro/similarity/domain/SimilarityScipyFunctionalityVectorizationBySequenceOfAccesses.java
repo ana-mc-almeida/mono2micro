@@ -45,6 +45,11 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
 	}
 
+	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(String kindName, List<Representation> representations, String name,
+			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
+	}
+
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(RecommendMatrixSciPy recommendation) {
 		super(recommendation);
 	}
@@ -60,7 +65,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
 	}

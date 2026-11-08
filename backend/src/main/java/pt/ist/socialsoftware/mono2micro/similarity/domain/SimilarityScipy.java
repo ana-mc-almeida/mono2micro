@@ -45,6 +45,12 @@ public abstract class SimilarityScipy extends Similarity {
 		this.weightsList = weightsList;
 	}
 
+	public SimilarityScipy(String kindName, List<Representation> representations, String name, String linkageType, List<Weights> weightsList) {
+		super(kindName, representations, name);
+		this.linkageType = linkageType;
+		this.weightsList = weightsList;
+	}
+
 	/** A temporary similarity for a recommendation; its matrices are keyed by the recommendation's id. */
 	// FIXME (ticket 09): recommendations should not need a temporary similarity; remove this constructor once a recommendation finds or creates its Similarity
 	public SimilarityScipy(RecommendMatrixSciPy recommendation) {

@@ -7,6 +7,7 @@ import {APIService} from "../../services/APIService";
 // @ts-ignore
 import {toast} from "react-toastify";
 import {RepresentationType} from "../representation/Representation";
+import {similarityBase} from "../../services/similarityRoutes";
 
 const PARTITIONS_DECOMPOSITION = "Partitions Decomposition";
 export {PARTITIONS_DECOMPOSITION};
@@ -74,7 +75,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/accessesViews`}
+                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/accessesViews`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -86,7 +87,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.REPOSITORY_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/repositoryView`}
+                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/repositoryView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -98,7 +99,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.STRUCTURE_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/structureView`}
+                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/structureView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -110,7 +111,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.similarityId}/${this.id}/functionalityRefactor`}
+                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/functionalityRefactor`}
                                 className="mb-2"
                                 variant={"primary"}
                             >

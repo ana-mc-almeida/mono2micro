@@ -2,14 +2,13 @@ import React, {useEffect, useState} from "react";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {APIService} from "../../../services/APIService";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_ENTITY_VECTORIZATION} from "../../../models/similarity/SimilarityScipyEntityVectorization";
+import {submitSimilarity} from "./similaritySource";
 
 
-export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
-    const service = new APIService();
+export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, strategy, kindName, setUpdateStrategies}) => {
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");
 
@@ -21,8 +20,7 @@ export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, 
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        service.createSimilarity({
-            strategyId: strategy.id,
+        submitSimilarity(softwareSystemId, kindName, strategy, {
             type: SIMILARITY_SCIPY_ENTITY_VECTORIZATION,
             linkageType
         })

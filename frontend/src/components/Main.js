@@ -22,10 +22,16 @@ export const Main = () => (
       <Route exact path='/softwareSystems/:softwareSystemId' element={<Strategies/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/similarity' element={<Similarities/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/recommendation' element={<Recommendations/>} />
+      {/* A Similarity made on the software system: the same pages, without a strategy. FIXME (ticket 09): the strategy routes go with Strategy */}
+      <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/decomposition' element={<Decompositions/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/decomposition' element={<Decompositions/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/accessesViews' element={<AccessesViews/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/accessesViews' element={<AccessesViews/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/repositoryView' element={<RepositoryView/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/repositoryView' element={<RepositoryView/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/structureView' element={<StructureView/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/structureView' element={<StructureView/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/functionalityRefactor' element={<FunctionalityRefactorToolMenu/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/functionalityRefactor' element={<FunctionalityRefactorToolMenu/>} />
 
       <Route exact path='/softwareSystems/:softwareSystemId/:representationId/profiles' element={<Profiles/>} />

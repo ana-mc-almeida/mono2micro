@@ -17,8 +17,7 @@ public class SimilarityScipyEntityVectorizationDto extends SimilarityDto {
 	public SimilarityScipyEntityVectorizationDto(SimilarityScipyEntityVectorization similarity) {
 		this.id = similarity.getId();
 		this.softwareSystemId = similarity.getSoftwareSystem().getId();
-		this.strategyId = similarity.getStrategy().getId();
-		this.strategyName = similarity.getStrategy().getName();
+		copySource(similarity);
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.linkageType = similarity.getLinkageType();
@@ -34,7 +33,7 @@ public class SimilarityScipyEntityVectorizationDto extends SimilarityDto {
 
 	public String getName() {
 		if (this.name == null) {
-			this.name = this.strategyName + " " + "params" + "(" + this.linkageType + ")";
+			this.name = namePrefix() + " " + "params" + "(" + this.linkageType + ")";
 		}
 
 		return this.name;

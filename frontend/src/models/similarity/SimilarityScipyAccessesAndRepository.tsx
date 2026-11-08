@@ -6,6 +6,7 @@ import {URL} from "../../constants/constants"
 import React from "react";
 import {WeightsFactory} from "../weights/WeightsFactory";
 import Weights from "../weights/Weights";
+import {similarityBase} from "../../services/similarityRoutes";
 
 const SIMILARITY_SCIPY_ACCESSES_REPOSITORY = 'SIMILARITY_SCIPY_ACCESSES_REPOSITORY';
 export {SIMILARITY_SCIPY_ACCESSES_REPOSITORY};
@@ -46,7 +47,7 @@ export default class SimilarityScipyAccessesAndRepository extends Similarity {
                         Object.entries(weights.weightsLabel).map(([key, value]) => <span key={key}>{value + ": " + weights[key] + "%"} <br/></span>)
                     )}
                 </Card.Text>
-                <Button href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.id}/decomposition`}
+                <Button href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.id}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

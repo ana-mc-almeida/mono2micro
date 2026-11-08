@@ -2,7 +2,6 @@ package pt.ist.socialsoftware.mono2micro.decomposition.domain;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformationFactory;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.history.domain.PositionHistory;
 import pt.ist.socialsoftware.mono2micro.history.service.HistoryService;
@@ -42,8 +41,7 @@ public class PartitionsDecomposition extends Decomposition {
 		this.outdated = decomposition.isOutdated();
 		this.expert = decomposition.isExpert();
 		this.clusters = decomposition.getClusters();
-		List<RepresentationInformation> representationInformations = RepresentationInformationFactory
-				.getStrategyRepresentationInformations(decomposition.getStrategy());
+		List<RepresentationInformation> representationInformations = decomposition.getSimilarity().informationBlocks();
 		for (RepresentationInformation representationInformation : representationInformations)
 			representationInformation.snapshot(this, decomposition);
 	}
@@ -58,7 +56,7 @@ public class PartitionsDecomposition extends Decomposition {
 
 	@Override
 	public void setup() throws Exception {
-		List<RepresentationInformation> representationInformations = RepresentationInformationFactory.getStrategyRepresentationInformations(getStrategy());
+		List<RepresentationInformation> representationInformations = getSimilarity().informationBlocks();
 		for (RepresentationInformation representationInformation : representationInformations)
 			representationInformation.setup(this);
 		this.history = new PositionHistory(this);

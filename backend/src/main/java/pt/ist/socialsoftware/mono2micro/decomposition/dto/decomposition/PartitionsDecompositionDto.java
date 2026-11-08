@@ -11,8 +11,10 @@ public class PartitionsDecompositionDto extends DecompositionDto {
 		this.setId(decomposition.getId());
 		this.setSoftwareSystemId(decomposition.getSoftwareSystem().getId());
 		this.setSoftwareSystemName(decomposition.getSoftwareSystem().getName());
-		this.setStrategyId(decomposition.getStrategy().getId());
-		this.setStrategyName(decomposition.getStrategy().getName());
+		if (decomposition.getStrategy() != null) { // FIXME (ticket 09): the strategy fields go with Strategy
+			this.setStrategyId(decomposition.getStrategy().getId());
+			this.setStrategyName(decomposition.getStrategy().getName());
+		}
 		this.setSimilarityId(decomposition.getSimilarity().getId());
 		this.setSimilarityName(decomposition.getSimilarity().getName());
 		this.setName(decomposition.getName());

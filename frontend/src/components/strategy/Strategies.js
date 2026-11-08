@@ -17,6 +17,7 @@ import FormControl from "react-bootstrap/FormControl";
 import {AddCircleOutline, CheckCircle} from "@mui/icons-material";
 import MUIButton from "@mui/material/Button";
 import Card from "react-bootstrap/Card";
+import {similarityForms} from "../similarity/forms/similarityForms";
 
 function renderBreadCrumbs(softwareSystemName) {
     return (
@@ -54,6 +55,9 @@ export function Strategies() {
     const [algorithms, setAlgorithms] = useState([]);
     const [strategyAlgorithm, setStrategyAlgorithm] = useState(undefined);
     const [availableStrategyTypes, setAvailableStrategyTypes] = useState([]);
+    const [similarities, setSimilarities] = useState([]);
+    const [offeredKinds, setOfferedKinds] = useState([]);
+    const [selectedKind, setSelectedKind] = useState(undefined);
 
     //Executed on mount
     useEffect(() => {
@@ -71,12 +75,74 @@ export function Strategies() {
         service.getSoftwareSystemRepresentationGroups(softwareSystemId).then(response => setSoftwareSystemRepresentationGroups(response.data));
     }
 
+    // The Similarities and the offered kinds follow the representations, so they reload with them.
     function loadRepresentations() {
         const service = new APIService();
         service.getRepresentations(softwareSystemId).then(response => {
             setRepresentations(response);
             setObtainedRepresentations(response.map(representation => representation.type));
         });
+        loadSimilarities();
+        // Only the kinds the backend offers for this software system's representations (D-013).
+        service.getAvailableSimilarityKinds(softwareSystemId).then(features =>
+            setOfferedKinds(features.filter(feature => feature.available).map(feature => feature.name)));
+    }
+
+    function loadSimilarities() {
+        const service = new APIService();
+        service.getSimilarities(softwareSystemId).then(response => setSimilarities(response));
+    }
+
+    function handleDeleteSimilarity(similarity) {
+        let toastId = toast.loading("Deleting " + similarity.name + "...", {type: toast.TYPE.INFO});
+        const service = new APIService();
+        service.deleteSimilarity(similarity.id).then(() => {
+            loadSimilarities();
+            toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Similarity deleted.", isLoading: false});
+            setTimeout(() => {toast.dismiss(toastId)}, 1000);
+        }).catch(() => {
+            toast.update(toastId, {type: toast.TYPE.ERROR, render: "Error deleting " + similarity.name + ".", isLoading: false});
+        });
+    }
+
+    // The kinds the software system offers, and the form of the chosen one: one lookup from the kind's name.
+    function renderSimilarities() {
+        const SimilarityForm = selectedKind !== undefined ? similarityForms[selectedKind] : undefined;
+        return (
+            <>
+                <h4 className="mt-4" style={{color: "#666666"}}>
+                    Similarities
+                </h4>
+                {offeredKinds.length === 0 ?
+                    <p>Upload representations to be offered a Similarity kind.</p> :
+                    <Form.Group as={Row} className="align-items-center mb-3">
+                        <Form.Label as="legend" column sm={2}>
+                            Kind
+                        </Form.Label>
+                        <Col sm={10}>
+                            <Row>
+                                {offeredKinds.map(kind =>
+                                    <Col key={kind} sm="auto">
+                                        <Form.Check onClick={() => setSelectedKind(kind)} name="similarityKind" label={kind} type="radio" id={"kind-" + kind}/>
+                                    </Col>
+                                )}
+                            </Row>
+                        </Col>
+                    </Form.Group>
+                }
+                {SimilarityForm !== undefined &&
+                    <SimilarityForm
+                        key={selectedKind}
+                        softwareSystemId={softwareSystemId}
+                        kindName={selectedKind}
+                        setUpdateStrategies={() => loadSimilarities()}
+                    />
+                }
+                <div className={"d-flex flex-wrap mw-100 mt-3"} style={{gap: '1rem 1rem'}}>
+                    {similarities.map(similarity => similarity.printCard(handleDeleteSimilarity))}
+                </div>
+            </>
+        );
     }
 
     function loadStrategies() {
@@ -440,6 +506,9 @@ export function Strategies() {
                 {[...representations.map(representation => representation.printCard(handleDeleteRepresentation)), addCard("Representation")]}
             </div>
 
+            { renderSimilarities() }
+
+            {/* FIXME (ticket 09): the strategies go with Strategy */}
             <h4 className="mt-4" style={{color: "#666666"}}>
                 Strategies
             </h4>

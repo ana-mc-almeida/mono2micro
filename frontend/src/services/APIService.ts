@@ -214,6 +214,24 @@ export class APIService {
         return this.axios.post("/similarity/create", similarity);
     }
 
+    // A Similarity of a kind, on the software system. A kind the software system does not offer is refused with 422, and a type or
+    // weights the kind is not computed with with 400.
+    createSimilarityOnSoftwareSystem(softwareSystemId: string, similarity: Similarity) {
+        return this.axios.post("/softwareSystems/" + softwareSystemId + "/similarities/create", similarity);
+    }
+
+    // The derivation record: every Similarity kind, with whether the software system offers it (D-013).
+    getAvailableSimilarityKinds(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/similarities/available").then(
+            response => response.data.features);
+    }
+
+    // The Similarities made on the software system.
+    getSimilarities(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/similarities").then(
+            response => response.data.map((similarity: any) => SimilarityFactory.getSimilarity(similarity)));
+    }
+
     getAllowableSoftwareSystemStrategyTypes(softwareSystemId: string) {
         return this.axios.get("/softwareSystems/" + softwareSystemId + "/getAllowableSoftwareSystemStrategyTypes");
     }

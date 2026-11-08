@@ -137,7 +137,9 @@ public abstract class Decomposition {
 
 	/** The software system it belongs to. Every reader asks this, not its strategy, so the strategy can go (ticket 09). */
 	public SoftwareSystem getSoftwareSystem() {
-		return strategy.getSoftwareSystem();
+		if (strategy != null) // FIXME (ticket 09): the strategy branch goes with Strategy
+			return strategy.getSoftwareSystem();
+		return similarity.getSoftwareSystem();
 	}
 
 	public void setStrategy(Strategy strategy) {

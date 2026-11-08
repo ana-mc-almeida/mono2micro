@@ -38,6 +38,11 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 		this.traceType = dto.getTraceType();
 	}
 
+	public SimilarityScipyStructure(String kindName, List<Representation> representations, String name, SimilarityScipyStructureDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
+		this.traceType = dto.getTraceType();
+	}
+
 	public SimilarityScipyStructure(RecommendMatrixSciPy recommendation) {
 		super(recommendation);
 		setProfile(recommendation.getProfile());
@@ -55,7 +60,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyStructureDto similarityDto = (SimilarityScipyStructureDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				Objects.equals(similarityDto.getProfileId(), getProfileId()) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());

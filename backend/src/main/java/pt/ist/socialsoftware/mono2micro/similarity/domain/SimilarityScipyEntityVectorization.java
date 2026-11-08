@@ -36,6 +36,11 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 		this.name = this.getName() + " " + getType() + "()";
 	}
 
+	public SimilarityScipyEntityVectorization(String kindName, List<Representation> representations, String name, SimilarityScipyEntityVectorizationDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), new ArrayList<>());
+		this.name = this.getName() + " " + getType() + "()";
+	}
+
 	public SimilarityScipyEntityVectorization(RecommendMatrixSciPy recommendation) {
 		super(recommendation);
 	}
@@ -51,7 +56,7 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				similarityDto.getLinkageType().equals(this.linkageType);
 	}
 

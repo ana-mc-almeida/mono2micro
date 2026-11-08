@@ -134,6 +134,57 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return response.getBody().path("id").asText();
 	}
 
+	/** Creates a Similarity of the case's kind on the software system, with no strategy (D-010). Returns its id. */
+	String createSimilarityOnSoftwareSystem(String softwareSystemId, StrategyCase strategyCase) {
+		ResponseEntity<JsonNode> response = rest.exchange(
+				base + "/softwareSystems/{id}/similarities/create",
+				HttpMethod.POST,
+				new HttpEntity<>(similarityOnSoftwareSystem(strategyCase, strategyCase.kindName()), jsonHeaders()),
+				JsonNode.class,
+				softwareSystemId);
+
+		require(response, HttpStatus.CREATED, "create similarity on " + softwareSystemId);
+
+		// A duplicate request also returns 201, with the existing similarity.
+		return response.getBody().path("id").asText();
+	}
+
+	/** The status of a request for a Similarity of {@code kindName} with the case's settings, for a test that expects it refused. */
+	HttpStatus requestSimilarityOnSoftwareSystem(String softwareSystemId, StrategyCase strategyCase, String kindName) {
+		return rest.exchange(base + "/softwareSystems/{id}/similarities/create", HttpMethod.POST,
+				new HttpEntity<>(similarityOnSoftwareSystem(strategyCase, kindName), jsonHeaders()), String.class, softwareSystemId)
+				.getStatusCode();
+	}
+
+	private static Map<String, Object> similarityOnSoftwareSystem(StrategyCase strategyCase, String kindName) {
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("type", strategyCase.similarityType());
+		body.put("kindName", kindName);
+		body.put("linkageType", "average");
+		body.putAll(strategyCase.extraSimilarityFields());
+		if (!strategyCase.weights().isEmpty())
+			body.put("weightsList", strategyCase.weights());
+		return body;
+	}
+
+	/** The software system's Similarity kinds record: each kind with whether it is offered (D-013). */
+	JsonNode getAvailableSimilarityKinds(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/similarities/available", softwareSystemId).path("features");
+	}
+
+	/** The Similarities created on the software system: those that read its representations. */
+	JsonNode getSimilarities(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/similarities", softwareSystemId);
+	}
+
+	JsonNode getSoftwareSystemDecompositions(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/getSoftwareSystemDecompositions", softwareSystemId);
+	}
+
+	void deleteRepresentation(String representationId) {
+		rest.delete(base + "/representation/{id}/delete", representationId);
+	}
+
 	/** The status of a Similarity request, for a test that expects it refused. */
 	HttpStatus requestSimilarity(String strategyId, StrategyCase strategyCase) {
 		Map<String, Object> body = new LinkedHashMap<>();

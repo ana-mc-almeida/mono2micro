@@ -14,6 +14,7 @@ import Popover from "react-bootstrap/Popover";
 import {ViewSearchBar} from "../utils/ViewSearchBar";
 import {StrategyType} from "../../../models/strategy/StrategyTypes";
 import {RepresentationType} from "../../../models/representation/Representation";
+import {similaritiesPage, similarityBase} from "../../../services/similarityRoutes";
 
 export const repositoryViewHelp = (<div>
     Double click a node to see its properties.<br />
@@ -85,10 +86,10 @@ export const RepositoryView = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
+                <Breadcrumb.Item href={similaritiesPage(softwareSystemId, strategyId)}>
                     {decomposition?.strategyName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityId}/decomposition`}>
+                <Breadcrumb.Item href={`${similarityBase(softwareSystemId, strategyId)}/${similarityId}/decomposition`}>
                     {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

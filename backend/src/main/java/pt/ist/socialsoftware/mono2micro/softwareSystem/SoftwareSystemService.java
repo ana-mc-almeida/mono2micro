@@ -2,6 +2,10 @@ package pt.ist.socialsoftware.mono2micro.softwareSystem;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
@@ -41,6 +45,12 @@ public class SoftwareSystemService {
 
 	@Autowired
 	StrategyRepository strategyRepository;
+
+	@Autowired
+	SimilarityService similarityService;
+
+	@Autowired
+	DecompositionRepository decompositionRepository;
 
 	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
 		if (softwareSystemRepository.existsByName(softwareSystemName))
@@ -92,8 +102,21 @@ public class SoftwareSystemService {
 		return FeatureFamilies.scanned().contextFor(representationRepository.findBySoftwareSystemId(softwareSystemId));
 	}
 
+	/** The decompositions of the software system: those of its Similarities, and those of its strategies'. */
+	public List<Decomposition> getDecompositions(String softwareSystemId) {
+		List<Decomposition> decompositions = similarityService.getSimilarities(softwareSystemId).stream()
+				.flatMap(similarity -> decompositionRepository.findBySimilarityId(similarity.getId()).stream())
+				.collect(Collectors.toList());
+		// FIXME (ticket 09): the strategies' decompositions go with Strategy
+		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(softwareSystemId))
+			decompositions.addAll(decompositionRepository.findByStrategyId(strategy.getId()));
+		return decompositions;
+	}
+
 	public void deleteSoftwareSystem(String softwareSystemId) {
 		SoftwareSystem softwareSystem = getSoftwareSystemById(softwareSystemId);
+		for (Similarity similarity : similarityService.getSimilarities(softwareSystemId))
+			similarityService.deleteSimilarity(similarity);
 		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(softwareSystemId))
 			strategyService.deleteStrategy(strategy);
 		for (Representation representation : representationRepository.findBySoftwareSystemId(softwareSystemId))

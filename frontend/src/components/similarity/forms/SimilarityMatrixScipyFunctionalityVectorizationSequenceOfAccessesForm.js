@@ -3,15 +3,13 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import FormControl from "react-bootstrap/FormControl";
-import {APIService} from "../../../services/APIService";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "../../../models/similarity/SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
-import {WeightsFactory} from "../../../models/weights/WeightsFactory";
+import {defaultWeights, submitSimilarity} from "./similaritySource";
 
 
-export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
-    const service = new APIService();
+export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm = ({softwareSystemId, strategy, kindName, setUpdateStrategies}) => {
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");
     const [weightsList, setWeightsList] = useState([]);
@@ -19,15 +17,14 @@ export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesFo
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByStrategyType(strategy.strategyTypes));
+        setWeightsList(defaultWeights(kindName, strategy));
     }, [])
 
     function handleSubmit(event) {
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        service.createSimilarity({
-            strategyId: strategy.id,
+        submitSimilarity(softwareSystemId, kindName, strategy, {
             type: SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
             linkageType,
             weightsList

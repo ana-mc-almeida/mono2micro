@@ -24,8 +24,7 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 	public SimilarityScipyAccessesAndRepositoryDto(SimilarityScipyAccessesAndRepository similarity) {
 		this.id = similarity.getId();
 		this.softwareSystemId = similarity.getSoftwareSystem().getId();
-		this.strategyId = similarity.getStrategy().getId();
-		this.strategyName = similarity.getStrategy().getName();
+		copySource(similarity);
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.weightsList = similarity.getWeightsList();
@@ -53,7 +52,7 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 
 	public String getName() {
 		if (this.name == null) {
-			this.name = this.strategyName + " "
+			this.name = namePrefix() + " "
 					+ "params" + "(" + this.linkageType + "," + profileLabel() + "," + this.tracesMaxLimit + "," + this.traceType + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
@@ -61,6 +60,11 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		}
 
 		return this.name;
+	}
+
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
 	}
 
 	public List<Weights> getWeightsList() {

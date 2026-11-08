@@ -40,6 +40,13 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 		this.traceType = dto.getTraceType();
 	}
 
+	public SimilarityScipyAccessesAndRepository(String kindName, List<Representation> representations, String name,
+			SimilarityScipyAccessesAndRepositoryDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
+		this.tracesMaxLimit = dto.getTracesMaxLimit();
+		this.traceType = dto.getTraceType();
+	}
+
 	public SimilarityScipyAccessesAndRepository(RecommendMatrixSciPy recommendation) {
 		super(recommendation);
 		setProfile(recommendation.getProfile());
@@ -65,7 +72,7 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				Objects.equals(similarityDto.getProfileId(), getProfileId()) &&
 				similarityDto.getTracesMaxLimit() == this.tracesMaxLimit &&
 				similarityDto.getTraceType() == this.traceType &&

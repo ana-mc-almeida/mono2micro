@@ -21,8 +21,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses similarity) {
 		this.id = similarity.getId();
 		this.softwareSystemId = similarity.getSoftwareSystem().getId();
-		this.strategyId = similarity.getStrategy().getId();
-		this.strategyName = similarity.getStrategy().getName();
+		copySource(similarity);
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.linkageType = similarity.getLinkageType();
@@ -40,7 +39,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 
 	public String getName() {
 		if (this.name == null) {
-			this.name = this.strategyName + " "
+			this.name = namePrefix() + " "
 					+ "params" + "(" + this.linkageType + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
@@ -56,6 +55,11 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 
 	public void setLinkageType(String linkageType) {
 		this.linkageType = linkageType;
+	}
+
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
 	}
 
 	public List<Weights> getWeightsList() {

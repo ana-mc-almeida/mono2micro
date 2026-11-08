@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
+import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDtoFactory;
@@ -25,6 +27,62 @@ public class SimilarityController {
 	@Autowired
 	SimilarityService similarityService;
 
+	/** Every Similarity kind, offered or withheld, with what each failed: the derivation record (D-013). */
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/similarities/available")
+	public ResponseEntity<DerivationRecord> getAvailableSimilarityKinds(
+			@PathVariable String softwareSystemId
+	) {
+		logger.debug("getAvailableSimilarityKinds");
+
+		try {
+			return new ResponseEntity<>(similarityService.getAvailableKinds(softwareSystemId), HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/similarities")
+	public ResponseEntity<List<SimilarityDto>> getSimilarities(
+			@PathVariable String softwareSystemId
+	) {
+		logger.debug("getSimilarities");
+
+		try {
+			return new ResponseEntity<>(
+					SimilarityDtoFactory.getSimilarityDtos(similarityService.getSimilarities(softwareSystemId)),
+					HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Rejects a kind the software system's representations do not offer with 422, before anything is computed (D-003, D-013), and an unknown
+	 * kind, or a type or weights its kind is not computed with, with 400.
+	 */
+	@PostMapping(value = "/softwareSystems/{softwareSystemId}/similarities/create")
+	public ResponseEntity<SimilarityDto> createSimilarity(
+			@PathVariable String softwareSystemId,
+			@RequestBody SimilarityDto similarityDto
+	) {
+		logger.debug("Create Similarity Distances");
+
+		try {
+			return new ResponseEntity<>(
+					SimilarityDtoFactory.getSimilarityDto(similarityService.createSimilarity(softwareSystemId, similarityDto)),
+					HttpStatus.CREATED);
+		} catch (UnavailableFeatureException e) {
+			logger.debug(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	// FIXME (ticket 09): the strategy path goes with Strategy
 	@PostMapping(value = "/similarity/create")
 	public ResponseEntity<SimilarityDto> createSimilarity(
 			@RequestBody SimilarityDto similarityDto
