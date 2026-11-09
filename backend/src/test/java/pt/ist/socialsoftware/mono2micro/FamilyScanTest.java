@@ -8,7 +8,6 @@ import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ExpertKnowledge;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
@@ -60,7 +59,7 @@ public class FamilyScanTest {
 				SelfRegistration.prototypes(Clustering.class).values(), NOTHING_COLLECTED);
 
 		assertThat(record.getFeatures()).extracting(FeatureAvailability::getName)
-				.containsExactlyInAnyOrderElementsOf(ClusteringFactory.algorithmTypes);
+				.containsExactly(SciPyClustering.SCIPY);
 	}
 
 	/**

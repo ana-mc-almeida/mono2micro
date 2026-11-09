@@ -13,6 +13,6 @@ public class ClusteringAlgorithmFamilyTest {
 	public void everyAlgorithmIsAFeatureOfTheFamily() {
 		assertThat(FeatureFamilies.scanned().familyWithMemberType(Clustering.class)).hasValueSatisfying(family -> assertThat(family.features())
 				.extracting(FeatureId::getName)
-				.containsExactlyInAnyOrderElementsOf(ClusteringFactory.algorithmTypes));
+				.containsExactly(SciPyClustering.SCIPY));
 	}
 }
