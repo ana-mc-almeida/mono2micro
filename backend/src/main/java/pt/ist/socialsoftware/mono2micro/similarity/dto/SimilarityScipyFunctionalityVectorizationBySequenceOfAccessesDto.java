@@ -29,8 +29,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 	}
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+		copyCandidateSource(recommend);
 		this.name = recommend.getName();
 		this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
 		this.linkageType = recommend.getLinkageType();

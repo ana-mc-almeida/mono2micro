@@ -112,6 +112,9 @@ export function Strategies() {
             <>
                 <h4 className="mt-4" style={{color: "#666666"}}>
                     Similarities
+                    <Button className="ms-3" size="sm" href={`/softwareSystems/${softwareSystemId}/recommendation`}>
+                        Recommendation
+                    </Button>
                 </h4>
                 {offeredKinds.length === 0 ?
                     <p>Upload representations to be offered a Similarity kind.</p> :

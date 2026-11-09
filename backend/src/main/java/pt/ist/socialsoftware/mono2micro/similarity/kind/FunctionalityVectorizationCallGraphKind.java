@@ -41,4 +41,9 @@ public class FunctionalityVectorizationCallGraphKind extends SimilarityKind {
 	public List<String> weightsTypes() {
 		return Collections.singletonList(FunctionalityVectorizationCallGraphWeights.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS);
 	}
+
+	@Override
+	public boolean requiresClusterTypeConversion() {
+		return true;
+	}
 }

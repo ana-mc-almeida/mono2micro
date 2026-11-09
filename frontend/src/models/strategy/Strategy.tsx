@@ -36,13 +36,6 @@ export default class Strategy {
                 </Button>
                 <br/>
                 <Button
-                    href={`/softwareSystems/${this.softwareSystemId}/${this.id}/recommendation`}
-                    className="mb-2"
-                >
-                    Recommendation
-                </Button>
-                <br/>
-                <Button
                     onClick={() => handleDeleteStrategy(this)}
                     className="mb-2"
                     variant={"danger"}

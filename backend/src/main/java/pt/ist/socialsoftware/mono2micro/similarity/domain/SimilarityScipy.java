@@ -52,9 +52,11 @@ public abstract class SimilarityScipy extends Similarity {
 	}
 
 	/** A temporary similarity for a recommendation; its matrices are keyed by the recommendation's id. */
-	// FIXME (ticket 09): recommendations should not need a temporary similarity; remove this constructor once a recommendation finds or creates its Similarity
+	// FIXME (ticket 10): recommendations should not need a temporary similarity; remove this constructor once the recommendation run and its candidates go
+	// through SciPyOperation
 	public SimilarityScipy(RecommendMatrixSciPy recommendation) {
-		this(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		this(recommendation.getKindName(), recommendation.getRepresentations(), recommendation.getName(), recommendation.getLinkageType(),
+				recommendation.getWeightsList());
 		this.id = recommendation.getId();
 	}
 

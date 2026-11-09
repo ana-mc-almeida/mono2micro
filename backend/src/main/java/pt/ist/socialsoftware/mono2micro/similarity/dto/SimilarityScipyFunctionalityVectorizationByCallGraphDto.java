@@ -32,8 +32,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 	}
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+		copyCandidateSource(recommend);
 		this.name = recommend.getName();
 		this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
 		this.linkageType = recommend.getLinkageType();

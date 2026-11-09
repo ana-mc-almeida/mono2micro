@@ -45,4 +45,9 @@ public class StructureKind extends SimilarityKind {
 	public List<String> weightsTypes() {
 		return Collections.singletonList(StructureWeights.STRUCTURE_WEIGHTS);
 	}
+
+	@Override
+	public String scopedRepresentationType() {
+		return StructureRepresentation.STRUCTURE;
+	}
 }

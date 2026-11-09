@@ -40,4 +40,9 @@ public class ClassVectorizationKind extends SimilarityKind {
 	public List<String> weightsTypes() {
 		return Collections.emptyList();
 	}
+
+	@Override
+	public boolean requiresClusterTypeConversion() {
+		return true;
+	}
 }

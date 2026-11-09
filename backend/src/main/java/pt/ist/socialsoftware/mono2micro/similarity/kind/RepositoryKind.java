@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepositoryInformation;
@@ -40,5 +41,10 @@ public class RepositoryKind extends SimilarityKind {
 	@Override
 	public List<String> weightsTypes() {
 		return Collections.singletonList(RepositoryWeights.REPOSITORY_WEIGHTS);
+	}
+
+	@Override
+	public String scopedRepresentationType() {
+		return AccessesRepresentation.ACCESSES;
 	}
 }

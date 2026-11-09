@@ -35,6 +35,22 @@ public abstract class SimilarityKind implements VariableFeature {
 	public abstract List<String> weightsTypes();
 
 	/**
+	 * The type of the representation whose units a profile of this kind selects, or null when the kind takes no profile (D-017: each kind
+	 * declares whether a profile can scope it).
+	 */
+	public String scopedRepresentationType() {
+		return null;
+	}
+
+	/**
+	 * Whether a recommendation of this kind clusters something other than entities, such as classes or functionalities, so its candidates'
+	 * clusters must be converted to clusters of entities.
+	 */
+	public boolean requiresClusterTypeConversion() {
+		return false;
+	}
+
+	/**
 	 * The kind named {@code name}.
 	 *
 	 * @throws IllegalArgumentException

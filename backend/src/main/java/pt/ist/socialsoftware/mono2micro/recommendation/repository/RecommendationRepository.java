@@ -6,7 +6,10 @@ import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import java.util.List;
 
 public interface RecommendationRepository extends MongoRepository<Recommendation, String> {
-	List<Recommendation> findByStrategyId(String strategyId);
+	List<Recommendation> findBySoftwareSystemId(String softwareSystemId);
+
+	/** The recommendations whose Similarities read the representation. The underscore walks the reference. */
+	List<Recommendation> findByRepresentations_Id(String representationId);
 
 	/** The underscore walks the profile reference; plain ProfileId would clash with getProfileId(). */
 	boolean existsByProfile_Id(String profileId);

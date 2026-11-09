@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
+import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
@@ -48,6 +50,9 @@ public class SoftwareSystemService {
 
 	@Autowired
 	SimilarityService similarityService;
+
+	@Autowired
+	RecommendationService recommendationService;
 
 	@Autowired
 	DecompositionRepository decompositionRepository;
@@ -117,6 +122,8 @@ public class SoftwareSystemService {
 		SoftwareSystem softwareSystem = getSoftwareSystemById(softwareSystemId);
 		for (Similarity similarity : similarityService.getSimilarities(softwareSystemId))
 			similarityService.deleteSimilarity(similarity);
+		for (Recommendation recommendation : recommendationService.getRecommendations(softwareSystemId))
+			recommendationService.deleteRecommendation(recommendation);
 		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(softwareSystemId))
 			strategyService.deleteStrategy(strategy);
 		for (Representation representation : representationRepository.findBySoftwareSystemId(softwareSystemId))

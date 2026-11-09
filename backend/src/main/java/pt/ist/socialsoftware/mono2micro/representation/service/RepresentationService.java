@@ -2,6 +2,7 @@ package pt.ist.socialsoftware.mono2micro.representation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 import org.springframework.web.multipart.MultipartFile;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
@@ -41,6 +42,9 @@ public class RepresentationService {
 
 	@Autowired
 	SimilarityService similarityService;
+
+	@Autowired
+	RecommendationService recommendationService;
 
 	public void addRepresentations(String softwareSystemId, String representationInfoType, List<String> representationTypes, List<Object> representations)
 			throws Exception {
@@ -98,6 +102,7 @@ public class RepresentationService {
 		}
 
 		similarityService.deleteSimilaritiesReading(representationId);
+		recommendationService.deleteRecommendationsReading(representationId);
 
 		profileRepository.deleteByRepresentationId(representationId);
 		gridFsService.deleteFile(representation.getId());

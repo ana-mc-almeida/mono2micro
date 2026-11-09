@@ -33,9 +33,9 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 
 	}
 
-	public SimilarityScipyStructureDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+	@Override
+	public void describeCandidate(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
+		copyCandidateSource(recommend);
 		this.type = SIMILARITY_SCIPY_STRUCTURE;
 		this.weightsList = weightsList;
 		copyProfile(recommend.getProfile());

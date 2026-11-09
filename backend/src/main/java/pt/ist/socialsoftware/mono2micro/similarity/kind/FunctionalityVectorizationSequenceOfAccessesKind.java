@@ -41,4 +41,9 @@ public class FunctionalityVectorizationSequenceOfAccessesKind extends Similarity
 	public List<String> weightsTypes() {
 		return Collections.singletonList(FunctionalityVectorizationSequenceOfAccessesWeights.FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS);
 	}
+
+	@Override
+	public boolean requiresClusterTypeConversion() {
+		return true;
+	}
 }

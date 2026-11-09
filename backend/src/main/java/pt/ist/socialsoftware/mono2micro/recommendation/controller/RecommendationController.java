@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
 
@@ -22,12 +23,19 @@ public class RecommendationController {
 	@Autowired
 	RecommendationService recommendationService;
 
+	/**
+	 * Rejects a kind the software system does not offer with 422, as a Similarity request is (D-003, D-013), and an unknown kind or weights
+	 * the kind is not computed with with 400.
+	 */
 	@PutMapping(value = "/recommendation/createRecommendation")
 	public ResponseEntity<RecommendationDto> createRecommendation(@RequestBody RecommendationDto recommendationDto) {
 		logger.debug("Create recommendation");
 
 		try {
 			return new ResponseEntity<>(recommendationService.createRecommendation(recommendationDto), HttpStatus.CREATED);
+		} catch (UnavailableFeatureException e) {
+			logger.debug(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

@@ -25,8 +25,7 @@ public class SimilarityScipyClassVectorizationDto extends SimilarityDto {
 	}
 
 	public SimilarityScipyClassVectorizationDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+		copyCandidateSource(recommend);
 		this.name = recommend.getName();
 		this.type = SIMILARITY_SCIPY_CLASS_VECTORIZATION;
 		this.linkageType = recommend.getLinkageType();

@@ -7,7 +7,6 @@ import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystem
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -60,7 +59,6 @@ public class StrategyService {
 
 	public void removeSpecificStrategyProperties(Strategy strategy) {
 		deleteStrategySimilarities(strategy);
-		deleteStrategyRecommendations(strategy);
 	}
 
 	public List<Similarity> getStrategySimilarities(String strategyId) {
@@ -91,8 +89,4 @@ public class StrategyService {
 			similarityService.deleteSimilarity(similarity);
 	}
 
-	private void deleteStrategyRecommendations(Strategy strategy) {
-		for (Recommendation recommendation : recommendationRepository.findByStrategyId(strategy.getId()))
-			recommendationService.deleteRecommendation(recommendation);
-	}
 }

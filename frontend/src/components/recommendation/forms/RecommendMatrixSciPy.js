@@ -11,6 +11,7 @@ import {Modal, ModalBody, ModalFooter, ModalTitle} from "react-bootstrap";
 import BootstrapTable from "react-bootstrap-table-next";
 import {RepresentationFile} from "../../../models/representation/Representation";
 import {RecommendationType} from "../../../models/recommendation/RecommendationTypes";
+import {SimilarityKind} from "../../../models/similarity/SimilarityKinds";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType} from "../../../type-declarations/types";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
@@ -63,7 +64,7 @@ const selectRow = {
     clickToSelect: true
 };
 
-export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrategies, recommendationType}) => {
+export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCreated}) => {
 
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
@@ -82,7 +83,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByStrategyType(strategy.strategyTypes));
+        setWeightsList(WeightsFactory.getWeightListByKind(kind));
     }, [])
 
     function handleChangeLinkageType(event) {
@@ -106,7 +107,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
 
         service.createRecommendationDecompositions(recommendation.id, selectedDecompositions.selectionContext.selected)
             .then(() => {
-                setUpdateStrategies({});
+                onDecompositionsCreated();
                 setIsSelected("Decompositions created.");
             }).catch(() => setIsSelected("Error during decomposition's creation."));
     }
@@ -119,8 +120,9 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
         setLoading(true);
 
         service.recommendation({
-            type: recommendationType,
-            strategyId: strategy.id,
+            type: RecommendationType.RECOMMEND_MATRIX_SCIPY,
+            softwareSystemId,
+            kindName: kind,
             weightsList,
             profileId,
             linkageType,
@@ -200,9 +202,10 @@ export const RecommendMatrixSciPy = ({softwareSystemId, strategy, setUpdateStrat
             { renderRecommendationList() }
 
             <Form onSubmit={handleCreateRecommendation} className="mt-2 mb-3">
+                {/* FIXME (ticket 09): slice 8 takes the scoped representation from the backend */}
                 <ProfileSelect
                     softwareSystemId={softwareSystemId}
-                    representationType={recommendationType === RecommendationType.RECOMMEND_MATRIX_SCIPY_STRUCTURE ? RepresentationFile.STRUCTURE : RepresentationFile.ACCESSES}
+                    representationType={kind === SimilarityKind.STRUCTURE ? RepresentationFile.STRUCTURE : RepresentationFile.ACCESSES}
                     profileId={profileId}
                     setProfileId={setProfileId}
                 />

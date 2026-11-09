@@ -21,7 +21,7 @@ export const Main = () => (
       <Route exact path='/softwareSystems' element={<SoftwareSystems/>} />
       <Route exact path='/softwareSystems/:softwareSystemId' element={<Strategies/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/similarity' element={<Similarities/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/recommendation' element={<Recommendations/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId/recommendation' element={<Recommendations/>} />
       {/* A Similarity made on the software system: the same pages, without a strategy. FIXME (ticket 09): the strategy routes go with Strategy */}
       <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/decomposition' element={<Decompositions/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/decomposition' element={<Decompositions/>} />

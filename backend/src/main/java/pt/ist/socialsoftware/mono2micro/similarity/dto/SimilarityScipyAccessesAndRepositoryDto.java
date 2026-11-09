@@ -34,9 +34,9 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		this.traceType = similarity.getTraceType();
 	}
 
-	public SimilarityScipyAccessesAndRepositoryDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+	@Override
+	public void describeCandidate(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
+		copyCandidateSource(recommend);
 		this.type = SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 		this.weightsList = weightsList;
 		copyProfile(recommend.getProfile());

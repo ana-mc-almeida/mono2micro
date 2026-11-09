@@ -52,9 +52,9 @@ export class APIService {
 
     // Recommendation
     recommendation(
-        requestedStrategyRecommendation: Recommendation
+        requestedRecommendation: Recommendation
     ) {
-        return this.axios.put("recommendation/createRecommendation", requestedStrategyRecommendation)
+        return this.axios.put("recommendation/createRecommendation", requestedRecommendation)
             .then((response) => {return RecommendationFactory.getRecommendation(response.data)});
     }
 
