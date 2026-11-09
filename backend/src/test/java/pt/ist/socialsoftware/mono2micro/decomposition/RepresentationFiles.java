@@ -11,7 +11,7 @@ import java.util.List;
  *
  * <p>The files are committed (see {@code src/test/resources/representations/README.md}), so a
  * fresh clone can run the suite. Not every case holds every fixture, though: an absent one
- * skips that case/strategy combination, while a present-but-unreadable one fails here. Every
+ * skips that case/kind combination, while a present-but-unreadable one fails here. Every
  * failure names the file and the folder, because the alternative is a
  * {@code NullPointerException} out of {@code getResourceAsStream} that tells a new
  * contributor nothing.
@@ -65,7 +65,7 @@ final class RepresentationFiles {
 	/**
 	 * The requested fixtures that are absent, as bare filenames, in the order given.
 	 *
-	 * <p>Used to decide whether a case/strategy combination can run at all. Every other
+	 * <p>Used to decide whether a case/kind combination can run at all. Every other
 	 * precondition in this suite fails loudly; this one is deliberately narrow — it answers
 	 * "are the files there", never "did the pipeline work". A file that exists but cannot be
 	 * read is <em>not</em> reported here, so that a broken fixture reaches

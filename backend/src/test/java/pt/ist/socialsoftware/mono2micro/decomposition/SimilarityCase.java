@@ -122,8 +122,7 @@ final class SimilarityCase {
 	}
 
 	/**
-	 * The Accesses and Repository kind, which the strategy checkboxes chose as the Accesses and
-	 * Repository pair (D-026): it needs the Accesses representations as well as its own, so it
+	 * The Accesses and Repository kind (D-026): it needs the Accesses representations as well as its own, so it
 	 * uploads the {@code Repository Based} group, which contains all four files. Its label keeps
 	 * the name the golden files are stored under.
 	 */

@@ -28,10 +28,10 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
  */
 class SimilarityKindTest {
 
-	/** The same answers the strategy map {@code strategiesToRepresentationTypes} gives, Code Embeddings having no block of its own. */
+	/** Each kind's information blocks, one per representation group it reads; Code Embeddings has no block of its own. */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("informationBlocksPerKind")
-	void eachKindGetsTheInformationBlocksItsStrategyGot(String kind, List<String> blocks) {
+	void eachKindGetsTheInformationBlocksOfTheGroupsItReads(String kind, List<String> blocks) {
 		assertThat(SimilarityKind.getByName(kind).informationBlocks().stream().map(RepresentationInformation::getType).collect(Collectors.toList()))
 				.containsExactlyElementsOf(blocks);
 	}
@@ -40,7 +40,7 @@ class SimilarityKindTest {
 		return Stream.of(
 				Arguments.of(AccessesKind.ACCESSES, Arrays.asList(ACCESSES_TYPE)),
 				Arguments.of(RepositoryKind.REPOSITORY, Arrays.asList(ACCESSES_TYPE, REPOSITORY_TYPE)),
-				// The Accesses and Repository strategy pair (D-026)
+				// Accesses and Repository is its own kind (D-026)
 				Arguments.of(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY, Arrays.asList(ACCESSES_TYPE, REPOSITORY_TYPE)),
 				Arguments.of(StructureKind.STRUCTURE, Arrays.asList(ACCESSES_TYPE, STRUCTURE_TYPE)),
 				Arguments.of(ClassVectorizationKind.CLASS_VECTORIZATION, Arrays.asList(ACCESSES_TYPE)),

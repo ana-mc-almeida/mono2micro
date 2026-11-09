@@ -29,22 +29,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Asserts which clusters the tool produces from uploaded representations, for every strategy
- * it supports.
+ * Asserts which clusters the tool produces from uploaded representations, for every Similarity
+ * kind it covers.
  *
  * <p>The clusters are compared with those today's tool produces, recorded under
- * {@code characterization/clusters/<case>/<strategy>.json} (see {@link Golden}), so that the
+ * {@code characterization/clusters/<case>/<label>.json} (see {@link Golden}), so that the
  * restructure of the backend's modularity (and the deferred Spring Boot upgrade) has a net
  * underneath it that catches a changed answer, not only a missing one. The rest of the pipeline
  * — editing, undo and redo, metrics, comparison, expert import and export — is characterized
  * by {@link PipelineCharacterizationE2ETest}.
  *
- * <p>Covering every strategy matters because each one is registered by <em>type string</em>
- * across five registries that do not agree on spelling. Miss one and the variant breaks at
- * runtime rather than compile time, so a suite covering one strategy would leave the other six
- * free to rot. The strategies are described as data in {@link SimilarityCase}.
+ * <p>Covering every kind matters because each one's computation is registered by <em>type
+ * string</em> across registries that do not agree on spelling. Miss one and the variant breaks
+ * at runtime rather than compile time, so a suite covering one kind would leave the others
+ * free to rot. The kinds are described as data in {@link SimilarityCase}.
  *
- * <p>A case is covered only for the strategies whose fixtures it has; the rest are skipped and
+ * <p>A case is covered only for the kinds whose fixtures it has; the rest are skipped and
  * listed after the run. No case has all of them. See {@link #requireFixtures}.
  *
  * <p>Each case runs twice, once per {@link DecompositionPipeline} implementation. The HTTP
@@ -73,8 +73,8 @@ class DecompositionE2ETest {
 	/** Fixture folders under {@code src/test/resources/representations/}. */
 	private static final List<String> CASES = Arrays.asList("quizzes-tutor", "quizzes-tutor-structure", "spring-petclinic");
 
-	/** {@link #CASES} × every strategy — the full matrix this suite covers. */
-	static Stream<Arguments> strategies() {
+	/** {@link #CASES} × every Similarity kind — the full matrix this suite covers. */
+	static Stream<Arguments> casesAndKinds() {
 		return CASES.stream().flatMap(caseName -> SimilarityCase.all().stream().map(similarityCase -> Arguments.of(caseName, similarityCase)));
 	}
 
@@ -94,7 +94,7 @@ class DecompositionE2ETest {
 
 	private final List<Runnable> cleanups = new ArrayList<>();
 
-	/** Case/strategy combinations skipped for want of fixtures, reported by {@link #reportSkips()}. */
+	/** Case/kind combinations skipped for want of fixtures, reported by {@link #reportSkips()}. */
 	private static final Set<String> skipped = new LinkedHashSet<>();
 
 	/**
@@ -107,12 +107,12 @@ class DecompositionE2ETest {
 	}
 
 	@ParameterizedTest(name = "{1} produces today's clusters for {0}")
-	@MethodSource("strategies")
+	@MethodSource("casesAndKinds")
 	void generatesDecomposition(String caseName, SimilarityCase similarityCase) {
 		requireFixtures(caseName, similarityCase);
 
 		for (DecompositionPipeline pipeline : pipelines(caseName)) {
-			// Unique per run, per layer and per strategy: a second software system with the same
+			// Unique per run, per layer and per kind: a second software system with the same
 			// name is refused.
 			String softwareSystemName = caseName + "-" + similarityCase.label() + "-"
 					+ pipeline.layer() + "-" + System.currentTimeMillis();
@@ -159,14 +159,14 @@ class DecompositionE2ETest {
 	/**
 	 * Prints the coverage gap, so that a run skipping much of its matrix is not read as a run
 	 * that covered it. Build tools report a skip far more quietly than a failure, and this
-	 * suite's whole point is that an uncovered strategy should be visible.
+	 * suite's whole point is that an uncovered kind should be visible.
 	 */
 	@AfterAll
 	static void reportSkips() {
 		if (skipped.isEmpty())
 			return;
 
-		System.err.println("\n" + skipped.size() + " case/strategy combination(s) skipped for want of fixtures:");
+		System.err.println("\n" + skipped.size() + " case/kind combination(s) skipped for want of fixtures:");
 		for (String skip : skipped)
 			System.err.println("  - " + skip);
 		System.err.println("See backend/src/test/resources/representations/README.md.\n");
@@ -181,7 +181,7 @@ class DecompositionE2ETest {
 	}
 
 	/**
-	 * Checks the fixtures this strategy needs, before anything is created.
+	 * Checks the fixtures this kind needs, before anything is created.
 	 *
 	 * <p>A case whose fixtures are not all present is <b>skipped</b>, naming the files that are
 	 * missing. No case holds every fixture: {@code quizzes-tutor} has no structure file, the
@@ -208,7 +208,7 @@ class DecompositionE2ETest {
 			assumeTrue(false,
 					"No fixture for " + caseName + " / " + similarityCase.label() + ": missing "
 							+ String.join(", ", missing) + " under representations/" + caseName + "/."
-							+ " That strategy is not covered for this case."
+							+ " That kind is not covered for this case."
 							+ " See that folder's README.md.");
 		}
 

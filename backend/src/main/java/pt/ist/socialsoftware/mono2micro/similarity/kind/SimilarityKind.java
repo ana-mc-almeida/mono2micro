@@ -7,8 +7,8 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import java.util.List;
 
 /**
- * One of the eight Similarity kinds the tool offers (today's strategy types, with Repository alone and the Accesses and Repository pair
- * apart, D-026), as a feature that declares what a software system must have collected before the kind can be offered.
+ * One of the eight Similarity kinds the tool offers (with Repository alone and Accesses and Repository apart, D-026), as a feature that declares what a
+ * software system must have collected before the kind can be offered.
  *
  * <p>A kind is not a {@code SimilarityScipy*} class. Those six classes compute the matrices and
  * stay fused (Gap 5, D-009), and one of them, {@code SimilarityScipyAccessesAndRepository},

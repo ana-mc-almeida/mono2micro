@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Similarities created on a software system, without a strategy (D-010, D-013, D-016): the system offers kinds, the backend refuses a kind it
+ * Similarities created on a software system (D-010, D-013, D-016): the system offers kinds, the backend refuses a kind it
  * does not offer, and a Similarity reads the representations its kind requires.
  */
 @Tag("integration")

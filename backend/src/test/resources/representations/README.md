@@ -42,30 +42,30 @@ representations/quizzes-tutor/
 `quizzes-tutor_commit_mixed.json` is also in the reference set but maps to no
 known representation type, so nothing reads it.
 
-## Which files each strategy needs
+## Which files each Similarity kind needs
 
-A strategy uploads its whole representation *group* in one request — a second
+A case uploads its kind's whole representation *group* in one request — a second
 upload of a type the codebase already holds is rejected with "Re-sending
 representations is not allowed."
 
-| Strategy | Group | Files |
+| Kind | Group | Files |
 |---|---|---|
 | Accesses | `Accesses Based` | IDToEntity, accesses |
-| Repository | `Repository Based` | IDToEntity, accesses, author, commit |
+| Repository, Accesses and Repository | `Repository Based` | IDToEntity, accesses, author, commit |
 | Class Vectorization | `Code Embeddings Based` | IDToEntity, entityToID, accesses, code_embeddings |
 | Entity Vectorization | `Code Embeddings Based` | same as above |
 | Functionality Vectorization Call Graph | `Code Embeddings Based` | same as above |
 | Functionality Vectorization Sequence Accesses | `Code Embeddings Based` | same as above |
 | Structure | `Structure Based` | entityToID, IDToEntity, accesses, **structure** |
 
-**The code embeddings strategies do not need the code2vec model.** The backend
+**The code embeddings kinds do not need the code2vec model.** The backend
 never calls `/code2vec/predict` — it reads the pre-computed `codeVector` arrays
 out of the uploaded JSON and does the vectorization in Java. The model is only
 needed upstream, to regenerate that file with the code2vec collector.
 
-## A case need not cover every strategy
+## A case need not cover every kind
 
-`DecompositionE2ETest` runs every case against all seven strategies, and **skips**
+`DecompositionE2ETest` runs every case against the seven kinds it covers, and **skips**
 any combination whose fixtures are absent, naming the missing files. No case
 currently holds all of them:
 
@@ -113,7 +113,7 @@ names, so add it there too.
 Check what the fixtures contain first. `_author.json` holds email addresses from
 the analysed repository's git history, which is fine for a public codebase and
 not fine for a private one. A case that omits `_author.json` and `_commit.json`
-still covers every strategy but Repository, and the run says so.
+still covers every kind but Accesses and Repository, and the run says so.
 
 ## Consequence for the build
 

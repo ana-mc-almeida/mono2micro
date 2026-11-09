@@ -10,26 +10,26 @@ They hold only what the API returns: paths, JSON and type strings, never a Java 
 
 ```
 backend/src/test/resources/characterization/
-├── clusters/<case-name>/<strategy-label>.json          written by DecompositionE2ETest
-├── metrics/<case-name>/<strategy-label>/<what>.json    written by PipelineCharacterizationE2ETest
+├── clusters/<case-name>/<kind-label>.json              written by DecompositionE2ETest
+├── metrics/<case-name>/<kind-label>/<what>.json        written by PipelineCharacterizationE2ETest
 └── comparison/<case-name>/<a>-vs-<b>.json              written by PipelineCharacterizationE2ETest
 ```
 
-`<strategy-label>` is `SimilarityCase.label()`: `accesses`, `repository`, `class-vectorization`, `entity-vectorization`, `fv-callgraph`, `fv-sequence-accesses`, `structure`.
+`<kind-label>` is `SimilarityCase.label()`, where `repository` is the Accesses and Repository kind: `accesses`, `repository`, `class-vectorization`, `entity-vectorization`, `fv-callgraph`, `fv-sequence-accesses`, `structure`.
 
-Every algorithm run uses the cut `N = 3` (`HttpDecompositionPipeline.java:143`). The other strategy parameters are in `SimilarityCase`.
+Every algorithm run uses the cut `N = 3` (`HttpDecompositionPipeline.java:143`). The other Similarity parameters are in `SimilarityCase`.
 
 ## What each file pins
 
 <!-- prettier-ignore-start -->
 | File | Content| Test |
 | ---- | ------ | ---- |
-| `clusters/<case>/<strategy>.json` | Cluster name → sorted entity names, from `getClusters` | `DecompositionE2ETest`, one per case × strategy |
+| `clusters/<case>/<kind-label>.json` | Cluster name → sorted entity names, from `getClusters` | `DecompositionE2ETest`, one per case × kind |
 | `metrics/quizzes-tutor/accesses/decomposition.json` | Decomposition and cluster metrics of the algorithm run, Silhouette Score included | `metricsOfTheAlgorithmRun` |
 | `metrics/quizzes-tutor/accesses/functionalities.json` | Each functionality's metrics, and those of each of its redesigns | `metricsOfTheAlgorithmRun` |
 | `metrics/quizzes-tutor/accesses/decomposition-after-merge.json` | The metrics after a merge of `Cluster0` and `Cluster2`, and an `/update` | `metricsAfterAnEdit` |
 | `metrics/quizzes-tutor/accesses/expert-decomposition.json` | The metrics of the imported expert clustering (no Silhouette Score, since no algorithm ran) | `expertImport` |
-| `metrics/quizzes-tutor/repository/decomposition.json` | Decomposition and cluster metrics of the Repository run, `TSR` included | `metricsOfTheRepositoryRun` |
+| `metrics/quizzes-tutor/repository/decomposition.json` | Decomposition and cluster metrics of the Accesses and Repository run, `TSR` included | `metricsOfTheRepositoryRun` |
 | `metrics/quizzes-tutor-structure/structure/decomposition.json` | Decomposition and cluster metrics of the Structure run | `metricsOfTheStructureRun` |
 | `comparison/quizzes-tutor/accesses-vs-expert.json` | MoJo and Purity, algorithm run vs. expert clustering, keyed by analysis `type` | `comparison` |
 <!-- prettier-ignore-end -->
@@ -38,25 +38,25 @@ The edit tests (merge, split, transfer, rename, form cluster, undo/redo) assert 
 
 ## Coverage
 
-`clusters/` covers every case × strategy whose fixtures exist (see `../representations/README.md`, "A case need not cover every strategy"):
+`clusters/` covers every case × kind whose fixtures exist (see `../representations/README.md`, "A case need not cover every kind"):
 
-| Case                      | Strategies with a cluster file                                                                      |
+| Case                      | Kinds with a cluster file                                                                           |
 | ------------------------- | --------------------------------------------------------------------------------------------------- |
 | `quizzes-tutor`           | accesses, repository, class-vectorization, entity-vectorization, fv-callgraph, fv-sequence-accesses |
 | `quizzes-tutor-structure` | accesses, structure                                                                                 |
 | `spring-petclinic`        | accesses, repository                                                                                |
 
-`PipelineCharacterizationE2ETest` builds the edits, the comparison and most metrics from one starting decomposition: `quizzes-tutor` with the Accesses strategy. That gives a known three-cluster answer to start from. MoJo and Purity are computed from the clusters alone, so a single case is enough for them.
+`PipelineCharacterizationE2ETest` builds the edits, the comparison and most metrics from one starting decomposition: `quizzes-tutor` with the Accesses kind. That gives a known three-cluster answer to start from. MoJo and Purity are computed from the clusters alone, so a single case is enough for them.
 
-Metrics are the exception. **The metric set depends on the strategy**: each representation contributes its own decomposition metrics (`RepresentationInformation.getDecompositionMetrics()`). So `metrics/` also pins the two strategies that bring metrics of their own:
+Metrics are the exception. **The metric set depends on the kind**: each representation contributes its own decomposition metrics (`RepresentationInformation.getDecompositionMetrics()`). So `metrics/` also pins the two kinds that bring metrics of their own:
 
-| Strategy   | Case                      | Why it is pinned separately                                                 |
-| ---------- | ------------------------- | --------------------------------------------------------------------------- |
-| Accesses   | `quizzes-tutor`           | The base set: Cohesion, Complexity, Coupling, Performance                   |
-| Repository | `quizzes-tutor`           | Adds `TSR` (`RepositoryInformation.java:63`)                                |
-| Structure  | `quizzes-tutor-structure` | Computes the base set through `StructureInformation`, a different code path |
+| Kind                    | Case                      | Why it is pinned separately                                                 |
+| ----------------------- | ------------------------- | --------------------------------------------------------------------------- |
+| Accesses                | `quizzes-tutor`           | The base set: Cohesion, Complexity, Coupling, Performance                   |
+| Accesses and Repository | `quizzes-tutor`           | Adds `TSR` (`RepositoryInformation.java:63`)                                |
+| Structure               | `quizzes-tutor-structure` | Computes the base set through `StructureInformation`, a different code path |
 
-The code embeddings strategies use the Accesses metrics, so they need no file of their own.
+The code embeddings kinds use the Accesses metrics, so they need no file of their own.
 
 ## Known oddities, pinned on purpose
 
@@ -81,10 +81,10 @@ On a mismatch, or when no file exists yet, the actual JSON is written to `backen
 
 The written files have their object fields sorted, so two recordings diff cleanly.
 
-## Adding a case or a strategy
+## Adding a case or a kind
 
 - **Clusters:** add the fixture folder under `../representations/` and the case name to `DecompositionE2ETest.CASES`. The first run fails with "Nothing is recorded for…" and writes the actual JSON. Read it, then copy it here.
-- **Metrics or comparison for another case or strategy:** add a test to `PipelineCharacterizationE2ETest` that calls `Golden.assertMatches` with a new path under `metrics/` or `comparison/`. Record the files the same way.
+- **Metrics or comparison for another case or kind:** add a test to `PipelineCharacterizationE2ETest` that calls `Golden.assertMatches` with a new path under `metrics/` or `comparison/`. Record the files the same way.
 
 ## Running
 

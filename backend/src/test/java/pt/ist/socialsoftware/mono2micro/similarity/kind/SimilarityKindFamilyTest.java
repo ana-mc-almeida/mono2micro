@@ -32,7 +32,7 @@ public class SimilarityKindFamilyTest {
 						EntityVectorizationKind.ENTITY_VECTORIZATION,
 						FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
 						FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
-						// Accesses and Repository is its own kind beside Repository alone, as the strategy checkboxes allowed both (D-026)
+						// Accesses and Repository is its own kind beside Repository alone (D-026)
 						AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY));
 	}
 

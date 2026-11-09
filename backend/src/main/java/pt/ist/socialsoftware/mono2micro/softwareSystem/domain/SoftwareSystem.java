@@ -6,8 +6,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * The software system under decomposition (D-016). It holds no list of its children:
- * representations and strategies each reference their software system, and are found by
- * repository query.
+ * representations and recommendations each reference their software system, and are found by
+ * repository query; a Similarity's software system is its representations'.
  */
 @Document("softwareSystem")
 public class SoftwareSystem {

@@ -65,8 +65,8 @@ import static pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVect
  * Pins today's availability answers, so that the shared availability check of D-013 and D-019
  * can be shown to give the same ones.
  *
- * <p>Two questions are characterized: which of the eight Similarity kinds (the strategy
- * types) a set of uploads makes available, and which of them the SciPy algorithm accepts. Each
+ * <p>Two questions are characterized: which of the eight Similarity kinds a set of uploads
+ * makes available, and which of them the SciPy algorithm accepts. Each
  * test asserts the exact answer, offered and withheld alike, and never which map or method
  * produced it. Whatever replaces those internals must keep these answers, except where a test
  * names the decision that changes one.
@@ -86,7 +86,7 @@ public class AvailabilityCharacterizationTest {
 			FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
 			FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES);
 
-	/** Accesses and Repository, which the strategy checkboxes allowed as a pair, is its own kind beside Repository alone (D-026). */
+	/** Accesses and Repository is its own kind beside Repository alone (D-026). */
 	private static final Set<String> REPOSITORY_KINDS = Set.of(RepositoryKind.REPOSITORY, ACCESSES_AND_REPOSITORY);
 
 	private static final Set<String> ALL_KINDS = union(

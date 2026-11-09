@@ -15,7 +15,7 @@ public class DecompositionDtoFactory {
 		case PARTITIONS_DECOMPOSITION:
 			return new PartitionsDecompositionDto((PartitionsDecomposition) decomposition);
 		default:
-			throw new RuntimeException("The type \"" + decomposition.getType() + "\" is not a valid strategy type for the decomposition.");
+			throw new RuntimeException("The type \"" + decomposition.getType() + "\" is not a valid decomposition type.");
 		}
 	}
 

@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * payload there and nothing here, so a red test after a port is a regression.
  *
  * <p>Each test builds its own software system from the {@code quizzes-tutor} fixture with the
- * Accesses strategy, whose algorithm run (average linkage, cut N=3) gives:
+ * Accesses kind, whose algorithm run (average linkage, cut N=3) gives:
  *
  * <pre>
  * Cluster0 Course, Image, Option, Question, Topic
@@ -53,7 +53,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * Cluster2 Assessment, TopicConjunction
  * </pre>
  *
- * <p>{@link DecompositionE2ETest} pins that answer for every strategy. The edits below start
+ * <p>{@link DecompositionE2ETest} pins that answer for every kind. The edits below start
  * from it. The export needs Structure data, so it uses {@code quizzes-tutor-structure}.
  *
  * <p>A stack or fixture that is missing skips the test with the reason. The export also needs
@@ -275,10 +275,10 @@ class PipelineCharacterizationE2ETest {
 	}
 
 	// Each representation contributes its own decomposition metrics, so the metric set depends on
-	// the strategy. Accesses is pinned above; these pin the two strategies that bring others.
+	// the kind. Accesses is pinned above; these pin the two kinds that bring others.
 
 	@Test
-	@DisplayName("The Repository strategy's algorithm run adds TSR to the metrics")
+	@DisplayName("The Accesses and Repository kind's algorithm run adds TSR to the metrics")
 	void metricsOfTheRepositoryRun() {
 		Built built = build(CASE, SimilarityCase.repository());
 
@@ -289,7 +289,7 @@ class PipelineCharacterizationE2ETest {
 	}
 
 	@Test
-	@DisplayName("The Structure strategy's algorithm run, whose metrics come from the Structure representation")
+	@DisplayName("The Structure kind's algorithm run, whose metrics come from the Structure representation")
 	void metricsOfTheStructureRun() {
 		Built built = build(STRUCTURE_CASE, SimilarityCase.structure());
 
@@ -365,8 +365,8 @@ class PipelineCharacterizationE2ETest {
 	void deleteSimilarity() {
 		Built built = build(CASE, SimilarityCase.accesses());
 
-		// Through the service: deleting a strategy deletes its decompositions before its
-		// similarities, so no endpoint reaches this path with decompositions still there.
+		// Through the service: deleting a representation or a software system deletes a
+		// Similarity's decompositions first, so no endpoint reaches this path with them still there.
 		similarityService.deleteSimilarity(similarityService.getSimilarityById(built.similarity));
 
 		assertThat(decompositionRepository.findBySimilarityId(built.similarity)).isEmpty();

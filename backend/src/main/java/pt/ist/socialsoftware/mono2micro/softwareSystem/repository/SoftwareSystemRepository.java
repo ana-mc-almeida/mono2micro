@@ -10,7 +10,8 @@ public interface SoftwareSystemRepository extends MongoRepository<SoftwareSystem
 
 	boolean existsByName(String softwareSystemName);
 
-	@Query(value = "{}", fields = "{'_id': 1, 'name': 1, 'isEmpty': 1}") // Will only get id, name and if it contains strategies
+	// Only the id and the name; 'isEmpty' names a field no software system stores (ticket 20)
+	@Query(value = "{}", fields = "{'_id': 1, 'name': 1, 'isEmpty': 1}")
 	List<SoftwareSystem> getSoftwareSystems();
 
 	default SoftwareSystem getById(String id) {

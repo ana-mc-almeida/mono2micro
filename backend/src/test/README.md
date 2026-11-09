@@ -11,7 +11,7 @@ e2e job does. So locally, read the skip count before trusting a green run.
 | Where | Kind | What |
 |---|---|---|
 | `java/.../operation/` | offline | the five edit operations and their undo/redo — has its own `README.md` |
-| `java/.../decomposition/` | stack | `DecompositionE2ETest`, the real pipeline per case × strategy, and `PipelineCharacterizationE2ETest`, editing through export |
+| `java/.../decomposition/` | stack | `DecompositionE2ETest`, the real pipeline per case × Similarity kind, and `PipelineCharacterizationE2ETest`, editing through export |
 | `resources/characterization/` | expected values | JSON recorded from today's tool — see `decomposition/Golden` |
 | `java/.../Mono2microApplicationTests` | stack | context-load smoke test |
 | `resources/representations/` | fixtures | committed collector output — has its own `README.md` |

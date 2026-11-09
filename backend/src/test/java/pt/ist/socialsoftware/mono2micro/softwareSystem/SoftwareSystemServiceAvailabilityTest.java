@@ -48,13 +48,13 @@ public class SoftwareSystemServiceAvailabilityTest {
 	}
 
 	@Test
-	public void uploadsCarryingAuthorshipDataMakeTheRepositoryStrategyAvailable() {
+	public void uploadsCarryingAuthorshipDataMakeTheRepositoryKindAvailable() {
 		assertThat(similarityService.getAvailableKinds(REPOSITORY_BASED_NAME).availableNames())
 				.contains(RepositoryKind.REPOSITORY);
 	}
 
 	@Test
-	public void uploadsWithoutAuthorshipDataWithholdTheRepositoryStrategy() {
+	public void uploadsWithoutAuthorshipDataWithholdTheRepositoryKind() {
 		assertThat(similarityService.getAvailableKinds(ACCESSES_BASED_NAME).availableNames())
 				.contains(AccessesKind.ACCESSES)
 				.doesNotContain(RepositoryKind.REPOSITORY);
@@ -67,7 +67,7 @@ public class SoftwareSystemServiceAvailabilityTest {
 
 	/**
 	 * The same tool, two software systems, two different answers — the claim D-005 rests on. Asserted
-	 * as a difference rather than as two absolute sets, so it keeps meaning as strategies are
+	 * as a difference rather than as two absolute sets, so it keeps meaning as kinds are
 	 * added.
 	 */
 	@Test

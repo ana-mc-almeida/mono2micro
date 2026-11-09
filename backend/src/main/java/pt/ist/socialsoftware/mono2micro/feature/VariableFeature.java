@@ -10,8 +10,8 @@ import java.util.Set;
  * needs as a list of named {@link Requirement}s, and one shared {@link AvailabilityCheck} derives
  * from those declarations which features of a family are offered, and why the others are not.
  *
- * <p>This replaces declarations the tool kept away from the features they describe: a static map
- * per strategy type on {@code Strategy}, a per-algorithm list on the clustering algorithm, and
+ * <p>This replaces declarations the tool kept away from the features they describe: static maps
+ * per criterion type, a per-algorithm list on the clustering algorithm, and
  * if/else chains in the frontend. Each declaration now lives in the class that owns it, and is
  * read at runtime by the check (D-019).
  *

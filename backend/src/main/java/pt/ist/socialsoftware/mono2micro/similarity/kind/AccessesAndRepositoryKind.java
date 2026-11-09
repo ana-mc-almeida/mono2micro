@@ -18,7 +18,7 @@ import java.util.List;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccessesAndRepository.SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 
 /**
- * The access and repository criteria together, which the strategy checkboxes allowed as the Accesses and Repository pair (D-026). It needs
+ * The access and repository criteria together, a kind of its own beside Repository alone (D-026). It needs
  * what {@link RepositoryKind} needs, and its Similarity weighs both.
  */
 @JsonTypeName(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY)

@@ -17,8 +17,8 @@ import java.util.List;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure.SIMILARITY_SCIPY_STRUCTURE;
 
 /**
- * Declares Entity-to-ID, which {@code SimilarityScipyStructure.fillElements} reads, although the
- * strategy map this replaces left it out (D-019).
+ * Declares Entity-to-ID, which {@code SimilarityScipyStructure.fillElements} reads, although upstream's
+ * requirement map left it out (D-019).
  */
 @JsonTypeName(StructureKind.STRUCTURE)
 public class StructureKind extends SimilarityKind {
