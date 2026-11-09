@@ -90,7 +90,6 @@ public class FamilyScanTest {
 					.as(SelfRegistration.nameOf(kind)).containsExactly(SciPyClustering.SCIPY);
 	}
 
-	/** What the boot runs: every family, every variable feature on the classpath, and every requirement add up (D-025 point 7). */
 	/**
 	 * The expert knowledge family finds the profile. Without an input there is no kind to scope, so the record names the kinds a profile can
 	 * scope, all of them alternatives (D-017).
@@ -105,6 +104,7 @@ public class FamilyScanTest {
 				+ RepositoryKind.REPOSITORY + " Similarity kind as input, a " + StructureKind.STRUCTURE + " Similarity kind as input}");
 	}
 
+	/** What the boot runs: every family, every variable feature on the classpath, and every requirement add up (D-025 point 7). */
 	@Test
 	public void theToolsFamiliesPassTheBootCheck() {
 		assertThatCode(() -> FeatureFamilies.scanned().verify(SelfRegistration.types(VariableFeature.class))).doesNotThrowAnyException();
