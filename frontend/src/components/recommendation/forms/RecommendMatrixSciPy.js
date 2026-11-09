@@ -9,9 +9,7 @@ import filterFactory, {numberFilter} from "react-bootstrap-table2-filter";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import {Modal, ModalBody, ModalFooter, ModalTitle} from "react-bootstrap";
 import BootstrapTable from "react-bootstrap-table-next";
-import {RepresentationFile} from "../../../models/representation/Representation";
 import {RecommendationType} from "../../../models/recommendation/RecommendationTypes";
-import {SimilarityKind} from "../../../models/similarity/SimilarityKinds";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType} from "../../../type-declarations/types";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
@@ -202,10 +200,9 @@ export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCr
             { renderRecommendationList() }
 
             <Form onSubmit={handleCreateRecommendation} className="mt-2 mb-3">
-                {/* FIXME (ticket 09): slice 8 takes the scoped representation from the backend */}
                 <ProfileSelect
                     softwareSystemId={softwareSystemId}
-                    representationType={kind === SimilarityKind.STRUCTURE ? RepresentationFile.STRUCTURE : RepresentationFile.ACCESSES}
+                    kindName={kind}
                     profileId={profileId}
                     setProfileId={setProfileId}
                 />

@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,6 +156,38 @@ class ProfileE2ETest {
 			String similarity = pipeline.createSimilarity(pipeline.createStrategy(system, entityVectorization), entityVectorization);
 
 			assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity))).isEqualTo(every);
+		} finally {
+			pipeline.deleteSoftwareSystem(system);
+		}
+	}
+
+	/** The selector lists the profiles of the representation the kind scopes, chosen by the backend (D-017). */
+	@Test
+	@DisplayName("The profile selector lists the Accesses profiles for an Accesses Similarity")
+	void theSelectorListsTheScopedRepresentationsProfiles() {
+		pipeline.createProfile(accesses, "Quizzes");
+
+		ResponseEntity<JsonNode> offered = pipeline.getOfferedProfiles(softwareSystem, "Accesses");
+
+		assertThat(offered.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(offered.getBody()).extracting(profile -> profile.path("name").asText()).containsExactly("Quizzes");
+	}
+
+	/** A crafted request is refused by the same check that hides the profile selector for the kind (D-003, D-017). */
+	@Test
+	@DisplayName("A vectorization Similarity refuses a profile with 422")
+	void vectorizationRefusesAProfile() {
+		StrategyCase entityVectorization = StrategyCase.entityVectorization();
+		assumeTrue(RepresentationFiles.missing(CASE, entityVectorization.fixtureSuffixes()).isEmpty(), "No code embeddings fixture for " + CASE);
+		String system = pipeline.createSoftwareSystem(CASE + "-profiles-vectorization-refused-" + System.nanoTime());
+		try {
+			pipeline.addRepresentations(system, entityVectorization);
+			String profile = pipeline.createProfile(pipeline.representationId(system, "Accesses"), "Quizzes");
+
+			assertThat(pipeline.getOfferedProfiles(system, entityVectorization.kindName()).getStatusCode())
+					.as("the selector's list").isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+			assertThat(pipeline.requestSimilarityOnSoftwareSystem(system, entityVectorization.withProfile(profile), entityVectorization.kindName()))
+					.as("the crafted request").isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 		} finally {
 			pipeline.deleteSoftwareSystem(system);
 		}

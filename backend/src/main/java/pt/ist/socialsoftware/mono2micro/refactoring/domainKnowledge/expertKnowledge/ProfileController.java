@@ -13,10 +13,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
+import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/mono2micro")
@@ -25,6 +30,41 @@ public class ProfileController {
 
 	@Autowired
 	ProfileService profileService;
+
+	/** Whether a profile is offered for a Similarity of the kind: the {@link Profile} feature's derivation record (D-013, D-017). */
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/profiles/available")
+	public ResponseEntity<DerivationRecord> getAvailability(@PathVariable String softwareSystemId, @RequestParam String kindName) {
+		logger.debug("getProfileAvailability");
+
+		try {
+			return new ResponseEntity<>(profileService.getAvailability(softwareSystemId, kindName), HttpStatus.OK);
+		} catch (IllegalArgumentException e) { // an unknown kind
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/** The profiles the selector lists for a Similarity of the kind; 422 when no profile is offered for it. */
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/profiles")
+	public ResponseEntity<List<ProfileDto>> getOfferedProfiles(@PathVariable String softwareSystemId, @RequestParam String kindName) {
+		logger.debug("getOfferedProfiles");
+
+		try {
+			return new ResponseEntity<>(profileService.getOfferedProfiles(softwareSystemId, kindName).stream().map(ProfileDto::new)
+					.collect(Collectors.toList()), HttpStatus.OK);
+		} catch (UnavailableFeatureException e) {
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+		} catch (IllegalArgumentException e) { // an unknown kind
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/** The types of the software system's representations whose cards link to their profiles. */
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/profiles/representationTypes")
+	public ResponseEntity<Set<String>> getProfiledRepresentationTypes(@PathVariable String softwareSystemId) {
+		logger.debug("getProfiledRepresentationTypes");
+
+		return new ResponseEntity<>(profileService.getProfiledRepresentationTypes(softwareSystemId), HttpStatus.OK);
+	}
 
 	@GetMapping(value = "/representation/{representationId}/getProfiles")
 	public ResponseEntity<ProfilesDto> getProfiles(@PathVariable String representationId) {

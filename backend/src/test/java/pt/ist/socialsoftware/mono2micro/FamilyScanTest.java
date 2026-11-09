@@ -10,7 +10,12 @@ import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ExpertKnowledge;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.RepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.StructureKind;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
@@ -86,6 +91,20 @@ public class FamilyScanTest {
 	}
 
 	/** What the boot runs: every family, every variable feature on the classpath, and every requirement add up (D-025 point 7). */
+	/**
+	 * The expert knowledge family finds the profile. Without an input there is no kind to scope, so the record names the kinds a profile can
+	 * scope, all of them alternatives (D-017).
+	 */
+	@Test
+	public void theProfileAppearsInTheExpertKnowledgeRecordWithheldWithoutAKind() {
+		DerivationRecord record = AvailabilityCheck.derive(SelfRegistration.prototypes(ExpertKnowledge.class).values(), NOTHING_COLLECTED);
+
+		assertThat(record.getFeatures()).extracting(FeatureAvailability::getName).containsExactly(Profile.PROFILE);
+		assertThat(record.getFeatures().get(0).getFailedRequirements()).containsExactly("requires any of {an " + AccessesKind.ACCESSES
+				+ " Similarity kind as input, an " + AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY + " Similarity kind as input, a "
+				+ RepositoryKind.REPOSITORY + " Similarity kind as input, a " + StructureKind.STRUCTURE + " Similarity kind as input}");
+	}
+
 	@Test
 	public void theToolsFamiliesPassTheBootCheck() {
 		assertThatCode(() -> FeatureFamilies.scanned().verify(SelfRegistration.types(VariableFeature.class))).doesNotThrowAnyException();

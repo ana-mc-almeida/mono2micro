@@ -2,7 +2,6 @@ package pt.ist.socialsoftware.mono2micro.recommendation.dto;
 
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 
@@ -20,12 +19,6 @@ public class RecommendMatrixSciPyDto extends RecommendationDto {
 	private List<Weights> weightsList;
 
 	public RecommendMatrixSciPyDto() {}
-
-	/** The representation a profile of its kind selects, as the kind declares it. */
-	@Override
-	public String scopedRepresentationType() {
-		return SimilarityKind.getByName(getKindName()).scopedRepresentationType();
-	}
 
 	public RecommendMatrixSciPyDto(RecommendMatrixSciPy recommendation) {
 		this.setType(recommendation.getType());

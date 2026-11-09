@@ -5,11 +5,10 @@ import Col from "react-bootstrap/Col";
 import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
-import {RepresentationFile} from "../../../models/representation/Representation";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {SIMILARITY_SCIPY_STRUCTURE} from "../../../models/similarity/SimilarityScipyStructure";
 import {TraceType} from "../../../type-declarations/types";
-import {defaultWeights, submitSimilarity} from "./similaritySource";
+import {defaultWeights, profileKindName, submitSimilarity} from "./similaritySource";
 
 
 export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, kindName, setUpdateStrategies}) => {
@@ -84,7 +83,7 @@ export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, 
             <Form onSubmit={handleSubmit} className="mt-2 mb-3">
                 <ProfileSelect
                     softwareSystemId={softwareSystemId}
-                    representationType={RepresentationFile.STRUCTURE}
+                    kindName={profileKindName(kindName, strategy)}
                     profileId={profileId}
                     setProfileId={setProfileId}
                 />

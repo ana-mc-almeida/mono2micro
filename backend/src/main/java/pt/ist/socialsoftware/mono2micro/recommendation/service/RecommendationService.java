@@ -59,8 +59,7 @@ public class RecommendationService {
 			return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
 
 		Recommendation recommendation = RecommendationFactory.getRecommendation(representations, softwareSystemRecommendations, recommendationDto);
-		recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), softwareSystemId,
-				recommendationDto.scopedRepresentationType()));
+		recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), softwareSystemId, kind));
 		recommendationRepository.save(recommendation);
 
 		recommendation.generateRecommendation(recommendationRepository);

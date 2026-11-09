@@ -105,7 +105,7 @@ public class SimilarityService {
 		List<Representation> representations = resolveRepresentations(kind, softwareSystemId);
 		similarityDto.setSoftwareSystemId(softwareSystemId);
 		similarityDto.setRepresentationIds(representations.stream().map(Representation::getId).collect(Collectors.toList()));
-		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), softwareSystemId, similarityDto.scopedRepresentationType());
+		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), softwareSystemId, kind);
 		similarityDto.setProfileName(Profile.nameOf(profile)); // the generated name shows the profile
 		for (Similarity existing : similarityRepository.findByKindName(similarityDto.getKindName()))
 			if (existing.equalsDto(similarityDto))

@@ -154,6 +154,7 @@ public abstract class SimilarityDto {
 	 * The representation kind whose units a profile of this Similarity selects, or null when the kind takes no profile.
 	 * Not a getter, so that it never appears in the JSON.
 	 */
+	// FIXME (ticket 09): only the strategy path reads it; the kind declares it, so it goes with Strategy
 	public String scopedRepresentationType() {
 		return null;
 	}

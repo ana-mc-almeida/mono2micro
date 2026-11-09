@@ -57,6 +57,7 @@ export function Strategies() {
     const [availableStrategyTypes, setAvailableStrategyTypes] = useState([]);
     const [similarities, setSimilarities] = useState([]);
     const [offeredKinds, setOfferedKinds] = useState([]);
+    const [profiledRepresentationTypes, setProfiledRepresentationTypes] = useState([]);
     const [selectedKind, setSelectedKind] = useState(undefined);
 
     //Executed on mount
@@ -75,13 +76,14 @@ export function Strategies() {
         service.getSoftwareSystemRepresentationGroups(softwareSystemId).then(response => setSoftwareSystemRepresentationGroups(response.data));
     }
 
-    // The Similarities and the offered kinds follow the representations, so they reload with them.
+    // The Similarities, the offered kinds and the cards that link to profiles follow the representations, so they reload with them.
     function loadRepresentations() {
         const service = new APIService();
         service.getRepresentations(softwareSystemId).then(response => {
             setRepresentations(response);
             setObtainedRepresentations(response.map(representation => representation.type));
         });
+        service.getProfiledRepresentationTypes(softwareSystemId).then(response => setProfiledRepresentationTypes(response));
         loadSimilarities();
         // Only the kinds the backend offers for this software system's representations (D-013).
         service.getAvailableSimilarityKinds(softwareSystemId).then(features =>
@@ -506,7 +508,7 @@ export function Strategies() {
                 Representation Files
             </h4>
             <div className={"d-flex flex-wrap mw-100"} style={{gap: '1rem 1rem'}}>
-                {[...representations.map(representation => representation.printCard(handleDeleteRepresentation)), addCard("Representation")]}
+                {[...representations.map(representation => representation.printCard(handleDeleteRepresentation, profiledRepresentationTypes.includes(representation.type))), addCard("Representation")]}
             </div>
 
             { renderSimilarities() }

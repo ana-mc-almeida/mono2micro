@@ -119,6 +119,24 @@ export class APIService {
         return this.axios.get("/softwareSystems/getRepresentationGroups");
     }
 
+    // Whether a profile is offered for a Similarity of the kind: the Profile feature's derivation record (D-017).
+    isProfileOffered(softwareSystemId: string, kindName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/profiles/available", {params: {kindName}}).then(
+            response => response.data.features.some((feature: { available: boolean }) => feature.available));
+    }
+
+    // The profiles a Similarity of the kind can be scoped by: those of the representation the backend says the kind scopes.
+    getOfferedProfiles(softwareSystemId: string, kindName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/profiles", {params: {kindName}}).then(
+            response => response.data);
+    }
+
+    // The types of the software system's representations whose cards link to their profiles.
+    getProfiledRepresentationTypes(softwareSystemId: string) {
+        return this.axios.get<string[]>("/softwareSystems/" + softwareSystemId + "/profiles/representationTypes").then(
+            response => response.data);
+    }
+
     // Profiles
     getProfiles(representationId: string) {
         return this.axios.get<{ profiles: { id: string, name: string, units: string[] }[], unassigned: string[] }>(

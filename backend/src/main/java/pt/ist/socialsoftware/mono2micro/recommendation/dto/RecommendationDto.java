@@ -44,14 +44,6 @@ public abstract class RecommendationDto {
 		this.profileName = profileName;
 	}
 
-	/**
-	 * The representation kind whose units a profile of the recommended Similarities selects, or null when they take no
-	 * profile. Not a getter, so that it never appears in the JSON.
-	 */
-	public String scopedRepresentationType() {
-		return null;
-	}
-
 	/** The types of the weights the request explores, in order, which must be the ones its kind is computed with (D-013). */
 	public List<String> weightsTypes() {
 		return Collections.emptyList();

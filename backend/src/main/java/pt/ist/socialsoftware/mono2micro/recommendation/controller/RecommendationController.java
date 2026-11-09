@@ -23,10 +23,7 @@ public class RecommendationController {
 	@Autowired
 	RecommendationService recommendationService;
 
-	/**
-	 * Rejects a kind the software system does not offer with 422, as a Similarity request is (D-003, D-013), and an unknown kind or weights
-	 * the kind is not computed with with 400.
-	 */
+	/** Rejects a kind, or a profile, the software system does not offer with 422, as a Similarity request is (D-003, D-013). */
 	@PutMapping(value = "/recommendation/createRecommendation")
 	public ResponseEntity<RecommendationDto> createRecommendation(@RequestBody RecommendationDto recommendationDto) {
 		logger.debug("Create recommendation");

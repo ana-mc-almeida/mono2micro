@@ -167,6 +167,11 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return body;
 	}
 
+	/** The response to the profile selector's request: the profiles offered for a Similarity of {@code kindName}, or 422 when none is. */
+	ResponseEntity<JsonNode> getOfferedProfiles(String softwareSystemId, String kindName) {
+		return rest.getForEntity(base + "/softwareSystems/{id}/profiles?kindName={kindName}", JsonNode.class, softwareSystemId, kindName);
+	}
+
 	/** The software system's Similarity kinds record: each kind with whether it is offered (D-013). */
 	JsonNode getAvailableSimilarityKinds(String softwareSystemId) {
 		return getJson("/softwareSystems/{id}/similarities/available", softwareSystemId).path("features");
