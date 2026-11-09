@@ -49,7 +49,7 @@ class SimilarityE2ETest {
 	@DisplayName("The record lists every kind, and the Accesses uploads offer only the Accesses kind")
 	void availableKinds() {
 		HttpDecompositionPipeline pipeline = pipeline(CASE);
-		String softwareSystem = system(pipeline, CASE, StrategyCase.accesses());
+		String softwareSystem = system(pipeline, CASE, SimilarityCase.accesses());
 
 		Map<String, Boolean> offered = offered(pipeline.getAvailableSimilarityKinds(softwareSystem));
 
@@ -65,11 +65,11 @@ class SimilarityE2ETest {
 	@DisplayName("The two broken criteria combinations are not offered (D-013)")
 	void brokenCombinationsAreNotOffered() {
 		HttpDecompositionPipeline pipeline = pipeline(STRUCTURE_CASE);
-		String softwareSystem = system(pipeline, STRUCTURE_CASE, StrategyCase.structure());
+		String softwareSystem = system(pipeline, STRUCTURE_CASE, SimilarityCase.structure());
 
 		assertThat(offered(pipeline.getAvailableSimilarityKinds(softwareSystem)).keySet())
 				.doesNotContain("Accesses and Structure", "Repository and Structure");
-		assertThat(pipeline.requestSimilarityOnSoftwareSystem(softwareSystem, StrategyCase.structure(), "Accesses and Structure"))
+		assertThat(pipeline.requestSimilarity(softwareSystem, SimilarityCase.structure(), "Accesses and Structure"))
 				.isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 
@@ -78,9 +78,9 @@ class SimilarityE2ETest {
 	@DisplayName("A Similarity of a kind the software system does not offer is refused")
 	void unavailableKindIsRefused() {
 		HttpDecompositionPipeline pipeline = pipeline(CASE);
-		String softwareSystem = system(pipeline, CASE, StrategyCase.accesses());
+		String softwareSystem = system(pipeline, CASE, SimilarityCase.accesses());
 
-		assertThat(pipeline.requestSimilarityOnSoftwareSystem(softwareSystem, StrategyCase.repository(), "Accesses and Repository"))
+		assertThat(pipeline.requestSimilarity(softwareSystem, SimilarityCase.repository(), "Accesses and Repository"))
 				.isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 		assertThat(pipeline.getSimilarities(softwareSystem)).isEmpty();
 	}
@@ -90,9 +90,9 @@ class SimilarityE2ETest {
 	@DisplayName("A Similarity with weights its kind is not computed with is refused")
 	void weightsOfAnotherKindAreRefused() {
 		HttpDecompositionPipeline pipeline = pipeline(CASE);
-		String softwareSystem = system(pipeline, CASE, StrategyCase.accesses());
+		String softwareSystem = system(pipeline, CASE, SimilarityCase.accesses());
 
-		assertThat(pipeline.requestSimilarityOnSoftwareSystem(softwareSystem, StrategyCase.repository(), "Accesses"))
+		assertThat(pipeline.requestSimilarity(softwareSystem, SimilarityCase.repository(), "Accesses"))
 				.isEqualTo(HttpStatus.BAD_REQUEST);
 		assertThat(pipeline.getSimilarities(softwareSystem)).isEmpty();
 	}
@@ -101,10 +101,10 @@ class SimilarityE2ETest {
 	@DisplayName("Two identical requests share one Similarity, which reads the representations its kind requires")
 	void identicalRequestsShareOneSimilarity() {
 		HttpDecompositionPipeline pipeline = pipeline(CASE);
-		String softwareSystem = system(pipeline, CASE, StrategyCase.accesses());
+		String softwareSystem = system(pipeline, CASE, SimilarityCase.accesses());
 
-		String first = pipeline.createSimilarityOnSoftwareSystem(softwareSystem, StrategyCase.accesses());
-		String second = pipeline.createSimilarityOnSoftwareSystem(softwareSystem, StrategyCase.accesses());
+		String first = pipeline.createSimilarity(softwareSystem, SimilarityCase.accesses());
+		String second = pipeline.createSimilarity(softwareSystem, SimilarityCase.accesses());
 
 		assertThat(second).isEqualTo(first);
 		JsonNode similarities = pipeline.getSimilarities(softwareSystem);
@@ -122,9 +122,9 @@ class SimilarityE2ETest {
 	@DisplayName("An Accesses and Repository Similarity is clustered into a decomposition listed with the software system's")
 	void accessesAndRepositoryIsClustered() {
 		HttpDecompositionPipeline pipeline = pipeline(CASE);
-		String softwareSystem = system(pipeline, CASE, StrategyCase.repository());
+		String softwareSystem = system(pipeline, CASE, SimilarityCase.repository());
 
-		String similarity = pipeline.createSimilarityOnSoftwareSystem(softwareSystem, StrategyCase.repository());
+		String similarity = pipeline.createSimilarity(softwareSystem, SimilarityCase.repository());
 		String decomposition = pipeline.createDecomposition(similarity);
 
 		assertThat(pipeline.getSimilarities(softwareSystem).get(0).path("representationIds")).hasSize(4);
@@ -136,8 +136,8 @@ class SimilarityE2ETest {
 	@DisplayName("Deleting a representation deletes the Similarities that read it")
 	void deletingARepresentationDeletesItsReaders() {
 		HttpDecompositionPipeline pipeline = pipeline(CASE);
-		String softwareSystem = system(pipeline, CASE, StrategyCase.accesses());
-		String similarity = pipeline.createSimilarityOnSoftwareSystem(softwareSystem, StrategyCase.accesses());
+		String softwareSystem = system(pipeline, CASE, SimilarityCase.accesses());
+		String similarity = pipeline.createSimilarity(softwareSystem, SimilarityCase.accesses());
 		pipeline.createDecomposition(similarity);
 		assertThat(pipeline.getSimilarities(softwareSystem)).extracting(s -> s.path("id").asText()).containsExactly(similarity);
 
@@ -152,7 +152,7 @@ class SimilarityE2ETest {
 		return new HttpDecompositionPipeline(rest, port, caseName);
 	}
 
-	private String system(HttpDecompositionPipeline pipeline, String caseName, StrategyCase uploads) {
+	private String system(HttpDecompositionPipeline pipeline, String caseName, SimilarityCase uploads) {
 		List<String> missing = RepresentationFiles.missing(caseName, uploads.fixtureSuffixes());
 		assumeTrue(missing.isEmpty(), "No fixture for " + caseName + ": missing " + String.join(", ", missing));
 

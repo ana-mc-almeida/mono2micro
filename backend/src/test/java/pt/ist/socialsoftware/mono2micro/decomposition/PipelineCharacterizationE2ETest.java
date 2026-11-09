@@ -110,7 +110,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Merge joins two clusters under a new name")
 	void merge() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		built.pipeline.merge(built.decomposition, "Cluster0", "Cluster2", "Merged");
 
@@ -122,7 +122,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Split moves the chosen entities into a new cluster")
 	void split() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		built.pipeline.split(built.decomposition, "Cluster0", "Media", built.ids("Image", "Option"));
 
@@ -136,7 +136,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Transfer moves the chosen entities to an existing cluster")
 	void transfer() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		built.pipeline.transfer(built.decomposition, "Cluster1", "Cluster2", built.ids("User"));
 
@@ -149,7 +149,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Rename changes a cluster's name and keeps its entities")
 	void rename() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		built.pipeline.rename(built.decomposition, "Cluster2", "Assessments");
 
@@ -162,7 +162,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Form cluster gathers entities from several clusters into a new one")
 	void formCluster() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		Map<String, List<Short>> entities = new LinkedHashMap<>();
 		entities.put("Cluster0", built.ids("Course"));
@@ -181,7 +181,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Undo and redo step back and forth through the edits")
 	void undoAndRedo() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 		Map<String, List<String>> original = built.clusters();
 
 		assertThat(built.pipeline.canUndoRedo(built.decomposition)).as("before any edit").isEqualTo(undoRedo(false, false));
@@ -216,7 +216,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("A new edit after an undo discards the undone edits")
 	void newEditAfterUndoDiscardsTheUndoneBranch() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		built.pipeline.merge(built.decomposition, "Cluster0", "Cluster2", "Merged");
 		built.pipeline.undo(built.decomposition);
@@ -246,7 +246,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("The algorithm run's decomposition, cluster and functionality metrics")
 	void metricsOfTheAlgorithmRun() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		JsonNode decomposition = built.pipeline.getDecomposition(built.decomposition);
 
@@ -261,7 +261,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("An edit makes the metrics outdated, and an update recalculates them")
 	void metricsAfterAnEdit() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		built.pipeline.merge(built.decomposition, "Cluster0", "Cluster2", "Merged");
 
@@ -280,7 +280,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("The Repository strategy's algorithm run adds TSR to the metrics")
 	void metricsOfTheRepositoryRun() {
-		Built built = build(CASE, StrategyCase.repository());
+		Built built = build(CASE, SimilarityCase.repository());
 
 		JsonNode decomposition = built.pipeline.getDecomposition(built.decomposition);
 		assertThat(decomposition.path("metrics").has("TSR")).as("TSR, from the Repository representation").isTrue();
@@ -291,7 +291,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("The Structure strategy's algorithm run, whose metrics come from the Structure representation")
 	void metricsOfTheStructureRun() {
-		Built built = build(STRUCTURE_CASE, StrategyCase.structure());
+		Built built = build(STRUCTURE_CASE, SimilarityCase.structure());
 
 		Golden.assertMatches("metrics/" + STRUCTURE_CASE + "/structure/decomposition.json",
 				metricsOf(built.pipeline.getDecomposition(built.decomposition)));
@@ -302,7 +302,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("MoJoFM and Purity between the algorithm run and an expert clustering")
 	void comparison() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 		String expert = built.pipeline.createExpertDecomposition(built.similarity, "Expert", expertClustering(built));
 
 		JsonNode comparison = built.pipeline.compare(built.decomposition, expert);
@@ -326,7 +326,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("An expert import creates a decomposition with the uploaded clusters")
 	void expertImport() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		String expert = built.pipeline.createExpertDecomposition(built.similarity, "Expert", expertClustering(built));
 
@@ -344,7 +344,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("A second expert import under the same name is refused")
 	void expertImportTwice() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 		built.pipeline.createExpertDecomposition(built.similarity, "Expert", expertClustering(built));
 
 		// Before ids, the second import overwrote the first, because the name was the _id.
@@ -363,7 +363,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Deleting a similarity deletes its decompositions")
 	void deleteSimilarity() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		// Through the service: deleting a strategy deletes its decompositions before its
 		// similarities, so no endpoint reaches this path with decompositions still there.
@@ -377,7 +377,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Export is refused for a decomposition without Structure data")
 	void exportWithoutStructure() {
-		Built built = build(CASE, StrategyCase.accesses());
+		Built built = build(CASE, SimilarityCase.accesses());
 
 		// Today the frontend hides the button and the backend fails with a 400 (D-018 moves the
 		// gate to the backend).
@@ -387,7 +387,7 @@ class PipelineCharacterizationE2ETest {
 	@Test
 	@DisplayName("Export is refused until the functionalities have been refactored")
 	void exportBeforeRefactoring() {
-		Built built = build(STRUCTURE_CASE, StrategyCase.structure());
+		Built built = build(STRUCTURE_CASE, SimilarityCase.structure());
 
 		assertThat(built.pipeline.export(built.decomposition).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 	}
@@ -396,7 +396,7 @@ class PipelineCharacterizationE2ETest {
 	@DisplayName("Export to Context Mapper, for a decomposition with Structure data and refactored functionalities")
 	void export() throws IOException, InterruptedException {
 		Stack.assumeRefactorTool();
-		Built built = build(STRUCTURE_CASE, StrategyCase.structure());
+		Built built = build(STRUCTURE_CASE, SimilarityCase.structure());
 
 		built.pipeline.refactorFunctionalities(Stack.REFACTOR_TOOL_ADDRESS, built.decomposition);
 		ResponseEntity<byte[]> response = exportOnceRefactored(built);
@@ -439,9 +439,9 @@ class PipelineCharacterizationE2ETest {
 	// Building blocks.
 
 	/** A software system with one algorithm run, removed after the test. */
-	private Built build(String caseName, StrategyCase strategyCase) {
-		List<String> missing = RepresentationFiles.missing(caseName, strategyCase.fixtureSuffixes());
-		assumeTrue(missing.isEmpty(), "No fixture for " + caseName + " / " + strategyCase.label() + ": missing "
+	private Built build(String caseName, SimilarityCase similarityCase) {
+		List<String> missing = RepresentationFiles.missing(caseName, similarityCase.fixtureSuffixes());
+		assumeTrue(missing.isEmpty(), "No fixture for " + caseName + " / " + similarityCase.label() + ": missing "
 				+ String.join(", ", missing) + " under representations/" + caseName + "/. See that folder's README.md.");
 
 		HttpDecompositionPipeline pipeline = new HttpDecompositionPipeline(rest, port, caseName);
@@ -449,10 +449,9 @@ class PipelineCharacterizationE2ETest {
 
 		String softwareSystem = pipeline.createSoftwareSystem(softwareSystemName);
 		cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystem));
-		pipeline.addRepresentations(softwareSystem, strategyCase);
+		pipeline.addRepresentations(softwareSystem, similarityCase);
 
-		String strategy = pipeline.createStrategy(softwareSystem, strategyCase);
-		String similarity = pipeline.createSimilarity(strategy, strategyCase);
+		String similarity = pipeline.createSimilarity(softwareSystem, similarityCase);
 		String decomposition = pipeline.createDecomposition(similarity);
 
 		return new Built(pipeline, softwareSystemName, similarity, decomposition);

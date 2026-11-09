@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * operation is welded to blob garbage collection, so neither can be exercised alone.
  *
  * <p>The filter predicate below is transcribed from {@code PositionHistory.java:54-56} rather
- * than shared with it, following the convention {@code StrategyCase} uses for type strings: a
+ * than shared with it, following the convention {@code SimilarityCase} uses for type strings: a
  * divergence should surface here as a red test rather than a silent recompile. It will not
  * surface on its own, though — see the class javadoc of {@link OperationHistoryBookkeepingTest}.
  */

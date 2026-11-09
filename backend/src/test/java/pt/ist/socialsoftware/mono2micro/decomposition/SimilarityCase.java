@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One decomposition strategy, described as data.
+ * One Similarity kind, described as data.
  *
- * <p>The seven strategies differ only in what they upload, what they name themselves and what
- * the similarity request body looks like — the six pipeline steps are identical. Describing
+ * <p>The kinds differ only in what they upload, what they name themselves and what
+ * the similarity request body looks like — the five pipeline steps are identical. Describing
  * them as data keeps that shared shape in one place instead of six near-copies of the same
  * test, and makes adding the eighth a matter of one static factory.
  *
@@ -19,7 +19,7 @@ import java.util.Map;
  * ways for the sequence-of-accesses variant alone:
  *
  * <ul>
- * <li>strategy type {@code "Functionality Vectorization Sequence Accesses"}
+ * <li>Similarity kind {@code "Functionality Vectorization Sequence Accesses"}
  * <li>similarity type {@code "..._FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES"}
  * <li>weights type {@code "FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS"} — no {@code SEQUENCE}
  * </ul>
@@ -29,7 +29,7 @@ import java.util.Map;
  * than referenced, so that a renamed constant shows up here as a red test rather than a silent
  * recompile — this test is meant to pin the tool's external contract.
  */
-final class StrategyCase {
+final class SimilarityCase {
 
 	// Representation type strings (<pkg>/representation/domain/*.java). Two of these do not
 	// resemble the class that defines them: AuthorRepresentation is "Changes Authorship" and
@@ -58,7 +58,7 @@ final class StrategyCase {
 	static final String SIMILARITY_FV_SEQUENCE_ACCESSES = "SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES";
 
 	private final String label;
-	private final List<String> strategyTypes;
+	private final String kindName;
 	private final String representationGroup;
 
 	/** Representation type → fixture filename suffix, in upload order. */
@@ -70,9 +70,9 @@ final class StrategyCase {
 	/** profileId / traceType / tracesMaxLimit / depth, only where the DTO has the field. */
 	private final Map<String, Object> extraSimilarityFields;
 
-	private StrategyCase(
+	private SimilarityCase(
 			String label,
-			List<String> strategyTypes,
+			String kindName,
 			String representationGroup,
 			Map<String, String> representations,
 			String similarityType,
@@ -80,7 +80,7 @@ final class StrategyCase {
 			Map<String, Object> extraSimilarityFields
 	) {
 		this.label = label;
-		this.strategyTypes = strategyTypes;
+		this.kindName = kindName;
 		this.representationGroup = representationGroup;
 		this.representations = representations;
 		this.similarityType = similarityType;
@@ -89,13 +89,13 @@ final class StrategyCase {
 	}
 
 	/**
-	 * Every strategy the tool supports.
+	 * One case per Similarity kind the pipeline covers.
 	 *
 	 * <p>All seven are described regardless of which fixtures happen to be on disk: a case
 	 * that lacks them skips and says so, so that supplying a file is all it takes to cover the
 	 * combination.
 	 */
-	static List<StrategyCase> all() {
+	static List<SimilarityCase> all() {
 		return Arrays.asList(
 				accesses(),
 				repository(),
@@ -106,14 +106,14 @@ final class StrategyCase {
 				structure());
 	}
 
-	static StrategyCase accesses() {
+	static SimilarityCase accesses() {
 		Map<String, String> files = new LinkedHashMap<>();
 		files.put(ID_TO_ENTITY, RepresentationFiles.ID_TO_ENTITY_SUFFIX);
 		files.put(ACCESSES, RepresentationFiles.ACCESSES_SUFFIX);
 
-		return new StrategyCase(
+		return new SimilarityCase(
 				"accesses",
-				Collections.singletonList("Accesses"),
+				"Accesses",
 				ACCESSES_GROUP,
 				files,
 				SIMILARITY_ACCESSES_REPOSITORY,
@@ -122,11 +122,12 @@ final class StrategyCase {
 	}
 
 	/**
-	 * Repository is the only multi-type strategy here: it needs the Accesses representations as
-	 * well as its own, so it uploads the {@code Repository Based} group, which contains all
-	 * four files, and declares both strategy types.
+	 * The Accesses and Repository kind, which the strategy checkboxes chose as the Accesses and
+	 * Repository pair (D-026): it needs the Accesses representations as well as its own, so it
+	 * uploads the {@code Repository Based} group, which contains all four files. Its label keeps
+	 * the name the golden files are stored under.
 	 */
-	static StrategyCase repository() {
+	static SimilarityCase repository() {
 		Map<String, String> files = new LinkedHashMap<>();
 		files.put(ID_TO_ENTITY, RepresentationFiles.ID_TO_ENTITY_SUFFIX);
 		files.put(ACCESSES, RepresentationFiles.ACCESSES_SUFFIX);
@@ -135,9 +136,9 @@ final class StrategyCase {
 
 		// Split 17/17/17/17 + 16/16 so the six weights still total 100, as the frontend does
 		// for this combination (WeightsFactory.ts:38-42).
-		return new StrategyCase(
+		return new SimilarityCase(
 				"repository",
-				Arrays.asList("Accesses", "Repository"),
+				"Accesses and Repository",
 				REPOSITORY_GROUP,
 				files,
 				SIMILARITY_ACCESSES_REPOSITORY,
@@ -145,12 +146,12 @@ final class StrategyCase {
 				accessesProfileFields());
 	}
 
-	static StrategyCase classVectorization() {
+	static SimilarityCase classVectorization() {
 		// Class and Entity Vectorization take no weights at all and their DTOs carry nothing
 		// but linkageType.
-		return new StrategyCase(
+		return new SimilarityCase(
 				"class-vectorization",
-				Collections.singletonList("Class Vectorization"),
+				"Class Vectorization",
 				CODE_EMBEDDINGS_GROUP,
 				codeEmbeddingsFiles(),
 				SIMILARITY_CLASS_VECTORIZATION,
@@ -158,10 +159,10 @@ final class StrategyCase {
 				Collections.emptyMap());
 	}
 
-	static StrategyCase entityVectorization() {
-		return new StrategyCase(
+	static SimilarityCase entityVectorization() {
+		return new SimilarityCase(
 				"entity-vectorization",
-				Collections.singletonList("Entity Vectorization"),
+				"Entity Vectorization",
 				CODE_EMBEDDINGS_GROUP,
 				codeEmbeddingsFiles(),
 				SIMILARITY_ENTITY_VECTORIZATION,
@@ -169,7 +170,7 @@ final class StrategyCase {
 				Collections.emptyMap());
 	}
 
-	static StrategyCase functionalityVectorizationCallGraph() {
+	static SimilarityCase functionalityVectorizationCallGraph() {
 		Map<String, Object> weights = new LinkedHashMap<>();
 		weights.put("type", "FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS");
 		weights.put("controllersWeight", 25);
@@ -182,9 +183,9 @@ final class StrategyCase {
 		Map<String, Object> extra = new LinkedHashMap<>();
 		extra.put("depth", 2);
 
-		return new StrategyCase(
+		return new SimilarityCase(
 				"fv-callgraph",
-				Collections.singletonList("Functionality Vectorization Call Graph"),
+				"Functionality Vectorization Call Graph",
 				CODE_EMBEDDINGS_GROUP,
 				codeEmbeddingsFiles(),
 				SIMILARITY_FV_CALLGRAPH,
@@ -192,15 +193,15 @@ final class StrategyCase {
 				extra);
 	}
 
-	static StrategyCase functionalityVectorizationSequenceOfAccesses() {
+	static SimilarityCase functionalityVectorizationSequenceOfAccesses() {
 		Map<String, Object> weights = new LinkedHashMap<>();
 		weights.put("type", "FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS");
 		weights.put("readMetricWeight", 50);
 		weights.put("writeMetricWeight", 50);
 
-		return new StrategyCase(
+		return new SimilarityCase(
 				"fv-sequence-accesses",
-				Collections.singletonList("Functionality Vectorization Sequence Accesses"),
+				"Functionality Vectorization Sequence Accesses",
 				CODE_EMBEDDINGS_GROUP,
 				codeEmbeddingsFiles(),
 				SIMILARITY_FV_SEQUENCE_ACCESSES,
@@ -208,7 +209,7 @@ final class StrategyCase {
 				Collections.emptyMap());
 	}
 
-	static StrategyCase structure() {
+	static SimilarityCase structure() {
 		Map<String, String> files = new LinkedHashMap<>();
 		files.put(ENTITY_TO_ID, RepresentationFiles.ENTITY_TO_ID_SUFFIX);
 		files.put(ID_TO_ENTITY, RepresentationFiles.ID_TO_ENTITY_SUFFIX);
@@ -226,9 +227,9 @@ final class StrategyCase {
 		Map<String, Object> extra = new LinkedHashMap<>();
 		extra.put("traceType", "ALL");
 
-		return new StrategyCase(
+		return new SimilarityCase(
 				"structure",
-				Collections.singletonList("Structure"),
+				"Structure",
 				STRUCTURE_GROUP,
 				files,
 				SIMILARITY_STRUCTURE,
@@ -283,13 +284,8 @@ final class StrategyCase {
 		return label;
 	}
 
-	List<String> strategyTypes() {
-		return strategyTypes;
-	}
-
-	/** The Similarity kind the case's strategy stands for: its one type, or for the Accesses and Repository pair, that kind (D-026). */
 	String kindName() {
-		return strategyTypes.size() == 1 ? strategyTypes.get(0) : "Accesses and Repository";
+		return kindName;
 	}
 
 	String representationGroup() {
@@ -313,10 +309,10 @@ final class StrategyCase {
 	}
 
 	/** The same case, with its Similarity scoped by the given profile (D-017). Without it, the Similarity has none. */
-	StrategyCase withProfile(String profileId) {
+	SimilarityCase withProfile(String profileId) {
 		Map<String, Object> extra = new LinkedHashMap<>(extraSimilarityFields);
 		extra.put("profileId", profileId);
-		return new StrategyCase(label, strategyTypes, representationGroup, representations, similarityType, weights, extra);
+		return new SimilarityCase(label, kindName, representationGroup, representations, similarityType, weights, extra);
 	}
 
 	@Override

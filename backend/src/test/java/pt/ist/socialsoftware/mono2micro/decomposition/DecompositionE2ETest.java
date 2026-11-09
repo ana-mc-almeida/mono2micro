@@ -16,7 +16,6 @@ import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
-import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,7 +42,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * <p>Covering every strategy matters because each one is registered by <em>type string</em>
  * across five registries that do not agree on spelling. Miss one and the variant breaks at
  * runtime rather than compile time, so a suite covering one strategy would leave the other six
- * free to rot. The strategies are described as data in {@link StrategyCase}.
+ * free to rot. The strategies are described as data in {@link SimilarityCase}.
  *
  * <p>A case is covered only for the strategies whose fixtures it has; the rest are skipped and
  * listed after the run. No case has all of them. See {@link #requireFixtures}.
@@ -76,7 +75,7 @@ class DecompositionE2ETest {
 
 	/** {@link #CASES} × every strategy — the full matrix this suite covers. */
 	static Stream<Arguments> strategies() {
-		return CASES.stream().flatMap(caseName -> StrategyCase.all().stream().map(strategy -> Arguments.of(caseName, strategy)));
+		return CASES.stream().flatMap(caseName -> SimilarityCase.all().stream().map(similarityCase -> Arguments.of(caseName, similarityCase)));
 	}
 
 	@LocalServerPort
@@ -88,8 +87,6 @@ class DecompositionE2ETest {
 	private SoftwareSystemService softwareSystemService;
 	@Autowired
 	private RepresentationService representationService;
-	@Autowired
-	private StrategyService strategyService;
 	@Autowired
 	private SimilarityService similarityService;
 	@Autowired
@@ -111,29 +108,28 @@ class DecompositionE2ETest {
 
 	@ParameterizedTest(name = "{1} produces today's clusters for {0}")
 	@MethodSource("strategies")
-	void generatesDecomposition(String caseName, StrategyCase strategyCase) {
-		requireFixtures(caseName, strategyCase);
+	void generatesDecomposition(String caseName, SimilarityCase similarityCase) {
+		requireFixtures(caseName, similarityCase);
 
 		for (DecompositionPipeline pipeline : pipelines(caseName)) {
 			// Unique per run, per layer and per strategy: a second software system with the same
 			// name is refused.
-			String softwareSystemName = caseName + "-" + strategyCase.label() + "-"
+			String softwareSystemName = caseName + "-" + similarityCase.label() + "-"
 					+ pipeline.layer() + "-" + System.currentTimeMillis();
 
 			String softwareSystemId = pipeline.createSoftwareSystem(softwareSystemName);
 			cleanups.add(() -> pipeline.deleteSoftwareSystem(softwareSystemId));
 
-			pipeline.addRepresentations(softwareSystemId, strategyCase);
+			pipeline.addRepresentations(softwareSystemId, similarityCase);
 
 			// Guards a silent failure: RepresentationService returns without doing anything
 			// when both request parameters bind to null, which would otherwise surface several
 			// steps later as an unrelated error.
 			assertThat(pipeline.representationCount(softwareSystemId))
 					.as("representations uploaded via %s", pipeline.layer())
-					.isEqualTo(strategyCase.representations().size());
+					.isEqualTo(similarityCase.representations().size());
 
-			String strategyId = pipeline.createStrategy(softwareSystemId, strategyCase);
-			String similarityId = pipeline.createSimilarity(strategyId, strategyCase);
+			String similarityId = pipeline.createSimilarity(softwareSystemId, similarityCase);
 			String decompositionId = pipeline.createDecomposition(similarityId);
 
 			Map<String, List<String>> clusters = pipeline.getClusters(decompositionId);
@@ -142,7 +138,7 @@ class DecompositionE2ETest {
 					.as("at least one cluster holds entities (via %s)", pipeline.layer())
 					.anyMatch(entities -> !entities.isEmpty());
 
-			Golden.assertMatches("clusters/" + caseName + "/" + strategyCase.label() + ".json", Golden.toJson(clusters));
+			Golden.assertMatches("clusters/" + caseName + "/" + similarityCase.label() + ".json", Golden.toJson(clusters));
 		}
 	}
 
@@ -180,7 +176,7 @@ class DecompositionE2ETest {
 		return Arrays.asList(
 				new HttpDecompositionPipeline(rest, port, caseName),
 				new ServiceDecompositionPipeline(
-						softwareSystemService, representationService, strategyService,
+						softwareSystemService, representationService,
 						similarityService, decompositionService, caseName));
 	}
 
@@ -203,20 +199,20 @@ class DecompositionE2ETest {
 	 * <p>{@link #reportSkips()} prints the resulting coverage gap after the run, so that a
 	 * suite skipping half its matrix cannot be mistaken for a suite that passed.
 	 */
-	private void requireFixtures(String caseName, StrategyCase strategyCase) {
-		List<String> missing = RepresentationFiles.missing(caseName, strategyCase.fixtureSuffixes());
+	private void requireFixtures(String caseName, SimilarityCase similarityCase) {
+		List<String> missing = RepresentationFiles.missing(caseName, similarityCase.fixtureSuffixes());
 
 		if (!missing.isEmpty()) {
-			skipped.add(caseName + " / " + strategyCase.label() + " — missing " + String.join(", ", missing));
+			skipped.add(caseName + " / " + similarityCase.label() + " — missing " + String.join(", ", missing));
 
 			assumeTrue(false,
-					"No fixture for " + caseName + " / " + strategyCase.label() + ": missing "
+					"No fixture for " + caseName + " / " + similarityCase.label() + ": missing "
 							+ String.join(", ", missing) + " under representations/" + caseName + "/."
 							+ " That strategy is not covered for this case."
 							+ " See that folder's README.md.");
 		}
 
 		// Present but empty or unreadable is a broken fixture, not an absent one: fail.
-		RepresentationFiles.requirePresent(caseName, strategyCase.fixtureSuffixes());
+		RepresentationFiles.requirePresent(caseName, similarityCase.fixtureSuffixes());
 	}
 }

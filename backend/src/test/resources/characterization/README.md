@@ -15,9 +15,9 @@ backend/src/test/resources/characterization/
 └── comparison/<case-name>/<a>-vs-<b>.json              written by PipelineCharacterizationE2ETest
 ```
 
-`<strategy-label>` is `StrategyCase.label()`: `accesses`, `repository`, `class-vectorization`, `entity-vectorization`, `fv-callgraph`, `fv-sequence-accesses`, `structure`.
+`<strategy-label>` is `SimilarityCase.label()`: `accesses`, `repository`, `class-vectorization`, `entity-vectorization`, `fv-callgraph`, `fv-sequence-accesses`, `structure`.
 
-Every algorithm run uses the cut `N = 3` (`HttpDecompositionPipeline.java:143`). The other strategy parameters are in `StrategyCase`.
+Every algorithm run uses the cut `N = 3` (`HttpDecompositionPipeline.java:143`). The other strategy parameters are in `SimilarityCase`.
 
 ## What each file pins
 
