@@ -7,7 +7,7 @@ export abstract class DecompositionFactory {
             case PARTITIONS_DECOMPOSITION:
                 return new PartitionsDecomposition(decomposition);
             default:
-                throw new Error('Type ' + decomposition.strategyType + ' unknown.');
+                throw new Error('Type ' + decomposition.type + ' unknown.');
         }
     }
 }
