@@ -6,7 +6,8 @@ import {SimilarityMatrixSciPyEntityVectorizationForm} from "./SimilarityMatrixSc
 import {SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm} from "./SimilarityMatrixSciPyFunctionalityVectorizationCallGraphForm";
 import {SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm} from "./SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm";
 
-// The form for each Similarity kind, by the kind's name (D-013). Which kinds are offered comes from the backend; a new kind needs only its form here.
+// The form for each Similarity kind, by the kind's name (D-013). Which kinds are offered comes from the backend. A new kind needs its form here,
+// its name in SimilarityKinds.ts and its default weights in WeightsFactory.getWeightListByKind (AGENT.md, "New Similarity kind").
 export const similarityForms = {
     [SimilarityKind.ACCESSES]: SimilarityMatrixSciPyForm,
     [SimilarityKind.REPOSITORY]: SimilarityMatrixSciPyForm,
