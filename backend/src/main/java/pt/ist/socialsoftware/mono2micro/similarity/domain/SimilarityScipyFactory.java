@@ -28,7 +28,8 @@ public class SimilarityScipyFactory {
 		case SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES:
 			return new SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(recommendation);
 		default:
-			throw new RuntimeException("The recommendation kind " + recommendation.getKindName() + " is not present.");
+			throw new RuntimeException("The " + recommendation.getKindName() + " Similarity kind is computed by "
+					+ SimilarityKind.getByName(recommendation.getKindName()).similarityType() + ", which builds no recommendation candidate.");
 		}
 	}
 
