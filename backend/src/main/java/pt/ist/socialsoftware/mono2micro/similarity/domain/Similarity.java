@@ -42,6 +42,7 @@ public abstract class Similarity {
 	public Similarity() {}
 
 	public Similarity(String kindName, List<Representation> representations, String name) {
+		Representation.softwareSystemOf(representations); // refuses none, or a mix of software systems
 		this.kindName = kindName;
 		this.representations = representations;
 		this.name = name;
@@ -65,8 +66,10 @@ public abstract class Similarity {
 
 	public abstract String getType();
 
-	/** The software system it belongs to: its representations' (D-016). */
+	/** The software system it belongs to: its representations', which the constructor checked (D-016). */
 	public SoftwareSystem getSoftwareSystem() {
+		if (representations == null || representations.isEmpty())
+			throw new IllegalStateException("Similarity " + id + " reads no representations, so it has no software system.");
 		return representations.get(0).getSoftwareSystem();
 	}
 

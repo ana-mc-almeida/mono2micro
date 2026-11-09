@@ -34,7 +34,7 @@ public class RecommendationFactory {
 		} while (recommendationNames.contains(recommendationName));
 		recommendation.setName(recommendationName);
 		recommendation.setRecommendationResultName(recommendation.getId() + "_recommendationResult");
-		recommendation.setSoftwareSystem(representations.get(0).getSoftwareSystem());
+		recommendation.setSoftwareSystem(Representation.softwareSystemOf(representations));
 		recommendation.setKindName(recommendationDto.getKindName());
 		recommendation.setRepresentations(representations);
 

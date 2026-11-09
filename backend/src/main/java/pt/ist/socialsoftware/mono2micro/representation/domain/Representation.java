@@ -73,6 +73,25 @@ public abstract class Representation {
 				.orElse(null);
 	}
 
+	/**
+	 * The software system of the representations a Similarity or a recommendation reads: neither stores one of its own (D-016). It is
+	 * checked when one is created, so a later read can take the first representation's.
+	 *
+	 * @throws IllegalStateException
+	 * if there are none, or they belong to more than one software system, which only broken data or a bug can give: every Similarity kind
+	 * reads the representations its family shares, and they are looked up in one software system
+	 */
+	public static SoftwareSystem softwareSystemOf(List<? extends Representation> representations) {
+		if (representations == null || representations.isEmpty())
+			throw new IllegalStateException("A Similarity or a recommendation with no representations has no software system.");
+		Set<String> softwareSystemIds = representations.stream()
+				.map(representation -> representation.getSoftwareSystem() == null ? null : representation.getSoftwareSystem().getId())
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+		if (softwareSystemIds.size() > 1)
+			throw new IllegalStateException("The representations belong to more than one software system: " + softwareSystemIds + ".");
+		return representations.get(0).getSoftwareSystem();
+	}
+
 	public String getId() {
 		return id;
 	}
