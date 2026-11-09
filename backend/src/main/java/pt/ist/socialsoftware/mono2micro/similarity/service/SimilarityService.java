@@ -95,9 +95,7 @@ public class SimilarityService {
 		if (!kind.similarityType().equals(similarityDto.getType()))
 			throw new IllegalArgumentException("The " + similarityDto.getKindName() + " kind is computed by " + kind.similarityType()
 					+ ", not " + similarityDto.getType() + ".");
-		if (!kind.weightsTypes().equals(similarityDto.weightsTypes()))
-			throw new IllegalArgumentException("The " + similarityDto.getKindName() + " kind is computed with the weights "
-					+ kind.weightsTypes() + ", not " + similarityDto.weightsTypes() + ".");
+		kind.requireWeights(similarityDto.weightsTypes());
 		List<Representation> representations = resolveRepresentations(kind, softwareSystemId);
 		similarityDto.setSoftwareSystemId(softwareSystemId);
 		similarityDto.setRepresentationIds(representations.stream().map(Representation::getId).collect(Collectors.toList()));

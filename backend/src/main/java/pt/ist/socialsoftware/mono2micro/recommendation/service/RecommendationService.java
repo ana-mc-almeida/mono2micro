@@ -47,9 +47,7 @@ public class RecommendationService {
 	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
 		String softwareSystemId = recommendationDto.getSoftwareSystemId();
 		SimilarityKind kind = SimilarityKind.getByName(recommendationDto.getKindName());
-		if (!kind.weightsTypes().equals(recommendationDto.weightsTypes()))
-			throw new IllegalArgumentException("The " + recommendationDto.getKindName() + " kind is computed with the weights "
-					+ kind.weightsTypes() + ", not " + recommendationDto.weightsTypes() + ".");
+		kind.requireWeights(recommendationDto.weightsTypes());
 		List<Representation> representations = similarityService.resolveRepresentations(kind, softwareSystemId);
 
 		List<Recommendation> softwareSystemRecommendations = recommendationRepository.findBySoftwareSystemId(softwareSystemId);

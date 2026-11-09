@@ -35,6 +35,19 @@ public abstract class SimilarityKind implements VariableFeature {
 	public abstract List<String> weightsTypes();
 
 	/**
+	 * Refuses a request that sends other weights than this kind is computed with (D-013): with them it would compute another kind under this
+	 * one's name.
+	 *
+	 * @throws IllegalArgumentException
+	 * if {@code requestedWeightsTypes} are not this kind's {@link #weightsTypes()}, in order
+	 */
+	public void requireWeights(List<String> requestedWeightsTypes) {
+		if (!weightsTypes().equals(requestedWeightsTypes))
+			throw new IllegalArgumentException("The " + SelfRegistration.nameOf(this) + " kind is computed with the weights " + weightsTypes()
+					+ ", not " + requestedWeightsTypes + ".");
+	}
+
+	/**
 	 * The type of the representation whose units a profile of this kind selects, or null when the kind takes no profile (D-017: each kind
 	 * declares whether a profile can scope it).
 	 */
