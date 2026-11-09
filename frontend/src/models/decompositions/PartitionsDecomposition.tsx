@@ -75,7 +75,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/accessesViews`}
+                                href={`${similarityBase(this.softwareSystemId)}/${this.similarityId}/${this.id}/accessesViews`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -87,7 +87,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.REPOSITORY_TYPE) &&
                         <>
                             <Button
-                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/repositoryView`}
+                                href={`${similarityBase(this.softwareSystemId)}/${this.similarityId}/${this.id}/repositoryView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -99,7 +99,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.STRUCTURE_TYPE) &&
                         <>
                             <Button
-                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/structureView`}
+                                href={`${similarityBase(this.softwareSystemId)}/${this.similarityId}/${this.id}/structureView`}
                                 className="mb-2"
                                 variant={"success"}
                             >
@@ -111,7 +111,7 @@ export default class PartitionsDecomposition extends Decomposition {
                     {this.representationInformationsTypes.includes(RepresentationType.ACCESSES_TYPE) &&
                         <>
                             <Button
-                                href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.similarityId}/${this.id}/functionalityRefactor`}
+                                href={`${similarityBase(this.softwareSystemId)}/${this.similarityId}/${this.id}/functionalityRefactor`}
                                 className="mb-2"
                                 variant={"primary"}
                             >

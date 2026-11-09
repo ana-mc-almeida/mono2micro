@@ -5,7 +5,6 @@ import ClassVectorizationWeights, {CLASS_VECTORIZATION_WEIGHTS} from "./ClassVec
 import EntityVectorizationWeights, {ENTITY_VECTORIZATION_WEIGHTS} from "./EntityVectorizationWeights";
 import FunctionalityVectorizationCallGraphWeights, {FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS} from "./FunctionalityVectorizationCallGraphWeights";
 import FunctionalityVectorizationAccessesWeights, {FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS} from "./FunctionalityVectorizationAccessesWeights";
-import {StrategyType} from "../strategy/StrategyTypes";
 import {SimilarityKind} from "../similarity/SimilarityKinds";
 import StructureWeights, {STRUCTURE_WEIGHTS} from "./StructureWeights";
 
@@ -53,31 +52,5 @@ export abstract class WeightsFactory {
         if (defaults[kind] === undefined)
             throw new Error('No default weights for the Similarity kind ' + kind + '.');
         return defaults[kind]();
-    }
-
-    // FIXME (ticket 09): goes with Strategy
-    static getWeightListByStrategyType(strategyTypes: string[]) : Weights[] {
-
-        if (strategyTypes.includes(StrategyType.ACCESSES_STRATEGY) && strategyTypes.includes(StrategyType.REPOSITORY_STRATEGY))
-            return [
-                new AccessesWeights({ accessMetricWeight: 17, writeMetricWeight: 17, readMetricWeight: 17, sequenceMetricWeight: 17}),
-                new RepositoryWeights({authorMetricWeight: 16, commitMetricWeight: 16})
-            ];
-        else if (strategyTypes.includes(StrategyType.ACCESSES_STRATEGY))
-            return [new AccessesWeights({accessMetricWeight: 25, writeMetricWeight: 25, readMetricWeight: 25, sequenceMetricWeight: 25})];
-        else if (strategyTypes.includes(StrategyType.REPOSITORY_STRATEGY))
-            return [new RepositoryWeights({authorMetricWeight: 50, commitMetricWeight: 50})];
-        else if (strategyTypes.includes(StrategyType.CLASS_VECTORIZATION_STRATEGY))
-            return [];
-        else if (strategyTypes.includes(StrategyType.ENTITY_VECTORIZATION_STRATEGY))
-            return [];
-        else if (strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY))
-            return [new FunctionalityVectorizationCallGraphWeights({controllersWeight: 25, servicesWeight: 25, intermediateMethodsWeight: 25, entitiesWeight: 25})];
-        else if (strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY))
-            return [new FunctionalityVectorizationAccessesWeights({readMetricWeight: 50, writeMetricWeight: 50})];
-        else if (strategyTypes.includes(StrategyType.STRUCTURE_STRATEGY))
-            return [new StructureWeights({oneToOneWeight: 33, oneToManyWeight: 33, heritageWeight: 34})];
-        else
-        throw new Error('No known type of Representation Info in Weights Factory.');
     }
 }

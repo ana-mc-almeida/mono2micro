@@ -8,10 +8,11 @@ import HttpStatus from "http-status-codes";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {SIMILARITY_SCIPY_STRUCTURE} from "../../../models/similarity/SimilarityScipyStructure";
 import {TraceType} from "../../../type-declarations/types";
-import {defaultWeights, profileKindName, submitSimilarity} from "./similaritySource";
+import {APIService} from "../../../services/APIService";
+import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, kindName, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, kindName, onCreated}) => {
     const [profileId, setProfileId] = useState(null);
     const [linkageType, setLinkageType] = useState("average");
     const [isUploaded, setIsUploaded] = useState("");
@@ -21,14 +22,15 @@ export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, 
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(defaultWeights(kindName, strategy));
+        setWeightsList(WeightsFactory.getWeightListByKind(kindName));
     }, [])
 
     function handleSubmit(event) {
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        submitSimilarity(softwareSystemId, kindName, strategy, {
+        new APIService().createSimilarity(softwareSystemId, {
+            kindName,
             type: SIMILARITY_SCIPY_STRUCTURE,
             weightsList,
             profileId,
@@ -38,7 +40,7 @@ export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, 
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     setIsUploaded("");
-                    setUpdateStrategies({}); // Calls function responsible for updating similarity
+                    onCreated(); // Lets the screen reload its Similarities
                 } else {
                     setIsUploaded("Upload failed.");
                 }
@@ -83,7 +85,7 @@ export const SimilarityMatrixSciPyStructureForm = ({softwareSystemId, strategy, 
             <Form onSubmit={handleSubmit} className="mt-2 mb-3">
                 <ProfileSelect
                     softwareSystemId={softwareSystemId}
-                    kindName={profileKindName(kindName, strategy)}
+                    kindName={kindName}
                     profileId={profileId}
                     setProfileId={setProfileId}
                 />

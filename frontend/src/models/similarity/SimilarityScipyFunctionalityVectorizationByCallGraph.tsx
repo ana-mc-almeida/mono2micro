@@ -38,7 +38,7 @@ export default class SimilarityScipyFunctionalityVectorizationByCallGraph extend
                         Object.entries(weights.weightsLabel).map(([key, value]) => <span key={key}>{value + ": " + weights[key] + "%"} <br/></span>)
                     )}
                 </Card.Text>
-                <Button href={`${similarityBase(this.softwareSystemId, this.strategyId)}/${this.id}/decomposition`}
+                <Button href={`${similarityBase(this.softwareSystemId)}/${this.id}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

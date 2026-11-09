@@ -6,10 +6,11 @@ import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "../../../models/similarity/SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
-import {defaultWeights, submitSimilarity} from "./similaritySource";
+import {APIService} from "../../../services/APIService";
+import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm = ({softwareSystemId, strategy, kindName, setUpdateStrategies}) => {
+export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm = ({softwareSystemId, kindName, onCreated}) => {
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");
     const [weightsList, setWeightsList] = useState([]);
@@ -17,14 +18,15 @@ export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesFo
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(defaultWeights(kindName, strategy));
+        setWeightsList(WeightsFactory.getWeightListByKind(kindName));
     }, [])
 
     function handleSubmit(event) {
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        submitSimilarity(softwareSystemId, kindName, strategy, {
+        new APIService().createSimilarity(softwareSystemId, {
+            kindName,
             type: SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
             linkageType,
             weightsList
@@ -32,7 +34,7 @@ export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesFo
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     setIsUploaded("");
-                    setUpdateStrategies({}); // Calls function responsible for updating similarity
+                    onCreated(); // Lets the screen reload its Similarities
                 } else {
                     setIsUploaded("Upload failed.");
                 }

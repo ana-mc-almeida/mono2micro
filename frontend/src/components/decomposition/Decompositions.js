@@ -11,10 +11,9 @@ import {SIMILARITY_SCIPY_CLASS_VECTORIZATION} from "../../models/similarity/Simi
 import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH} from "../../models/similarity/SimilarityScipyFunctionalityVectorizationByCallGraph";
 import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "../../models/similarity/SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
 import {SIMILARITY_SCIPY_STRUCTURE} from "../../models/similarity/SimilarityScipyStructure";
-import {similaritiesPage} from "../../services/similarityRoutes";
 
 export const Decompositions = () => {
-    let { softwareSystemId, strategyId, similarityId } = useParams();
+    let { softwareSystemId, similarityId } = useParams();
     const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [similarity, setSimilarity] = useState({});
     const [decompositions, setDecompositions] = useState([]);
@@ -100,9 +99,6 @@ export const Decompositions = () => {
                 </Breadcrumb.Item>
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {softwareSystemName}
-                </Breadcrumb.Item>
-                <Breadcrumb.Item href={similaritiesPage(softwareSystemId, strategyId)}>
-                    {similarity.strategyName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
                     {similarity.name}

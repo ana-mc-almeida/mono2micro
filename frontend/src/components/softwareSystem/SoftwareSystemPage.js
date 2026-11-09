@@ -35,12 +35,11 @@ function renderBreadCrumbs(softwareSystemName) {
     );
 }
 
-export function Strategies() {
+export function SoftwareSystemPage() {
     let { softwareSystemId } = useParams();
     const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [representationToDelete, setRepresentationToDelete] = useState(undefined);
-    const [softwareSystemStrategies, setSoftwareSystemStrategies] = useState([]);
     const [representations, setRepresentations] = useState([]);
     const [requiredRepresentations, setRequiredRepresentations] = useState([]);
     const [obtainedRepresentations, setObtainedRepresentations] = useState([]);
@@ -51,10 +50,6 @@ export function Strategies() {
     const [add, setAdd] = useState("");
     const [representationGroups, setRepresentationGroups] = useState([]);
     const [softwareSystemRepresentationGroups, setSoftwareSystemRepresentationGroups] = useState([]);
-    const [strategyRepresentations, setStrategyRepresentations] = useState([]);
-    const [algorithms, setAlgorithms] = useState([]);
-    const [strategyAlgorithm, setStrategyAlgorithm] = useState(undefined);
-    const [availableStrategyTypes, setAvailableStrategyTypes] = useState([]);
     const [similarities, setSimilarities] = useState([]);
     const [offeredKinds, setOfferedKinds] = useState([]);
     const [profiledRepresentationTypes, setProfiledRepresentationTypes] = useState([]);
@@ -64,10 +59,8 @@ export function Strategies() {
     useEffect(() => {
         const service = new APIService();
         service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
-        loadStrategies();
         loadRepresentations();
         loadSoftwareSystemRepresentationGroups();
-        service.getAlgorithms().then(response => setAlgorithms(response.data));
         service.getRepresentationGroups().then(response => setRepresentationGroups(response.data));
     }, []);
 
@@ -140,7 +133,7 @@ export function Strategies() {
                         key={selectedKind}
                         softwareSystemId={softwareSystemId}
                         kindName={selectedKind}
-                        setUpdateStrategies={() => loadSimilarities()}
+                        onCreated={() => loadSimilarities()}
                     />
                 }
                 <div className={"d-flex flex-wrap mw-100 mt-3"} style={{gap: '1rem 1rem'}}>
@@ -148,13 +141,6 @@ export function Strategies() {
                 </div>
             </>
         );
-    }
-
-    function loadStrategies() {
-        const service = new APIService();
-        service.getSoftwareSystemStrategies(softwareSystemId).then(response => {
-            setSoftwareSystemStrategies(response);
-        });
     }
 
     function handleRepresentationsSubmit(event) {
@@ -178,7 +164,7 @@ export function Strategies() {
             })
             .catch(error => {
                 if (error.response !== undefined && error.response.status === HttpStatus.UNAUTHORIZED) {
-                    setIsUploaded("Upload failed. Strategy already submitted.");
+                    setIsUploaded("Upload failed. These representations were already submitted.");
                 }
                 else if (error.response !== undefined && error.response.status === HttpStatus.NOT_FOUND) {
                     setIsUploaded("Upload failed. Invalid datafile path.");
@@ -226,145 +212,8 @@ export function Strategies() {
         service.deleteRepresentation(representationToDelete.id).then(() => {
             loadSoftwareSystemRepresentationGroups();
             loadRepresentations();
-            loadStrategies();
             toast.dismiss(toastId);
         });
-    }
-
-    function handleDeleteStrategy(strategy) {
-        let toastId = toast.loading("Deleting strategy...", {type: toast.TYPE.INFO});
-        const service = new APIService();
-        service.deleteStrategy(strategy.id).then(() => {
-            loadStrategies();
-            toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Strategy deleted.", isLoading: false});
-            setTimeout(() => {toast.dismiss(toastId)}, 1000);
-        }).catch(() => {
-            toast.update(toastId, {type: toast.TYPE.ERROR, render: "Error deleting " + strategy.name + ".", isLoading: false});
-        });
-    }
-
-    function handleStrategiesSubmit(event) {
-        event.preventDefault()
-
-        setIsUploaded("Uploading...");
-
-        const service = new APIService();
-        service.createStrategy(softwareSystemId, strategyRepresentations, strategyAlgorithm)
-            .then(response => {
-                if (response.status === HttpStatus.CREATED) {
-                    loadStrategies();
-                    setIsUploaded("");
-                } else setIsUploaded("Upload failed.");
-
-                setStrategyRepresentations([]);
-                setStrategyAlgorithm(undefined);
-                setAvailableStrategyTypes([]);
-                setAdd("");
-            })
-            .catch(error => {
-                if (error.response !== undefined && error.response.status === HttpStatus.UNAUTHORIZED) {
-                    setIsUploaded("Upload failed. Strategy already submitted.");
-                }
-                else if (error.response !== undefined && error.response.status === HttpStatus.NOT_FOUND) {
-                    setIsUploaded("Upload failed. Invalid datafile path.");
-                }
-                else {
-                    setIsUploaded("Upload failed.");
-                }
-            });
-        setCanSubmit(false);
-    }
-
-    function clickStrategyRepresentations(type) {
-        setStrategyRepresentations(prev => {
-            if (prev.includes(type)) {
-                prev = prev.filter(t => t !== type);
-            } else if (prev.some((el) => el.includes('Vectorization')) || type.includes('Vectorization')) {
-                prev.forEach((t) => document.getElementById(t).checked = false);
-                prev = [type];
-            } else {
-                prev = [...prev, type];
-            }
-            return prev;
-        });
-    }
-
-    function includesStrategy(strategy) {
-        // this is too specific and needs to be refactored
-
-        let existing = softwareSystemStrategies.map(strategy => strategy.strategyTypes).filter((strategyTypes) => strategyTypes.includes(strategy));
-
-        // the vectorization strategies can not be combined
-        if (existing.length === 1 && existing[0].length === 1 && existing[0][0].includes('Vectorization')) {
-            return true;
-        }
-
-        // accesses and repository can be combined
-        if (existing.length == 2) return true;
-
-        return false;
-    }
-
-    function clickStrategyAlgorithm(type) {
-        const service = new APIService();
-        service.getAllowableSoftwareSystemStrategyTypes(softwareSystemId).then(response => {
-            setAvailableStrategyTypes(response.data.filter(strategy => !includesStrategy(strategy)));
-        })
-
-        service.getAlgorithmSupportedStrategyTypes(type).then(response => {
-            setStrategyAlgorithm(type);
-            setAvailableStrategyTypes(response.data.filter(strategy => availableStrategyTypes.includes(strategy)));
-        });
-    }
-
-    function renderStrategies() {
-        return (
-            <Form onSubmit={handleStrategiesSubmit}>
-                <Form.Group as={Row} className="align-items-center mb-3">
-                    <Form.Label as="legend" column sm={2}>
-                        Algorithm
-                    </Form.Label>
-                    <Col sm={3} style={{ paddingLeft: 0 }}>
-                        {algorithms.map(algorithm =>
-                            <Col key={algorithm} sm="auto">
-                                <Form.Check onClick={() => clickStrategyAlgorithm(algorithm)} name="algorithm" label={algorithm} type="radio" id={algorithm} value={algorithm}/>
-                            </Col>
-                        )}
-                    </Col>
-                </Form.Group>
-
-                {availableStrategyTypes.length !== 0 &&
-                    <Form.Group as={Row} className="align-items-center mb-3">
-                        <Form.Label as="legend" column sm={2}>
-                            Criteria
-                        </Form.Label>
-                        <Col sm={8} style={{ paddingLeft: 0 }}>
-                            {availableStrategyTypes.map(type =>
-                                <Col key={type} sm="auto">
-                                    <Form.Check
-                                        onClick={() => clickStrategyRepresentations(type)}
-                                        name="representation"
-                                        label={type}
-                                        type="checkbox"
-                                        id={type}
-                                        value={type}
-                                    />
-                                </Col>
-                            )}
-                        </Col>
-                    </Form.Group>
-                }
-
-                <Form.Group as={Row} className="align-items-center mb-4">
-                    <Col sm={{offset: 2}}>
-                        <Button type="submit" disabled={strategyAlgorithm === undefined || strategyRepresentations.length === 0}>Submit</Button>
-                        <Form.Text className="ms-2">
-                            {isUploaded}
-                        </Form.Text>
-                    </Col>
-                </Form.Group>
-            </Form>
-        );
     }
 
     function renderRepresentations() {
@@ -449,7 +298,7 @@ export function Strategies() {
             >
                 <ModalTitle>&ensp;Representation Deletion</ModalTitle>
                 <ModalBody>
-                    Strategies created from this representation will be deleted.<br/>Are you sure you want to delete this Representation?
+                    Similarities that read this representation will be deleted.<br/>Are you sure you want to delete this Representation?
                 </ModalBody>
                 <ModalFooter>
                     <Button variant="secondary" onClick={() => closePopup()}>
@@ -463,9 +312,6 @@ export function Strategies() {
     function renderAddModal() {
         const closeAddPopup = function () {
             setAdd("");
-            setStrategyRepresentations([]);
-            setStrategyAlgorithm(undefined);
-            setAvailableStrategyTypes([]);
         };
 
         return <Modal
@@ -476,7 +322,6 @@ export function Strategies() {
         >
             <ModalTitle>&ensp;Add {add}</ModalTitle>
             <ModalBody>
-                {add === "Strategy" && renderStrategies()}
                 {add === "Representation" && renderRepresentations()}
             </ModalBody>
             <ModalFooter>
@@ -512,14 +357,6 @@ export function Strategies() {
             </div>
 
             { renderSimilarities() }
-
-            {/* FIXME (ticket 09): the strategies go with Strategy */}
-            <h4 className="mt-4" style={{color: "#666666"}}>
-                Strategies
-            </h4>
-            <div className={"d-flex flex-wrap mw-100"} style={{gap: '1rem 1rem'}}>
-                {[...softwareSystemStrategies.map(strategy => strategy.printCard(handleDeleteStrategy)), addCard("Strategy")]}
-            </div>
         </div>
     );
 }

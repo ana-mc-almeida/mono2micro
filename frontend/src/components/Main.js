@@ -3,11 +3,10 @@ import { Routes, Route } from 'react-router-dom';
 import { Home } from './Home';
 import { Decompositions } from './decomposition/Decompositions';
 import { SoftwareSystems } from './softwareSystem/SoftwareSystems';
-import { Strategies } from './strategy/Strategies';
+import { SoftwareSystemPage } from './softwareSystem/SoftwareSystemPage';
 import { ComparisonTool } from './comparisonTool/ComparisonTool';
 import { Profiles } from './profile/Profiles';
 import {FunctionalityRefactorToolMenu} from "./view/accessesViews/FunctionalityRefactorToolMenu";
-import {Similarities} from "./similarity/Similarities";
 import {Recommendations} from "./recommendation/Recommendations";
 import {RepositoryView} from "./view/repositoryView/RepositoryView";
 import {AccessesViews} from "./view/accessesViews/AccessesViews";
@@ -19,20 +18,13 @@ export const Main = () => (
       <Route exact path='/' element={<Home/>}/>
 
       <Route exact path='/softwareSystems' element={<SoftwareSystems/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId' element={<Strategies/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/similarity' element={<Similarities/>} />
+      <Route exact path='/softwareSystems/:softwareSystemId' element={<SoftwareSystemPage/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/recommendation' element={<Recommendations/>} />
-      {/* A Similarity made on the software system: the same pages, without a strategy. FIXME (ticket 09): the strategy routes go with Strategy */}
       <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/decomposition' element={<Decompositions/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/decomposition' element={<Decompositions/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/accessesViews' element={<AccessesViews/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/accessesViews' element={<AccessesViews/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/repositoryView' element={<RepositoryView/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/repositoryView' element={<RepositoryView/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/structureView' element={<StructureView/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/structureView' element={<StructureView/>} />
       <Route exact path='/softwareSystems/:softwareSystemId/similarities/:similarityId/:decompositionId/functionalityRefactor' element={<FunctionalityRefactorToolMenu/>} />
-      <Route exact path='/softwareSystems/:softwareSystemId/:strategyId/:similarityId/:decompositionId/functionalityRefactor' element={<FunctionalityRefactorToolMenu/>} />
 
       <Route exact path='/softwareSystems/:softwareSystemId/:representationId/profiles' element={<Profiles/>} />
 

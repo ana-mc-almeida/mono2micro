@@ -5,10 +5,10 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_ENTITY_VECTORIZATION} from "../../../models/similarity/SimilarityScipyEntityVectorization";
-import {submitSimilarity} from "./similaritySource";
+import {APIService} from "../../../services/APIService";
 
 
-export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, strategy, kindName, setUpdateStrategies}) => {
+export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, kindName, onCreated}) => {
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");
 
@@ -20,14 +20,15 @@ export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, 
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        submitSimilarity(softwareSystemId, kindName, strategy, {
+        new APIService().createSimilarity(softwareSystemId, {
+            kindName,
             type: SIMILARITY_SCIPY_ENTITY_VECTORIZATION,
             linkageType
         })
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     setIsUploaded("");
-                    setUpdateStrategies({}); // Calls function responsible for updating similarity
+                    onCreated(); // Lets the screen reload its Similarities
                 } else {
                     setIsUploaded("Upload failed.");
                 }

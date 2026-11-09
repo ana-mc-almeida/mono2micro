@@ -1,16 +1,5 @@
-// Where a Similarity's pages live. One made through a strategy lives under the strategy; one made on the software system, under
-// "similarities" (ticket 09).
-// FIXME (ticket 09): the strategy segment goes with Strategy
+// Where a Similarity's pages live: under the software system's "similarities".
 
-export function similarityBase(softwareSystemId, strategyId) {
-    return strategyId
-        ? `/softwareSystems/${softwareSystemId}/${strategyId}`
-        : `/softwareSystems/${softwareSystemId}/similarities`;
-}
-
-// The page that lists the Similarity: its strategy's page, or the software system's.
-export function similaritiesPage(softwareSystemId, strategyId) {
-    return strategyId
-        ? `/softwareSystems/${softwareSystemId}/${strategyId}/similarity`
-        : `/softwareSystems/${softwareSystemId}`;
+export function similarityBase(softwareSystemId) {
+    return `/softwareSystems/${softwareSystemId}/similarities`;
 }

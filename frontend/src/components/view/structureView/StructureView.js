@@ -13,7 +13,7 @@ import {StructureViewModal} from "./StructureViewModal";
 import Popover from "react-bootstrap/Popover";
 import {ViewSearchBar} from "../utils/ViewSearchBar";
 import {RepresentationType} from "../../../models/representation/Representation";
-import {similaritiesPage, similarityBase} from "../../../services/similarityRoutes";
+import {similarityBase} from "../../../services/similarityRoutes";
 
 export const structureViewHelp = (<div>
     Double click a node to see its properties.<br />
@@ -30,7 +30,7 @@ export const structureViewHelp = (<div>
 </div>);
 
 export const StructureView = () => {
-    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
+    let { softwareSystemId, similarityId, decompositionId } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [displayStructure, setDisplayStructure] = useState("none");
@@ -86,10 +86,7 @@ export const StructureView = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={similaritiesPage(softwareSystemId, strategyId)}>
-                    {decomposition?.strategyName}
-                </Breadcrumb.Item>
-                <Breadcrumb.Item href={`${similarityBase(softwareSystemId, strategyId)}/${similarityId}/decomposition`}>
+                <Breadcrumb.Item href={`${similarityBase(softwareSystemId)}/${similarityId}/decomposition`}>
                     {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>

@@ -11,7 +11,7 @@ import {ModalMessage} from "../utils/ModalMessage";
 import Breadcrumb from "react-bootstrap/Breadcrumb";
 import {toast, ToastContainer} from "react-toastify";
 import AppContext from "../../AppContext";
-import {similaritiesPage, similarityBase} from "../../../services/similarityRoutes";
+import {similarityBase} from "../../../services/similarityRoutes";
 
 export const refactorToolHelp = (
 <div>
@@ -107,7 +107,7 @@ const functionalityRedesignColumns = [
 export const FunctionalityRefactorToolMenu = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile, translateEntity } = context;
-    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
+    let { softwareSystemId, similarityId, decompositionId } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [waitingResponse, setWaitingResponse] = useState(false);
@@ -330,10 +330,7 @@ export const FunctionalityRefactorToolMenu = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={similaritiesPage(softwareSystemId, strategyId)}>
-                    {decomposition?.strategyName}
-                </Breadcrumb.Item>
-                <Breadcrumb.Item href={`${similarityBase(softwareSystemId, strategyId)}/${similarityId}/decomposition`}>
+                <Breadcrumb.Item href={`${similarityBase(softwareSystemId)}/${similarityId}/decomposition`}>
                     {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
