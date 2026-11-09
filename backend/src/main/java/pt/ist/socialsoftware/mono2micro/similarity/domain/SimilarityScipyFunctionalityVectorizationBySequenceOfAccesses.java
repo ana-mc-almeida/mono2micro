@@ -18,7 +18,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weigh
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -39,11 +38,6 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	private static final int STEP = 10;
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses() {}
-
-	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(Strategy strategy, String name,
-			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto) {
-		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
-	}
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(String kindName, List<Representation> representations, String name,
 			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto) {

@@ -21,8 +21,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,8 +29,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class SimilarityService {
-	@Autowired
-	StrategyRepository strategyRepository;
 
 	@Autowired
 	SimilarityRepository similarityRepository;
@@ -123,26 +119,6 @@ public class SimilarityService {
 	public void deleteSimilaritiesReading(String representationId) {
 		for (Similarity similarity : similarityRepository.findByRepresentations_Id(representationId))
 			deleteSimilarity(similarity);
-	}
-
-	/** Returns the new similarity, or the existing one equal to the request. */
-	// FIXME (ticket 09): the strategy path goes with Strategy
-	public Similarity createSimilarity(SimilarityDto similarityDto) throws Exception {
-		Strategy strategy = strategyRepository.getById(similarityDto.getStrategyId());
-		similarityDto.setStrategyName(strategy.getName()); // the generated name starts with it
-		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), strategy.getSoftwareSystem().getId(),
-				similarityDto.scopedRepresentationType());
-		similarityDto.setProfileName(Profile.nameOf(profile)); // and shows the profile
-		for (Similarity existing : similarityRepository.findByStrategyId(strategy.getId()))
-			if (existing.equalsDto(similarityDto))
-				return existing;
-		Similarity similarity = SimilarityFactory.createSimilarity(strategy, similarityDto);
-		similarity.setProfile(profile);
-
-		similarity.generate();
-
-		similarityRepository.save(similarity);
-		return similarity;
 	}
 
 	public void deleteSingleSimilarity(String similarityId) {

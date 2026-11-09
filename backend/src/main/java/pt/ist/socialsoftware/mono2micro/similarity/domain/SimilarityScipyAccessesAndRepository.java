@@ -13,7 +13,6 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEnti
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
@@ -33,12 +32,6 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	private Constants.TraceType traceType;
 
 	public SimilarityScipyAccessesAndRepository() {}
-
-	public SimilarityScipyAccessesAndRepository(Strategy strategy, String name, SimilarityScipyAccessesAndRepositoryDto dto) {
-		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
-		this.tracesMaxLimit = dto.getTracesMaxLimit();
-		this.traceType = dto.getTraceType();
-	}
 
 	public SimilarityScipyAccessesAndRepository(String kindName, List<Representation> representations, String name,
 			SimilarityScipyAccessesAndRepositoryDto dto) {

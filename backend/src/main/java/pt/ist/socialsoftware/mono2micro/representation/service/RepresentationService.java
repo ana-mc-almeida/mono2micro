@@ -12,9 +12,6 @@ import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowle
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.RepresentationFactory;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -24,12 +21,6 @@ import java.util.stream.Collectors;
 public class RepresentationService {
 	@Autowired
 	SoftwareSystemRepository softwareSystemRepository;
-
-	@Autowired
-	StrategyService strategyService;
-
-	@Autowired
-	StrategyRepository strategyRepository;
 
 	@Autowired
 	RepresentationRepository representationRepository;
@@ -92,15 +83,6 @@ public class RepresentationService {
 
 	public void deleteSingleRepresentation(String representationId) {
 		Representation representation = getRepresentationById(representationId);
-		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(representation.getSoftwareSystem().getId())) {
-			for (String strategyType : strategy.getStrategyTypes()) {
-				if (Strategy.strategiesToRepresentations.get(strategyType).contains(representation.getType())) {
-					strategyService.deleteStrategy(strategy);
-					break;
-				}
-			}
-		}
-
 		similarityService.deleteSimilaritiesReading(representationId);
 		recommendationService.deleteRecommendationsReading(representationId);
 

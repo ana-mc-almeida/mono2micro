@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.List;
 
 public interface SimilarityRepository extends MongoRepository<Similarity, String> {
-	List<Similarity> findByStrategyId(String strategyId);
 
 	List<Similarity> findByKindName(String kindName);
 

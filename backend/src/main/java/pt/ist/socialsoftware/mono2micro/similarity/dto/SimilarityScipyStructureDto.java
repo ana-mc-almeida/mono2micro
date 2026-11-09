@@ -9,7 +9,6 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure.SIMILARITY_SCIPY_STRUCTURE;
 
 @JsonTypeName(SIMILARITY_SCIPY_STRUCTURE)
@@ -41,11 +40,6 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 		copyProfile(recommend.getProfile());
 		this.traceType = recommend.getTraceType();
 		this.linkageType = recommend.getLinkageType();
-	}
-
-	@Override
-	public String scopedRepresentationType() {
-		return STRUCTURE;
 	}
 
 	public String getName() {

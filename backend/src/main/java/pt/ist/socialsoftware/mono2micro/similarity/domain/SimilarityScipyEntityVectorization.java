@@ -14,7 +14,6 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityTo
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyEntityVectorizationDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -30,11 +29,6 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 	public static final String SIMILARITY_SCIPY_ENTITY_VECTORIZATION = "SIMILARITY_SCIPY_ENTITY_VECTORIZATION";
 
 	public SimilarityScipyEntityVectorization() {}
-
-	public SimilarityScipyEntityVectorization(Strategy strategy, String name, SimilarityScipyEntityVectorizationDto dto) {
-		super(strategy, name, dto.getLinkageType(), new ArrayList<>());
-		this.name = this.getName() + " " + getType() + "()";
-	}
 
 	public SimilarityScipyEntityVectorization(String kindName, List<Representation> representations, String name, SimilarityScipyEntityVectorizationDto dto) {
 		super(kindName, representations, name, dto.getLinkageType(), new ArrayList<>());

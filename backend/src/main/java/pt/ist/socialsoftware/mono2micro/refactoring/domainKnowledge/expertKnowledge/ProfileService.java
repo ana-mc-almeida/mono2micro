@@ -138,24 +138,6 @@ public class ProfileService {
 		return profile;
 	}
 
-	/**
-	 * The strategy path's check, which has no kind: a profile must be an offered profile of the software system that selects units of
-	 * {@code scopedRepresentationType}, null when the request takes no profile.
-	 */
-	// FIXME (ticket 09): the strategy path goes with Strategy
-	public Profile getScopingProfile(String profileId, String softwareSystemId, String scopedRepresentationType) {
-		if (profileId == null)
-			return null;
-
-		Profile profile = profileRepository.getById(profileId);
-		if (profile.isRetired() || !profile.belongsTo(softwareSystemId))
-			throw new IllegalArgumentException("Profile " + profileId + " is not offered for software system " + softwareSystemId + ".");
-		if (!profile.getRepresentation().getType().equals(scopedRepresentationType))
-			throw new IllegalArgumentException("Profile " + profileId + " selects " + profile.getRepresentation().getType()
-					+ " units, but the request reads " + (scopedRepresentationType == null ? "no profile" : scopedRepresentationType + " units") + ".");
-		return profile;
-	}
-
 	private boolean isProfileOfferedFor(SimilarityKind kind, AvailabilityContext context) {
 		return !AvailabilityCheck.derive(Collections.singletonList(profilePrototype()), context.withInput(kind)).availableNames().isEmpty();
 	}

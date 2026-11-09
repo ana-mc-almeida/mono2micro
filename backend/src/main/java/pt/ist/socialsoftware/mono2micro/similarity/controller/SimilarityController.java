@@ -82,23 +82,6 @@ public class SimilarityController {
 		}
 	}
 
-	// FIXME (ticket 09): the strategy path goes with Strategy
-	@PostMapping(value = "/similarity/create")
-	public ResponseEntity<SimilarityDto> createSimilarity(
-			@RequestBody SimilarityDto similarityDto
-	) {
-		logger.debug("Create Similarity Distances");
-
-		try {
-			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDto(similarityService.createSimilarity(similarityDto)),
-					HttpStatus.CREATED);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
 	@GetMapping(value = "/similarity/{similarityId}/getSimilarity")
 	public ResponseEntity<SimilarityDto> getSimilarity(
 			@PathVariable String similarityId

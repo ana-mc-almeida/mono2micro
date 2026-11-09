@@ -16,9 +16,6 @@ import java.util.stream.Collectors;
 public abstract class SimilarityDto {
 	String id;
 	String softwareSystemId;
-	// FIXME (ticket 09): the strategy fields go with Strategy
-	String strategyId;
-	String strategyName;
 	String name;
 	/** The type of the Similarity class that computes it, which picks this DTO's subclass. */
 	String type;
@@ -72,12 +69,8 @@ public abstract class SimilarityDto {
 		return weightsList == null ? Collections.emptyList() : weightsList.stream().map(Weights::getType).collect(Collectors.toList());
 	}
 
-	/** Copies where {@code similarity} comes from: its strategy, or its kind and representations. */
+	/** Copies where {@code similarity} comes from: its kind and representations. */
 	protected void copySource(Similarity similarity) {
-		if (similarity.getStrategy() != null) { // FIXME (ticket 09): the strategy branch goes with Strategy
-			this.strategyId = similarity.getStrategy().getId();
-			this.strategyName = similarity.getStrategy().getName();
-		}
 		this.kindName = similarity.getKindName();
 		this.representationIds = similarity.getRepresentationIds();
 	}
@@ -99,17 +92,9 @@ public abstract class SimilarityDto {
 		this.representationIds = recommendation.getRepresentationIds();
 	}
 
-	/** What a generated name starts with: the kind, or for a Similarity made through a strategy, the strategy's name. */
+	/** What a generated name starts with: the kind. */
 	protected String namePrefix() {
-		return strategyName != null ? strategyName : kindName; // FIXME (ticket 09): the strategy name goes with Strategy
-	}
-
-	public String getStrategyName() {
-		return strategyName;
-	}
-
-	public void setStrategyName(String strategyName) {
-		this.strategyName = strategyName;
+		return kindName;
 	}
 
 	public String getId() {
@@ -118,14 +103,6 @@ public abstract class SimilarityDto {
 
 	public void setId(String id) {
 		this.id = id;
-	}
-
-	public String getStrategyId() {
-		return strategyId;
-	}
-
-	public void setStrategyId(String strategyId) {
-		this.strategyId = strategyId;
 	}
 
 	public String getProfileId() {
@@ -148,15 +125,6 @@ public abstract class SimilarityDto {
 	protected void copyProfile(Profile profile) {
 		this.profileId = Profile.idOf(profile);
 		this.profileName = Profile.nameOf(profile);
-	}
-
-	/**
-	 * The representation kind whose units a profile of this Similarity selects, or null when the kind takes no profile.
-	 * Not a getter, so that it never appears in the JSON.
-	 */
-	// FIXME (ticket 09): only the strategy path reads it; the kind declares it, so it goes with Strategy
-	public String scopedRepresentationType() {
-		return null;
 	}
 
 	/** How the generated name shows the profile. */

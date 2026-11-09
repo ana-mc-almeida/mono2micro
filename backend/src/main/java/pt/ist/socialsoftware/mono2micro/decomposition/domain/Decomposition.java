@@ -14,7 +14,6 @@ import pt.ist.socialsoftware.mono2micro.operation.rename.RenameOperation;
 import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
 import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
 import java.util.*;
 
@@ -27,8 +26,6 @@ public abstract class Decomposition {
 	boolean outdated; // Used to avoid long waiting times during interaction
 	Map<String, Object> metrics = new HashMap<>(); // Map<MetricCalculator type, MetricCalculator value>
 	Map<String, Cluster> clusters = new HashMap<>();
-	@DBRef(lazy = true)
-	Strategy strategy;
 	@DBRef
 	Similarity similarity;
 	@DBRef
@@ -40,7 +37,6 @@ public abstract class Decomposition {
 
 	public Decomposition(Similarity similarity) {
 		this.similarity = similarity;
-		this.strategy = similarity.getStrategy();
 	}
 
 	public abstract void setup() throws Exception;
@@ -131,19 +127,9 @@ public abstract class Decomposition {
 		return this.representationInformations.stream().filter(r -> r.getType().equals(type)).findFirst().orElse(null);
 	}
 
-	public Strategy getStrategy() {
-		return strategy;
-	}
-
-	/** The software system it belongs to. Every reader asks this, not its strategy, so the strategy can go (ticket 09). */
+	/** The software system it belongs to: its Similarity's. */
 	public SoftwareSystem getSoftwareSystem() {
-		if (strategy != null) // FIXME (ticket 09): the strategy branch goes with Strategy
-			return strategy.getSoftwareSystem();
 		return similarity.getSoftwareSystem();
-	}
-
-	public void setStrategy(Strategy strategy) {
-		this.strategy = strategy;
 	}
 
 	public Similarity getSimilarity() {

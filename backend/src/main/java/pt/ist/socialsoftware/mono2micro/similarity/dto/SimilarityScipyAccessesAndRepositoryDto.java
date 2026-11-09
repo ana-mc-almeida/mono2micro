@@ -9,7 +9,6 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccessesAndRepository.SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 
 @JsonTypeName(SIMILARITY_SCIPY_ACCESSES_REPOSITORY)
@@ -43,11 +42,6 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		this.linkageType = recommend.getLinkageType();
 		this.tracesMaxLimit = recommend.getTracesMaxLimit();
 		this.traceType = recommend.getTraceType();
-	}
-
-	@Override
-	public String scopedRepresentationType() {
-		return ACCESSES;
 	}
 
 	public String getName() {

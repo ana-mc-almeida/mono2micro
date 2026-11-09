@@ -14,7 +14,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weigh
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyFunctionalityVectorizationByCallGraphDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -36,11 +35,6 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 	private int depth = 2;
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraph() {}
-
-	public SimilarityScipyFunctionalityVectorizationByCallGraph(Strategy strategy, String name, SimilarityScipyFunctionalityVectorizationByCallGraphDto dto) {
-		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
-		this.depth = dto.getDepth();
-	}
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraph(String kindName, List<Representation> representations, String name,
 			SimilarityScipyFunctionalityVectorizationByCallGraphDto dto) {

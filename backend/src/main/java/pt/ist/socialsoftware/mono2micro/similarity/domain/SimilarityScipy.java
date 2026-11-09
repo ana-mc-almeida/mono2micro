@@ -18,7 +18,6 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityTo
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
@@ -39,12 +38,6 @@ public abstract class SimilarityScipy extends Similarity {
 
 	public SimilarityScipy() {}
 
-	public SimilarityScipy(Strategy strategy, String name, String linkageType, List<Weights> weightsList) {
-		super(strategy, name);
-		this.linkageType = linkageType;
-		this.weightsList = weightsList;
-	}
-
 	public SimilarityScipy(String kindName, List<Representation> representations, String name, String linkageType, List<Weights> weightsList) {
 		super(kindName, representations, name);
 		this.linkageType = linkageType;
@@ -58,12 +51,6 @@ public abstract class SimilarityScipy extends Similarity {
 		this(recommendation.getKindName(), recommendation.getRepresentations(), recommendation.getName(), recommendation.getLinkageType(),
 				recommendation.getWeightsList());
 		this.id = recommendation.getId();
-	}
-
-	public SimilarityScipy(Strategy strategy, String name, RecommendMatrixSciPy recommendation) {
-		super(strategy, name);
-		this.linkageType = recommendation.getLinkageType();
-		this.weightsList = recommendation.getWeightsList();
 	}
 
 	@Override

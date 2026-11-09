@@ -16,6 +16,10 @@ import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKin
 import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesKind;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.RepositoryKind;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.StructureKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.ClassVectorizationKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.EntityVectorizationKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationCallGraphKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationSequenceOfAccessesKind;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
@@ -23,13 +27,6 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.CLASS_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ENTITY_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.REPOSITORY_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.STRUCTURE_STRATEGY;
 
 /**
  * One test per family scan: every feature the tool has appears in its family's derivation record,
@@ -46,13 +43,13 @@ public class FamilyScanTest {
 				SelfRegistration.prototypes(SimilarityKind.class).values(), NOTHING_COLLECTED);
 
 		assertThat(record.getFeatures()).extracting(FeatureAvailability::getName).containsExactlyInAnyOrder(
-				ACCESSES_STRATEGY,
-				REPOSITORY_STRATEGY,
-				STRUCTURE_STRATEGY,
-				CLASS_VECTORIZATION_STRATEGY,
-				ENTITY_VECTORIZATION_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY,
+				AccessesKind.ACCESSES,
+				RepositoryKind.REPOSITORY,
+				StructureKind.STRUCTURE,
+				ClassVectorizationKind.CLASS_VECTORIZATION,
+				EntityVectorizationKind.ENTITY_VECTORIZATION,
+				FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
+				FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
 				// Accesses and Repository is its own kind beside Repository alone, as the strategy checkboxes allowed both (D-026)
 				AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY);
 	}
@@ -80,7 +77,7 @@ public class FamilyScanTest {
 		assertThat(sciPy.getFailedRequirements()).containsExactly("requires a Similarity kind as input");
 	}
 
-	/** Asked of the check, not of {@code getAlgorithmSupportedStrategyTypes}, which offers the strategy screen only the kinds a strategy can hold. */
+	/** Every kind the family finds is an input the SciPy algorithm accepts, as the check derives it. */
 	@Test
 	public void sciPyAcceptsEveryKindTheFamilyFinds() {
 		Clustering sciPy = SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY);
