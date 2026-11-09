@@ -18,6 +18,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.StructureWeights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
@@ -80,6 +81,17 @@ class SimilarityKindTest {
 	void everyKindIsComputedByASimilarityTypeARequestCanName() {
 		for (SimilarityKind kind : SelfRegistration.prototypes(SimilarityKind.class).values())
 			assertThat(SelfRegistration.prototypes(SimilarityDto.class)).containsKey(kind.similarityType());
+	}
+
+	/**
+	 * The criteria checkboxes allowed Accesses+Structure, which threw while its matrix was built, and Repository+Structure, in which
+	 * Structure added nothing (D-013, O-12). A kind's criteria are its weights, so no kind may weigh Structure together with anything else.
+	 */
+	@Test
+	void noKindCombinesStructureWithOtherCriteria() {
+		for (SimilarityKind kind : SelfRegistration.prototypes(SimilarityKind.class).values())
+			if (kind.weightsTypes().contains(StructureWeights.STRUCTURE_WEIGHTS))
+				assertThat(kind.weightsTypes()).as(SelfRegistration.nameOf(kind)).containsExactly(StructureWeights.STRUCTURE_WEIGHTS);
 	}
 
 	@Test
