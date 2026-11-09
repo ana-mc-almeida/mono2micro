@@ -12,7 +12,6 @@ import {Redo, Search, Undo} from "@mui/icons-material";
 import {StructureViewModal} from "./StructureViewModal";
 import Popover from "react-bootstrap/Popover";
 import {ViewSearchBar} from "../utils/ViewSearchBar";
-import {StrategyType} from "../../../models/strategy/StrategyTypes";
 import {RepresentationType} from "../../../models/representation/Representation";
 import {similaritiesPage, similarityBase} from "../../../services/similarityRoutes";
 
@@ -153,7 +152,7 @@ export const StructureView = () => {
             />
 
             <ViewSearchBar
-                viewType={StrategyType.STRUCTURE_STRATEGY}
+                viewType={RepresentationType.STRUCTURE_TYPE}
                 dataFields={['name', 'type', 'cluster', 'entities']}
                 openSearch={openSearch}
                 setOpenSearch={setOpenSearch}

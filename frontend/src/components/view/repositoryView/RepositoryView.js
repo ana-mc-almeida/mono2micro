@@ -12,7 +12,6 @@ import {Redo, Search, Undo} from "@mui/icons-material";
 import {RepositoryViewModal} from "./RepositoryViewModal";
 import Popover from "react-bootstrap/Popover";
 import {ViewSearchBar} from "../utils/ViewSearchBar";
-import {StrategyType} from "../../../models/strategy/StrategyTypes";
 import {RepresentationType} from "../../../models/representation/Representation";
 import {similaritiesPage, similarityBase} from "../../../services/similarityRoutes";
 
@@ -152,7 +151,7 @@ export const RepositoryView = () => {
             />
 
             <ViewSearchBar
-                viewType={StrategyType.REPOSITORY_STRATEGY}
+                viewType={RepresentationType.REPOSITORY_TYPE}
                 dataFields={['name', 'type', 'cluster', 'entities']}
                 openSearch={openSearch}
                 setOpenSearch={setOpenSearch}

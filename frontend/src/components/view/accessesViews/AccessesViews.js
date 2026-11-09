@@ -15,7 +15,6 @@ import {FunctionalityView, functionalityViewHelp} from "./functionalityView/Func
 import AppContext from "../../AppContext";
 import {AccessesViewModal} from "./accessView/AccessesViewModal";
 import {AccessesViewMetricTable} from "./accessView/AccessesViewMetricTable";
-import {StrategyType} from "../../../models/strategy/StrategyTypes";
 import {RepresentationType} from "../../../models/representation/Representation";
 import {similaritiesPage, similarityBase} from "../../../services/similarityRoutes";
 
@@ -254,7 +253,7 @@ export const AccessesViews = () => {
             />
 
             <ViewSearchBar
-                viewType={StrategyType.ACCESSES_STRATEGY}
+                viewType={RepresentationType.ACCESSES_TYPE}
                 dataFields={['name', 'type', 'funcType', 'cluster', 'entities']}
                 openSearch={openSearch}
                 setOpenSearch={setOpenSearch}
