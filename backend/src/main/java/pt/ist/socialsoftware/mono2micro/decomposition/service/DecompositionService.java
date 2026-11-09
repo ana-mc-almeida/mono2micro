@@ -98,7 +98,7 @@ public class DecompositionService {
 		zipOutputStream.putNextEntry(new ZipEntry("m2m_decomposition.json"));
 		zipOutputStream.write(new ContextMapperContractBuilder(decomposition)
 				.addStructureRepresentationData(gridFsService.getFile(
-						representationRepository.findBySoftwareSystemIdAndType(decomposition.getStrategy().getSoftwareSystem().getId(), STRUCTURE)
+						representationRepository.findBySoftwareSystemIdAndType(decomposition.getSoftwareSystem().getId(), STRUCTURE)
 								.orElseThrow(() -> new RuntimeException("No representation with type " + STRUCTURE))
 								.getId()))
 				.addSagaRefactorizationData(gridFsService.getFile(decompositionId + "_refactorization"))

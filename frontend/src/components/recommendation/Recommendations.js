@@ -1,44 +1,39 @@
 import React, {useEffect, useState} from 'react';
 import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 
 import {useParams} from "react-router-dom";
 import {APIService} from "../../services/APIService";
 import {toast, ToastContainer} from "react-toastify";
 import {RecommendMatrixSciPy} from "./forms/RecommendMatrixSciPy";
-import { StrategyType } from '../../models/strategy/StrategyTypes';
-import { RecommendationType } from '../../models/recommendation/RecommendationTypes';
+import {DecompositionFactory} from "../../models/decompositions/DecompositionFactory";
 
 export const Recommendations = () => {
-    let { softwareSystemId, strategyId } = useParams();
+    let { softwareSystemId } = useParams();
 
-    const [strategy, setStrategy] = useState(undefined);
+    const [softwareSystemName, setSoftwareSystemName] = useState("");
+    const [offeredKinds, setOfferedKinds] = useState([]);
+    const [selectedKind, setSelectedKind] = useState(undefined);
     const [decompositions, setDecompositions] = useState([]);
-    const [updateStrategies, setUpdateStrategies] = useState({});
 
     useEffect(() => {
-        loadStrategy();
-        loadDecompositions();
-    }, [updateStrategies]);
-
-    function loadStrategy() {
-        const toastId = toast.loading("Fetching Strategy...");
         const service = new APIService();
-        service.getStrategy(strategyId).then(response => {
-            setStrategy(response);
-
-            toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Loaded Strategy.", isLoading: false});
-            setTimeout(() => {toast.dismiss(toastId)}, 1000);
-        }).catch(() => toast.update(toastId, {type: toast.TYPE.ERROR, render: "Error Loading Strategy.", isLoading: false}));
-    }
+        service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
+        // Only the kinds the backend offers for this software system's representations (D-013).
+        service.getAvailableSimilarityKinds(softwareSystemId).then(features =>
+            setOfferedKinds(features.filter(feature => feature.available).map(feature => feature.name)));
+        loadDecompositions();
+    }, []);
 
     function loadDecompositions() {
         const service = new APIService();
         const toastId = toast.loading("Fetching Decompositions...");
-        service.getStrategyDecompositions(
-            strategyId
+        service.getSoftwareSystemDecompositions(
+            softwareSystemId
         ).then(response => {
-            setDecompositions(response);
+            setDecompositions(response.data.map(decomposition => DecompositionFactory.getDecomposition(decomposition)));
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decompositions Loaded.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
         }).catch(() => {
@@ -92,8 +87,8 @@ export const Recommendations = () => {
             <Breadcrumb>
                 <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
                 <Breadcrumb.Item href="/softwareSystems">Software Systems</Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{strategy?.softwareSystemName}</Breadcrumb.Item>
-                <Breadcrumb.Item active>{strategy?.name}</Breadcrumb.Item>
+                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>{softwareSystemName}</Breadcrumb.Item>
+                <Breadcrumb.Item active>Recommendation</Breadcrumb.Item>
             </Breadcrumb>
         );
     }
@@ -107,57 +102,27 @@ export const Recommendations = () => {
 
             {renderBreadCrumbs()}
 
-            {strategy !== undefined &&
+            <Form.Group as={Row} className="align-items-center mb-3">
+                <Form.Label as="legend" column sm={2}>
+                    Kind
+                </Form.Label>
+                <Col sm={8} style={{ paddingLeft: 0 }}>
+                    {offeredKinds.map(kind =>
+                        <Col key={kind} sm="auto">
+                            <Form.Check onClick={() => setSelectedKind(kind)} name="kind" label={kind} type="radio" id={kind} value={kind}/>
+                        </Col>
+                    )}
+                </Col>
+            </Form.Group>
+
+            {selectedKind !== undefined &&
                 <>
-                    {/*Add form of each similarity type like the next block to request the required elements for its creation*/}
-                    {strategy.algorithmType === "SciPy Clustering" &&
-                        strategy.strategyTypes.includes(StrategyType.ENTITY_VECTORIZATION_STRATEGY) ?
-                        <RecommendMatrixSciPy
-                            softwareSystemId={softwareSystemId}
-                            strategy={strategy}
-                            setUpdateStrategies={setUpdateStrategies}
-                            recommendationType={RecommendationType.RECOMMEND_MATRIX_ENTITY_VECTORIZATION}
-                        /> :
-                    strategy.algorithmType === "SciPy Clustering" &&
-                        strategy.strategyTypes.includes(StrategyType.CLASS_VECTORIZATION_STRATEGY) ?
-                        <RecommendMatrixSciPy
-                            softwareSystemId={softwareSystemId}
-                            strategy={strategy}
-                            setUpdateStrategies={setUpdateStrategies}
-                            recommendationType={RecommendationType.RECOMMEND_MATRIX_CLASS_VECTORIZATION}
-                        /> :
-                    strategy.algorithmType === "SciPy Clustering" &&
-                        strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY) ?
-                        <RecommendMatrixSciPy
-                            softwareSystemId={softwareSystemId}
-                            strategy={strategy}
-                            setUpdateStrategies={setUpdateStrategies}
-                            recommendationType={RecommendationType.RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_CALLGRAPH}
-                        /> :
-                    strategy.algorithmType === "SciPy Clustering" &&
-                        strategy.strategyTypes.includes(StrategyType.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY) ?
-                        <RecommendMatrixSciPy
-                            softwareSystemId={softwareSystemId}
-                            strategy={strategy}
-                            setUpdateStrategies={setUpdateStrategies}
-                            recommendationType={RecommendationType.RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES}
-                        /> :
-                    strategy.algorithmType === "SciPy Clustering" &&
-                        strategy.strategyTypes.includes(StrategyType.STRUCTURE_STRATEGY) ?
-                        <RecommendMatrixSciPy
-                            softwareSystemId={softwareSystemId}
-                            strategy={strategy}
-                            setUpdateStrategies={setUpdateStrategies}
-                            recommendationType={RecommendationType.RECOMMEND_MATRIX_SCIPY_STRUCTURE}
-                        /> :
-                    strategy.algorithmType === "SciPy Clustering" &&
-                        <RecommendMatrixSciPy
-                            softwareSystemId={softwareSystemId}
-                            strategy={strategy}
-                            setUpdateStrategies={setUpdateStrategies}
-                            recommendationType={RecommendationType.RECOMMEND_MATRIX_SCIPY}
-                        />
-                    }
+                    <RecommendMatrixSciPy
+                        key={selectedKind}
+                        softwareSystemId={softwareSystemId}
+                        kind={selectedKind}
+                        onDecompositionsCreated={loadDecompositions}
+                    />
 
                     {decompositions.length !== 0 &&
                         <h4 style={{color: "#666666", marginTop: "16px"}}>

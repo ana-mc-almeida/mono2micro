@@ -14,7 +14,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weigh
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyFunctionalityVectorizationByCallGraphDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -37,8 +36,9 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraph() {}
 
-	public SimilarityScipyFunctionalityVectorizationByCallGraph(Strategy strategy, String name, SimilarityScipyFunctionalityVectorizationByCallGraphDto dto) {
-		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
+	public SimilarityScipyFunctionalityVectorizationByCallGraph(String kindName, List<Representation> representations, String name,
+			SimilarityScipyFunctionalityVectorizationByCallGraphDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
 		this.depth = dto.getDepth();
 	}
 
@@ -65,7 +65,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
 	}
@@ -91,15 +91,15 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 	}
 
 	public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
+		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getSoftwareSystem());
 		this.matchEntitiesTranslationIds(codeEmbeddings);
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeMethodCallsFeaturesVectors(matrix, codeEmbeddings);
 
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(),
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(similarity.getSoftwareSystem(),
 				ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), ACCESSES);
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(similarity.getSoftwareSystem(), ACCESSES);
 		matrix.put("translationFileName", idToEntity.getId());
 		matrix.put("accessesFileName", accessesInfo.getId());
 
@@ -268,10 +268,10 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			Set<Short> elements,
 			int totalNumberOfWeights
 	) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getSoftwareSystem());
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(),
 				ID_TO_ENTITY);
-		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(),
+		AccessesRepresentation accessesInfo = (AccessesRepresentation) Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(),
 				ACCESSES);
 
 		int[] weights = new int[totalNumberOfWeights];

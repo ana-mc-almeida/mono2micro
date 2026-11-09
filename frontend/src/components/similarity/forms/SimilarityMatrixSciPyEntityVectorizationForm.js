@@ -2,14 +2,13 @@ import React, {useEffect, useState} from "react";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {APIService} from "../../../services/APIService";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_ENTITY_VECTORIZATION} from "../../../models/similarity/SimilarityScipyEntityVectorization";
+import {APIService} from "../../../services/APIService";
 
 
-export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
-    const service = new APIService();
+export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, kindName, onCreated}) => {
     const [isUploaded, setIsUploaded] = useState("");
     const [linkageType, setLinkageType] = useState("average");
 
@@ -21,15 +20,15 @@ export const SimilarityMatrixSciPyEntityVectorizationForm = ({softwareSystemId, 
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        service.createSimilarity({
-            strategyId: strategy.id,
+        new APIService().createSimilarity(softwareSystemId, {
+            kindName,
             type: SIMILARITY_SCIPY_ENTITY_VECTORIZATION,
             linkageType
         })
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     setIsUploaded("");
-                    setUpdateStrategies({}); // Calls function responsible for updating similarity
+                    onCreated(); // Lets the screen reload its Similarities
                 } else {
                     setIsUploaded("Upload failed.");
                 }

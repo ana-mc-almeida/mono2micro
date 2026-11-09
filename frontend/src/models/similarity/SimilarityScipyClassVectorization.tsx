@@ -3,6 +3,7 @@ import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import {URL} from "../../constants/constants"
 import React from "react";
+import {similarityBase} from "../../services/similarityRoutes";
 
 const SIMILARITY_SCIPY_CLASS_VECTORIZATION = 'SIMILARITY_SCIPY_CLASS_VECTORIZATION';
 export {SIMILARITY_SCIPY_CLASS_VECTORIZATION};
@@ -27,7 +28,7 @@ export default class SimilarityScipyClassVectorization extends Similarity {
                 <Card.Text>
                     Linkage Type: {this.linkageType} < br />
                 </Card.Text>
-                <Button href={`/softwareSystems/${this.softwareSystemId}/${this.strategyId}/${this.id}/decomposition`}
+                <Button href={`${similarityBase(this.softwareSystemId)}/${this.id}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

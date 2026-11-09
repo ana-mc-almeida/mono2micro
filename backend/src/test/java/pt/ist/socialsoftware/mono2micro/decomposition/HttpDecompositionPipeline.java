@@ -60,13 +60,13 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void addRepresentations(String softwareSystemId, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemId, SimilarityCase similarityCase) {
 		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
 
 		// Index-aligned repeated parts: representationTypes[i] describes representations[i].
 		// LinkedHashMap keeps the group's declared order, which the backend relies on only in
 		// that it pairs the two lists by position.
-		for (Map.Entry<String, String> representation : strategyCase.representations().entrySet()) {
+		for (Map.Entry<String, String> representation : similarityCase.representations().entrySet()) {
 			byte[] content = RepresentationFiles.read(caseName, representation.getValue());
 			form.add("representationTypes", representation.getKey());
 			form.add("representations", filePart(content, caseName + representation.getValue()));
@@ -81,70 +81,73 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				new HttpEntity<>(form, headers),
 				String.class,
 				softwareSystemId,
-				strategyCase.representationGroup());
+				similarityCase.representationGroup());
 
 		require(response, HttpStatus.CREATED, "add representations to " + softwareSystemId);
 	}
 
 	@Override
-	public String createStrategy(String softwareSystemId, StrategyCase strategyCase) {
-		// strategyTypes is a repeated query parameter, so a multi-type strategy such as
-		// Repository sends it twice rather than as one comma-joined value.
-		StringBuilder url = new StringBuilder(
-				base + "/softwareSystems/{id}/createStrategy?algorithmType={algorithm}");
-		List<Object> uriVariables = new ArrayList<>();
-		uriVariables.add(softwareSystemId);
-		uriVariables.add("SciPy Clustering");
-
-		for (String strategyType : strategyCase.strategyTypes()) {
-			url.append("&strategyTypes={type").append(uriVariables.size()).append("}");
-			uriVariables.add(strategyType);
-		}
-
-		ResponseEntity<JsonNode> response = rest.postForEntity(
-				url.toString(), null, JsonNode.class, uriVariables.toArray());
-
-		require(response, HttpStatus.CREATED, "create strategy for " + softwareSystemId);
-
-		return response.getBody().path("id").asText();
-	}
-
-	@Override
-	public String createSimilarity(String strategyId, StrategyCase strategyCase) {
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("type", strategyCase.similarityType());
-		body.put("strategyId", strategyId);
-		body.put("linkageType", "average");
-		body.putAll(strategyCase.extraSimilarityFields());
-
-		// Class and Entity Vectorization take no weights: their DTOs have no such field, and
-		// sending one would be silently dropped rather than rejected.
-		if (!strategyCase.weights().isEmpty())
-			body.put("weightsList", strategyCase.weights());
-
+	public String createSimilarity(String softwareSystemId, SimilarityCase similarityCase) {
 		ResponseEntity<JsonNode> response = rest.exchange(
-				base + "/similarity/create",
+				base + "/softwareSystems/{id}/similarities/create",
 				HttpMethod.POST,
-				new HttpEntity<>(body, jsonHeaders()),
-				JsonNode.class);
+				new HttpEntity<>(similarityBody(similarityCase, similarityCase.kindName()), jsonHeaders()),
+				JsonNode.class,
+				softwareSystemId);
 
-		require(response, HttpStatus.CREATED, "create similarity for " + strategyId);
+		require(response, HttpStatus.CREATED, "create similarity on " + softwareSystemId);
 
 		// A duplicate request also returns 201, with the existing similarity.
 		return response.getBody().path("id").asText();
 	}
 
 	/** The status of a Similarity request, for a test that expects it refused. */
-	HttpStatus requestSimilarity(String strategyId, StrategyCase strategyCase) {
-		Map<String, Object> body = new LinkedHashMap<>();
-		body.put("type", strategyCase.similarityType());
-		body.put("strategyId", strategyId);
-		body.put("linkageType", "average");
-		body.putAll(strategyCase.extraSimilarityFields());
-		if (!strategyCase.weights().isEmpty())
-			body.put("weightsList", strategyCase.weights());
+	HttpStatus requestSimilarity(String softwareSystemId, SimilarityCase similarityCase) {
+		return requestSimilarity(softwareSystemId, similarityCase, similarityCase.kindName());
+	}
 
-		return rest.exchange(base + "/similarity/create", HttpMethod.POST, new HttpEntity<>(body, jsonHeaders()), String.class).getStatusCode();
+	/** The status of a request for a Similarity of {@code kindName} with the case's settings, for a test that expects it refused. */
+	HttpStatus requestSimilarity(String softwareSystemId, SimilarityCase similarityCase, String kindName) {
+		return rest.exchange(base + "/softwareSystems/{id}/similarities/create", HttpMethod.POST,
+				new HttpEntity<>(similarityBody(similarityCase, kindName), jsonHeaders()), String.class, softwareSystemId)
+				.getStatusCode();
+	}
+
+	private static Map<String, Object> similarityBody(SimilarityCase similarityCase, String kindName) {
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("type", similarityCase.similarityType());
+		body.put("kindName", kindName);
+		body.put("linkageType", "average");
+		body.putAll(similarityCase.extraSimilarityFields());
+
+		// Class and Entity Vectorization take no weights: their DTOs have no such field, and
+		// sending one would be silently dropped rather than rejected.
+		if (!similarityCase.weights().isEmpty())
+			body.put("weightsList", similarityCase.weights());
+		return body;
+	}
+
+	/** The response to the profile selector's request: the profiles offered for a Similarity of {@code kindName}, or 422 when none is. */
+	ResponseEntity<JsonNode> getOfferedProfiles(String softwareSystemId, String kindName) {
+		return rest.getForEntity(base + "/softwareSystems/{id}/profiles?kindName={kindName}", JsonNode.class, softwareSystemId, kindName);
+	}
+
+	/** The software system's Similarity kinds record: each kind with whether it is offered (D-013). */
+	JsonNode getAvailableSimilarityKinds(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/similarities/available", softwareSystemId).path("features");
+	}
+
+	/** The Similarities created on the software system: those that read its representations. */
+	JsonNode getSimilarities(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/similarities", softwareSystemId);
+	}
+
+	JsonNode getSoftwareSystemDecompositions(String softwareSystemId) {
+		return getJson("/softwareSystems/{id}/getSoftwareSystemDecompositions", softwareSystemId);
+	}
+
+	void deleteRepresentation(String representationId) {
+		rest.delete(base + "/representation/{id}/delete", representationId);
 	}
 
 	@Override

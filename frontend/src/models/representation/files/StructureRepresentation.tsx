@@ -8,17 +8,19 @@ export default class StructureRepresentation extends Representation {
         super(representation);
     }
 
-    printCard(handleDeleteRepresentation: (representation: Representation) => void): JSX.Element {
+    printCard(handleDeleteRepresentation: (representation: Representation) => void, offersProfiles?: boolean): JSX.Element {
         return <Card className={"text-center"} key={this.type} style={{width: '13rem'}}>
             <Card.Header>{this.type}</Card.Header>
             <Card.Body>
-                <Button
-                    href={`/softwareSystems/${this.softwareSystemId}/${this.id}/profiles`}
-                    className="mb-2"
-                >
-                    Profiles
-                </Button>
-                <br/>
+                {offersProfiles && <>
+                    <Button
+                        href={`/softwareSystems/${this.softwareSystemId}/${this.id}/profiles`}
+                        className="mb-2"
+                    >
+                        Profiles
+                    </Button>
+                    <br/>
+                </>}
                 <Button
                     onClick={() => handleDeleteRepresentation(this)}
                     className="mb-2"

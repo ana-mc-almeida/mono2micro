@@ -2,6 +2,8 @@ package pt.ist.socialsoftware.mono2micro.representation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 import org.springframework.web.multipart.MultipartFile;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
@@ -10,9 +12,6 @@ import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowle
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.RepresentationFactory;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -24,12 +23,6 @@ public class RepresentationService {
 	SoftwareSystemRepository softwareSystemRepository;
 
 	@Autowired
-	StrategyService strategyService;
-
-	@Autowired
-	StrategyRepository strategyRepository;
-
-	@Autowired
 	RepresentationRepository representationRepository;
 
 	@Autowired
@@ -37,6 +30,12 @@ public class RepresentationService {
 
 	@Autowired
 	GridFsService gridFsService;
+
+	@Autowired
+	SimilarityService similarityService;
+
+	@Autowired
+	RecommendationService recommendationService;
 
 	public void addRepresentations(String softwareSystemId, String representationInfoType, List<String> representationTypes, List<Object> representations)
 			throws Exception {
@@ -84,14 +83,8 @@ public class RepresentationService {
 
 	public void deleteSingleRepresentation(String representationId) {
 		Representation representation = getRepresentationById(representationId);
-		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(representation.getSoftwareSystem().getId())) {
-			for (String strategyType : strategy.getStrategyTypes()) {
-				if (Strategy.strategiesToRepresentations.get(strategyType).contains(representation.getType())) {
-					strategyService.deleteStrategy(strategy);
-					break;
-				}
-			}
-		}
+		similarityService.deleteSimilaritiesReading(representationId);
+		recommendationService.deleteRecommendationsReading(representationId);
 
 		profileRepository.deleteByRepresentationId(representationId);
 		gridFsService.deleteFile(representation.getId());

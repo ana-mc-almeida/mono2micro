@@ -7,7 +7,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.RepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.ACCESSES_BASED_NAME;
@@ -33,6 +35,9 @@ public class SoftwareSystemServiceAvailabilityTest {
 	@InjectMocks
 	private SoftwareSystemService softwareSystemService;
 
+	@InjectMocks
+	private SimilarityService similarityService;
+
 	@BeforeEach
 	public void givenTheFixtureSoftwareSystemsExist() {
 		MockitoAnnotations.initMocks(this);
@@ -43,32 +48,32 @@ public class SoftwareSystemServiceAvailabilityTest {
 	}
 
 	@Test
-	public void uploadsCarryingAuthorshipDataMakeTheRepositoryStrategyAvailable() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(REPOSITORY_BASED_NAME))
-				.contains(Strategy.REPOSITORY_STRATEGY);
+	public void uploadsCarryingAuthorshipDataMakeTheRepositoryKindAvailable() {
+		assertThat(similarityService.getAvailableKinds(REPOSITORY_BASED_NAME).availableNames())
+				.contains(RepositoryKind.REPOSITORY);
 	}
 
 	@Test
-	public void uploadsWithoutAuthorshipDataWithholdTheRepositoryStrategy() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(ACCESSES_BASED_NAME))
-				.contains(Strategy.ACCESSES_STRATEGY)
-				.doesNotContain(Strategy.REPOSITORY_STRATEGY);
+	public void uploadsWithoutAuthorshipDataWithholdTheRepositoryKind() {
+		assertThat(similarityService.getAvailableKinds(ACCESSES_BASED_NAME).availableNames())
+				.contains(AccessesKind.ACCESSES)
+				.doesNotContain(RepositoryKind.REPOSITORY);
 	}
 
 	@Test
 	public void aSoftwareSystemWithNoUploadsIsOfferedNothing() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(EMPTY_NAME)).isEmpty();
+		assertThat(similarityService.getAvailableKinds(EMPTY_NAME).availableNames()).isEmpty();
 	}
 
 	/**
 	 * The same tool, two software systems, two different answers — the claim D-005 rests on. Asserted
-	 * as a difference rather than as two absolute sets, so it keeps meaning as strategies are
+	 * as a difference rather than as two absolute sets, so it keeps meaning as kinds are
 	 * added.
 	 */
 	@Test
 	public void twoSoftwareSystemsWithDifferentUploadsGetDifferentOffers() {
-		assertThat(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(REPOSITORY_BASED_NAME))
-				.isNotEqualTo(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(ACCESSES_BASED_NAME));
+		assertThat(similarityService.getAvailableKinds(REPOSITORY_BASED_NAME).availableNames())
+				.isNotEqualTo(similarityService.getAvailableKinds(ACCESSES_BASED_NAME).availableNames());
 	}
 
 	@Test

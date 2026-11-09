@@ -12,8 +12,8 @@ import {Redo, Search, Undo} from "@mui/icons-material";
 import {RepositoryViewModal} from "./RepositoryViewModal";
 import Popover from "react-bootstrap/Popover";
 import {ViewSearchBar} from "../utils/ViewSearchBar";
-import {StrategyType} from "../../../models/strategy/StrategyTypes";
 import {RepresentationType} from "../../../models/representation/Representation";
+import {similarityBase} from "../../../services/similarityRoutes";
 
 export const repositoryViewHelp = (<div>
     Double click a node to see its properties.<br />
@@ -30,7 +30,7 @@ export const repositoryViewHelp = (<div>
 </div>);
 
 export const RepositoryView = () => {
-    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
+    let { softwareSystemId, similarityId, decompositionId } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [displayRepository, setDisplayRepository] = useState("none");
@@ -85,10 +85,7 @@ export const RepositoryView = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
-                    {decomposition?.strategyName}
-                </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityId}/decomposition`}>
+                <Breadcrumb.Item href={`${similarityBase(softwareSystemId)}/${similarityId}/decomposition`}>
                     {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
@@ -151,7 +148,7 @@ export const RepositoryView = () => {
             />
 
             <ViewSearchBar
-                viewType={StrategyType.REPOSITORY_STRATEGY}
+                viewType={RepresentationType.REPOSITORY_TYPE}
                 dataFields={['name', 'type', 'cluster', 'entities']}
                 openSearch={openSearch}
                 setOpenSearch={setOpenSearch}

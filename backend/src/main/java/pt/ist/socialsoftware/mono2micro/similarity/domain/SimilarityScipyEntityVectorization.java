@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,7 +14,6 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityTo
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyEntityVectorizationDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Acumulator;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -30,8 +30,8 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 
 	public SimilarityScipyEntityVectorization() {}
 
-	public SimilarityScipyEntityVectorization(Strategy strategy, String name, SimilarityScipyEntityVectorizationDto dto) {
-		super(strategy, name, dto.getLinkageType(), new ArrayList<>());
+	public SimilarityScipyEntityVectorization(String kindName, List<Representation> representations, String name, SimilarityScipyEntityVectorizationDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), new ArrayList<>());
 		this.name = this.getName() + " " + getType() + "()";
 	}
 
@@ -50,7 +50,7 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyAccessesAndRepositoryDto similarityDto = (SimilarityScipyAccessesAndRepositoryDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				similarityDto.getLinkageType().equals(this.linkageType);
 	}
 
@@ -65,8 +65,8 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 	}
 
 	public void generate(GridFsService gridFsService, Similarity similarity) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getStrategy());
+		JSONObject codeEmbeddings = getCodeEmbeddings(similarity.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(similarity.getSoftwareSystem());
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeEntitiesVectors(matrix, codeEmbeddings, entityToId);
@@ -169,10 +169,10 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 		return null;
 	}
 
-	private Map<String, Short> getEntitiesNamesToIds(Strategy strategy) throws IOException {
+	private Map<String, Short> getEntitiesNamesToIds(SoftwareSystem softwareSystem) throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(), ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(softwareSystem, ENTITY_TO_ID);
 		return new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToId.getId()),
 				new TypeReference<Map<String, Short>>() {}
@@ -186,8 +186,8 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 			Set<Short> elements,
 			int totalNumberOfWeights
 	) throws Exception {
-		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getStrategy());
-		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getStrategy());
+		JSONObject codeEmbeddings = getCodeEmbeddings(recommendation.getSoftwareSystem());
+		Map<String, Short> entityToId = getEntitiesNamesToIds(recommendation.getSoftwareSystem());
 
 		HashMap<String, Object> matrix = new HashMap<>();
 		this.computeEntitiesVectors(matrix, codeEmbeddings, entityToId);

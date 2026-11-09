@@ -1,16 +1,17 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.dto;
 
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.RECOMMEND_MATRIX_SCIPY;
-import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.RECOMMEND_MATRIX_SCIPY_STRUCTURE;
-import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
-import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 
+@JsonTypeName(RECOMMEND_MATRIX_SCIPY)
 public class RecommendMatrixSciPyDto extends RecommendationDto {
 	private String linkageType;
 	private Constants.TraceType traceType;
@@ -19,23 +20,11 @@ public class RecommendMatrixSciPyDto extends RecommendationDto {
 
 	public RecommendMatrixSciPyDto() {}
 
-	@Override
-	public String scopedRepresentationType() {
-		switch (getType()) {
-		case RECOMMEND_MATRIX_SCIPY:
-			return ACCESSES;
-		case RECOMMEND_MATRIX_SCIPY_STRUCTURE:
-			return STRUCTURE;
-		default:
-			return null;
-		}
-	}
-
 	public RecommendMatrixSciPyDto(RecommendMatrixSciPy recommendation) {
 		this.setType(recommendation.getType());
 		this.setId(recommendation.getId());
-		this.setStrategyId(recommendation.getStrategy().getId());
-		this.setStrategyName(recommendation.getStrategy().getName());
+		this.setSoftwareSystemId(recommendation.getSoftwareSystem().getId());
+		this.setKindName(recommendation.getKindName());
 		this.name = recommendation.getName();
 		copyProfile(recommendation.getProfile());
 		this.linkageType = recommendation.getLinkageType();
@@ -43,6 +32,11 @@ public class RecommendMatrixSciPyDto extends RecommendationDto {
 		this.isCompleted = recommendation.isCompleted();
 		this.traceType = recommendation.getTraceType();
 		this.weightsList = recommendation.getWeightsList();
+	}
+
+	@Override
+	public List<String> weightsTypes() {
+		return weightsList == null ? Collections.emptyList() : weightsList.stream().map(Weights::getType).collect(Collectors.toList());
 	}
 
 	public String getLinkageType() {

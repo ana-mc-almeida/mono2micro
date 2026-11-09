@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses.SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
 
+@JsonTypeName(SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES)
 public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto extends SimilarityDto {
 	private String linkageType;
 
@@ -18,9 +20,8 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses similarity) {
 		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
-		this.strategyId = similarity.getStrategy().getId();
-		this.strategyName = similarity.getStrategy().getName();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
+		copySource(similarity);
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.linkageType = similarity.getLinkageType();
@@ -28,8 +29,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 	}
 
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+		copyCandidateSource(recommend);
 		this.name = recommend.getName();
 		this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
 		this.linkageType = recommend.getLinkageType();
@@ -38,7 +38,7 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 
 	public String getName() {
 		if (this.name == null) {
-			this.name = this.strategyName + " "
+			this.name = namePrefix() + " "
 					+ "params" + "(" + this.linkageType + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
@@ -54,6 +54,11 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 
 	public void setLinkageType(String linkageType) {
 		this.linkageType = linkageType;
+	}
+
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
 	}
 
 	public List<Weights> getWeightsList() {

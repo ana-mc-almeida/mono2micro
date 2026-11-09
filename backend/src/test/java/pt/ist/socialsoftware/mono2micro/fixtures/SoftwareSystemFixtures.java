@@ -52,7 +52,7 @@ import static org.mockito.Mockito.mock;
  *
  * <pre>
  * stubbed(representationRepository, SoftwareSystemFixtures.all());
- * softwareSystemService.getAllowableSoftwareSystemStrategyTypes(ACCESSES_BASED_NAME);
+ * similarityService.getAvailableKinds(ACCESSES_BASED_NAME);
  * </pre>
  *
  * <p>Fixtures are built fresh on every call, so a test may mutate one without affecting another.

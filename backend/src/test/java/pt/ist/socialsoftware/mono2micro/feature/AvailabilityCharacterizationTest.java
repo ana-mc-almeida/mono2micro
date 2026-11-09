@@ -21,9 +21,17 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEnti
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.RepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.StructureKind;
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,20 +55,18 @@ import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.E
 import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation.ID_TO_ENTITY;
 import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.STRUCTURE_TYPE;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.CLASS_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ENTITY_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.REPOSITORY_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.STRUCTURE_STRATEGY;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.ClassVectorizationKind.CLASS_VECTORIZATION;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.EntityVectorizationKind.ENTITY_VECTORIZATION;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
 
 /**
  * Pins today's availability answers, so that the shared availability check of D-013 and D-019
  * can be shown to give the same ones.
  *
- * <p>Two questions are characterized: which of the seven Similarity kinds (today's strategy
- * types) a set of uploads makes available, and which of them the SciPy algorithm accepts. Each
+ * <p>Two questions are characterized: which of the eight Similarity kinds a set of uploads
+ * makes available, and which of them the SciPy algorithm accepts. Each
  * test asserts the exact answer, offered and withheld alike, and never which map or method
  * produced it. Whatever replaces those internals must keep these answers, except where a test
  * names the decision that changes one.
@@ -75,13 +81,16 @@ public class AvailabilityCharacterizationTest {
 	private static final String ACCESSES_ONLY_NAME = "fixture-accesses-only";
 
 	private static final Set<String> VECTORIZATION_KINDS = Set.of(
-			CLASS_VECTORIZATION_STRATEGY,
-			ENTITY_VECTORIZATION_STRATEGY,
-			FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-			FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY);
+			CLASS_VECTORIZATION,
+			ENTITY_VECTORIZATION,
+			FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
+			FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES);
+
+	/** Accesses and Repository is its own kind beside Repository alone (D-026). */
+	private static final Set<String> REPOSITORY_KINDS = Set.of(RepositoryKind.REPOSITORY, ACCESSES_AND_REPOSITORY);
 
 	private static final Set<String> ALL_KINDS = union(
-			Set.of(ACCESSES_STRATEGY, REPOSITORY_STRATEGY, STRUCTURE_STRATEGY),
+			union(Set.of(AccessesKind.ACCESSES, StructureKind.STRUCTURE), REPOSITORY_KINDS),
 			VECTORIZATION_KINDS);
 
 	/** Every representation type the tool accepts, by type, so a test can leave one out. */
@@ -99,6 +108,9 @@ public class AvailabilityCharacterizationTest {
 
 	@InjectMocks
 	private SoftwareSystemService softwareSystemService;
+
+	@InjectMocks
+	private SimilarityService similarityService;
 
 	@BeforeEach
 	public void givenTheFixtureSoftwareSystemsExist() {
@@ -132,30 +144,44 @@ public class AvailabilityCharacterizationTest {
 	@Test
 	public void accessesBasedUploadsOfferOnlyTheAccessesKind() {
 		assertThat(offeredKinds(ACCESSES_BASED_NAME))
-				.containsExactlyInAnyOrder(ACCESSES_STRATEGY);
+				.containsExactlyInAnyOrder(AccessesKind.ACCESSES);
 	}
 
+	/** Repository alone and Accesses and Repository are two kinds (D-026). */
 	@Test
-	public void repositoryBasedUploadsOfferTheAccessesAndRepositoryKinds() {
+	public void repositoryBasedUploadsOfferTheAccessesAndBothRepositoryKinds() {
 		assertThat(offeredKinds(REPOSITORY_BASED_NAME))
-				.containsExactlyInAnyOrder(ACCESSES_STRATEGY, REPOSITORY_STRATEGY);
+				.containsExactlyInAnyOrderElementsOf(union(Set.of(AccessesKind.ACCESSES), REPOSITORY_KINDS));
 	}
 
 	@Test
 	public void codeEmbeddingsBasedUploadsOfferTheAccessesKindAndTheFourVectorizationKinds() {
 		assertThat(offeredKinds(CODE_EMBEDDINGS_BASED_NAME))
-				.containsExactlyInAnyOrderElementsOf(union(Set.of(ACCESSES_STRATEGY), VECTORIZATION_KINDS));
+				.containsExactlyInAnyOrderElementsOf(union(Set.of(AccessesKind.ACCESSES), VECTORIZATION_KINDS));
 	}
 
 	@Test
 	public void structureBasedUploadsOfferTheAccessesAndStructureKinds() {
 		assertThat(offeredKinds(STRUCTURE_BASED_NAME))
-				.containsExactlyInAnyOrder(ACCESSES_STRATEGY, STRUCTURE_STRATEGY);
+				.containsExactlyInAnyOrder(AccessesKind.ACCESSES, StructureKind.STRUCTURE);
 	}
 
 	@Test
-	public void everyRepresentationUploadedOffersAllSevenKinds() {
+	public void everyRepresentationUploadedOffersAllEightKinds() {
 		assertThat(offeredKinds(EVERYTHING_NAME)).containsExactlyInAnyOrderElementsOf(ALL_KINDS);
+	}
+
+	/**
+	 * What is offered is a kind, not a free combination of criteria, so the Accesses+Structure and Repository+Structure checkbox combinations
+	 * are no longer offered: the first threw while its matrix was built, and in the second Structure added nothing (D-013, O-12). Every
+	 * representation uploaded offers exactly the kinds, and none of them combines Structure with anything.
+	 */
+	@Test
+	public void theTwoBrokenCriteriaCombinationsAreNoLongerOffered() {
+		assertThat(similarityService.getAvailableKinds(EVERYTHING_NAME).getFeatures())
+				.extracting(DerivationRecord.FeatureAvailability::getName)
+				.containsExactlyInAnyOrderElementsOf(ALL_KINDS)
+				.doesNotContain("Accesses and Structure", "Repository and Structure", "Accesses and Repository and Structure");
 	}
 
 	/**
@@ -176,11 +202,11 @@ public class AvailabilityCharacterizationTest {
 		return Stream.of(
 				Arguments.of(ID_TO_ENTITY, Set.of()),
 				Arguments.of(ACCESSES, Set.of()),
-				Arguments.of(ENTITY_TO_ID, Set.of(ACCESSES_STRATEGY, REPOSITORY_STRATEGY)),
-				Arguments.of(CODE_EMBEDDINGS, Set.of(ACCESSES_STRATEGY, REPOSITORY_STRATEGY, STRUCTURE_STRATEGY)),
-				Arguments.of(AUTHOR, without(ALL_KINDS, REPOSITORY_STRATEGY)),
-				Arguments.of(COMMIT, without(ALL_KINDS, REPOSITORY_STRATEGY)),
-				Arguments.of(STRUCTURE, without(ALL_KINDS, STRUCTURE_STRATEGY)));
+				Arguments.of(ENTITY_TO_ID, union(Set.of(AccessesKind.ACCESSES), REPOSITORY_KINDS)),
+				Arguments.of(CODE_EMBEDDINGS, union(Set.of(AccessesKind.ACCESSES, StructureKind.STRUCTURE), REPOSITORY_KINDS)),
+				Arguments.of(AUTHOR, without(ALL_KINDS, REPOSITORY_KINDS)),
+				Arguments.of(COMMIT, without(ALL_KINDS, REPOSITORY_KINDS)),
+				Arguments.of(STRUCTURE, without(ALL_KINDS, Set.of(StructureKind.STRUCTURE))));
 	}
 
 	/**
@@ -196,7 +222,7 @@ public class AvailabilityCharacterizationTest {
 	@Test
 	public void structureIsWithheldWithoutEntityToIdAndItsUploadGroupIsNotSatisfied() {
 		assertThat(offeredKinds(UNGROUPED_STRUCTURE_NAME))
-				.containsExactlyInAnyOrder(ACCESSES_STRATEGY);
+				.containsExactlyInAnyOrder(AccessesKind.ACCESSES);
 		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(UNGROUPED_STRUCTURE_NAME))
 				.doesNotContain(STRUCTURE_TYPE);
 	}
@@ -204,8 +230,13 @@ public class AvailabilityCharacterizationTest {
 	// Similarity kinds the SciPy algorithm accepts
 
 	@Test
-	public void theSciPyAlgorithmAcceptsAllSevenKinds() {
-		assertThat(sciPy().getAlgorithmSupportedStrategyTypes()).containsExactlyInAnyOrderElementsOf(ALL_KINDS);
+	public void theSciPyAlgorithmAcceptsAllEightKinds() {
+		Clustering sciPy = sciPy();
+		AvailabilityContext noSystem = FeatureFamilies.scanned().contextFor(Collections.emptyList());
+
+		assertThat(SelfRegistration.prototypes(SimilarityKind.class).entrySet().stream()
+				.filter(kind -> !AvailabilityCheck.derive(Collections.singletonList(sciPy), noSystem.withInput(kind.getValue())).availableNames().isEmpty())
+				.map(Map.Entry::getKey)).containsExactlyInAnyOrderElementsOf(ALL_KINDS);
 	}
 
 	/**
@@ -218,7 +249,7 @@ public class AvailabilityCharacterizationTest {
 	}
 
 	private List<String> offeredKinds(String softwareSystemId) {
-		return softwareSystemService.getAllowableSoftwareSystemStrategyTypes(softwareSystemId);
+		return similarityService.getAvailableKinds(softwareSystemId).availableNames();
 	}
 
 	private void givenTheRepositoryFinds(Fixture fixture) {
@@ -240,9 +271,9 @@ public class AvailabilityCharacterizationTest {
 		return union;
 	}
 
-	private static Set<String> without(Set<String> kinds, String kind) {
+	private static Set<String> without(Set<String> kinds, Set<String> withheld) {
 		Set<String> without = new HashSet<>(kinds);
-		without.remove(kind);
+		without.removeAll(withheld);
 		return without;
 	}
 }

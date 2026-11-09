@@ -10,9 +10,7 @@ import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.dto.SoftwareSystemDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDto;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
-import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
-import pt.ist.socialsoftware.mono2micro.strategy.dto.StrategyDto;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.List;
@@ -27,9 +25,6 @@ public class SoftwareSystemController {
 
 	@Autowired
 	SoftwareSystemService softwareSystemService;
-
-	@Autowired
-	DecompositionRepository decompositionRepository;
 
 	@GetMapping(value = "/softwareSystems")
 	public ResponseEntity<List<SoftwareSystemDto>> getSoftwareSystems() {
@@ -83,34 +78,6 @@ public class SoftwareSystemController {
 		}
 	}
 
-	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getSoftwareSystemStrategies")
-	public ResponseEntity<List<StrategyDto>> getSoftwareSystemStrategies(@PathVariable String softwareSystemId) {
-		logger.debug("getSoftwareSystemStrategies");
-
-		try {
-			List<StrategyDto> strategies = softwareSystemService.getSoftwareSystemStrategies(softwareSystemId).stream().map(StrategyDto::new)
-					.collect(Collectors.toList());
-			return new ResponseEntity<>(strategies, HttpStatus.OK);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getAllowableSoftwareSystemStrategyTypes")
-	public ResponseEntity<List<String>> getAllowableSoftwareSystemStrategyTypes(@PathVariable String softwareSystemId) {
-		logger.debug("getAllowableSoftwareSystemStrategyTypes");
-
-		try {
-			return new ResponseEntity<>(softwareSystemService.getAllowableSoftwareSystemStrategyTypes(softwareSystemId), HttpStatus.OK);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
 	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getSoftwareSystemDecompositions")
 	public ResponseEntity<List<DecompositionDto>> getSoftwareSystemDecompositions(
 			@PathVariable String softwareSystemId
@@ -119,10 +86,7 @@ public class SoftwareSystemController {
 
 		try {
 			List<DecompositionDto> decompositionDtos = DecompositionDtoFactory.getDecompositionDtos(
-					softwareSystemService.getSoftwareSystemStrategies(softwareSystemId).stream()
-							.flatMap(strategy -> decompositionRepository.findByStrategyId(strategy.getId()).stream())
-							.collect(Collectors.toList())
-			);
+					softwareSystemService.getDecompositions(softwareSystemId));
 			return new ResponseEntity<>(decompositionDtos, HttpStatus.OK);
 
 		} catch (Exception e) {

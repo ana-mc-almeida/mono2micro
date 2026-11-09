@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.commons.lang3.NotImplementedException;
 import org.json.JSONException;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+@JsonTypeName(FunctionalityVectorizationSequenceOfAccessesWeights.FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS)
 public class FunctionalityVectorizationSequenceOfAccessesWeights extends Weights {
 	public static final String FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS = "FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS";
 	private float readMetricWeight;

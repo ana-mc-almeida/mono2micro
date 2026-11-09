@@ -148,8 +148,6 @@ public class SciPyClustering extends Clustering {
 				do {
 					try {
 						Decomposition decomposition = new PartitionsDecomposition();
-						decomposition.setStrategy(recommendation.getStrategy());
-
 						decomposition.setName(similarityMatrixName + "," + numberOfClusters);
 
 						JSONObject clustersJSON = invokePythonCut(decomposition, similarityMatrixName, recommendation.getLinkageType(), "N", numberOfClusters);
@@ -194,8 +192,6 @@ public class SciPyClustering extends Clustering {
 				for (int numberOfClusters = MIN_CLUSTERS; numberOfClusters <= maxClusters; numberOfClusters += CLUSTER_STEP) {
 					try {
 						Decomposition decomposition = new PartitionsDecomposition();
-						decomposition.setStrategy(recommendation.getStrategy());
-
 						decomposition.setName(similarityMatrixName + "," + numberOfClusters);
 
 						JSONObject clustersJSON = invokePythonCut(decomposition, similarityMatrixName, recommendation.getLinkageType(), "N", numberOfClusters);

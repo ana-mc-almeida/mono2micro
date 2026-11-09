@@ -32,4 +32,9 @@ public final class AnyOf extends Requirement {
 	Stream<Class<?>> targets() {
 		return alternatives.stream().flatMap(Requirement::targets);
 	}
+
+	@Override
+	Stream<Class<?>> conjunctTargets() {
+		return Stream.empty();
+	}
 }

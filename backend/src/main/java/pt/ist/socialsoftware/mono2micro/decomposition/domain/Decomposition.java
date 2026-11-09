@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.decomposition.domain;
 
 import org.bson.types.ObjectId;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
@@ -13,7 +14,6 @@ import pt.ist.socialsoftware.mono2micro.operation.rename.RenameOperation;
 import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
 import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 
 import java.util.*;
 
@@ -26,8 +26,6 @@ public abstract class Decomposition {
 	boolean outdated; // Used to avoid long waiting times during interaction
 	Map<String, Object> metrics = new HashMap<>(); // Map<MetricCalculator type, MetricCalculator value>
 	Map<String, Cluster> clusters = new HashMap<>();
-	@DBRef(lazy = true)
-	Strategy strategy;
 	@DBRef
 	Similarity similarity;
 	@DBRef
@@ -39,7 +37,6 @@ public abstract class Decomposition {
 
 	public Decomposition(Similarity similarity) {
 		this.similarity = similarity;
-		this.strategy = similarity.getStrategy();
 	}
 
 	public abstract void setup() throws Exception;
@@ -130,12 +127,9 @@ public abstract class Decomposition {
 		return this.representationInformations.stream().filter(r -> r.getType().equals(type)).findFirst().orElse(null);
 	}
 
-	public Strategy getStrategy() {
-		return strategy;
-	}
-
-	public void setStrategy(Strategy strategy) {
-		this.strategy = strategy;
+	/** The software system it belongs to: its Similarity's. */
+	public SoftwareSystem getSoftwareSystem() {
+		return similarity.getSoftwareSystem();
 	}
 
 	public Similarity getSimilarity() {

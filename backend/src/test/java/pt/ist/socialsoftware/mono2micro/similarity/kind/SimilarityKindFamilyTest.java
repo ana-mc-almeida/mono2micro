@@ -10,16 +10,9 @@ import pt.ist.socialsoftware.mono2micro.feature.FeatureId;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.CLASS_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ENTITY_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.REPOSITORY_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.STRUCTURE_STRATEGY;
 
 /**
- * The 7 Similarity kinds are one family (D-025). No kind is present in a software system; for an input, the family answers with the input's
+ * The 8 Similarity kinds are one family (D-025, D-026). No kind is present in a software system; for an input, the family answers with the input's
  * kind.
  */
 public class SimilarityKindFamilyTest {
@@ -32,13 +25,15 @@ public class SimilarityKindFamilyTest {
 		assertThat(families.familyWithMemberType(SimilarityKind.class)).hasValueSatisfying(family -> assertThat(family.features())
 				.extracting(FeatureId::getName)
 				.containsExactlyInAnyOrder(
-						ACCESSES_STRATEGY,
-						REPOSITORY_STRATEGY,
-						STRUCTURE_STRATEGY,
-						CLASS_VECTORIZATION_STRATEGY,
-						ENTITY_VECTORIZATION_STRATEGY,
-						FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-						FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY));
+						AccessesKind.ACCESSES,
+						RepositoryKind.REPOSITORY,
+						StructureKind.STRUCTURE,
+						ClassVectorizationKind.CLASS_VECTORIZATION,
+						EntityVectorizationKind.ENTITY_VECTORIZATION,
+						FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
+						FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
+						// Accesses and Repository is its own kind beside Repository alone (D-026)
+						AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY));
 	}
 
 	@Test

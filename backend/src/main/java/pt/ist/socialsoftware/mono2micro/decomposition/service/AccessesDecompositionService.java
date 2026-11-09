@@ -88,7 +88,7 @@ public class AccessesDecompositionService {
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		SimilarityScipy similarity = (SimilarityScipy) decomposition.getSimilarity();
 		AccessesRepresentation representation = (AccessesRepresentation) representationRepository
-				.findBySoftwareSystemIdAndType(similarity.getStrategy().getSoftwareSystem().getId(), ACCESSES)
+				.findBySoftwareSystemIdAndType(similarity.getSoftwareSystem().getId(), ACCESSES)
 				.orElseThrow(() -> new RuntimeException("No representation with type " + ACCESSES));
 
 		DirectedAcyclicGraph<LocalTransaction, DefaultEdge> functionalityLocalTransactionsGraph = accessesInformation.getFunctionality(functionalityName)

@@ -20,7 +20,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weigh
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.RepositoryWeights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.StructureWeights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
-import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 
 import java.util.ArrayList;
@@ -46,7 +45,6 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 
 	private final SoftwareSystemService softwareSystemService;
 	private final RepresentationService representationService;
-	private final StrategyService strategyService;
 	private final SimilarityService similarityService;
 	private final DecompositionService decompositionService;
 
@@ -56,14 +54,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	ServiceDecompositionPipeline(
 			SoftwareSystemService softwareSystemService,
 			RepresentationService representationService,
-			StrategyService strategyService,
 			SimilarityService similarityService,
 			DecompositionService decompositionService,
 			String caseName
 	) {
 		this.softwareSystemService = softwareSystemService;
 		this.representationService = representationService;
-		this.strategyService = strategyService;
 		this.similarityService = similarityService;
 		this.decompositionService = decompositionService;
 		this.caseName = caseName;
@@ -80,11 +76,11 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	@Override
-	public void addRepresentations(String softwareSystemId, StrategyCase strategyCase) {
+	public void addRepresentations(String softwareSystemId, SimilarityCase similarityCase) {
 		List<String> types = new ArrayList<>();
 		List<Object> files = new ArrayList<>();
 
-		for (Map.Entry<String, String> representation : strategyCase.representations().entrySet()) {
+		for (Map.Entry<String, String> representation : similarityCase.representations().entrySet()) {
 			byte[] content = RepresentationFiles.read(caseName, representation.getValue());
 			types.add(representation.getKey());
 			files.add(new MockMultipartFile(
@@ -93,26 +89,21 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 
 		try {
 			representationService.addRepresentations(
-					softwareSystemId, strategyCase.representationGroup(), types, files);
+					softwareSystemId, similarityCase.representationGroup(), types, files);
 		} catch (Exception e) {
 			throw new AssertionError("Could not add representations to " + softwareSystemId, e);
 		}
 	}
 
 	@Override
-	public String createStrategy(String softwareSystemId, StrategyCase strategyCase) {
-		return strategyService.createStrategy(softwareSystemId, "SciPy Clustering", strategyCase.strategyTypes()).getId();
-	}
-
-	@Override
-	public String createSimilarity(String strategyId, StrategyCase strategyCase) {
-		SimilarityDto dto = similarityDto(strategyId, strategyCase);
+	public String createSimilarity(String softwareSystemId, SimilarityCase similarityCase) {
+		SimilarityDto dto = similarityDto(similarityCase);
 
 		try {
 			// A duplicate request returns the existing similarity rather than creating one.
-			return similarityService.createSimilarity(dto).getId();
+			return similarityService.createSimilarity(softwareSystemId, dto).getId();
 		} catch (Exception e) {
-			throw new AssertionError("Could not create similarity for " + strategyId, e);
+			throw new AssertionError("Could not create similarity on " + softwareSystemId, e);
 		}
 	}
 
@@ -125,58 +116,58 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	 * Constructing them directly is also why this implementation never exercises the
 	 * {@code @JsonSubTypes} dispatch that {@link HttpDecompositionPipeline} does.
 	 */
-	private SimilarityDto similarityDto(String strategyId, StrategyCase strategyCase) {
-		Map<String, Object> extra = strategyCase.extraSimilarityFields();
+	private SimilarityDto similarityDto(SimilarityCase similarityCase) {
+		Map<String, Object> extra = similarityCase.extraSimilarityFields();
 
-		switch (strategyCase.similarityType()) {
-		case StrategyCase.SIMILARITY_ACCESSES_REPOSITORY: {
+		switch (similarityCase.similarityType()) {
+		case SimilarityCase.SIMILARITY_ACCESSES_REPOSITORY: {
 			SimilarityScipyAccessesAndRepositoryDto dto = new SimilarityScipyAccessesAndRepositoryDto();
-			dto.setStrategyId(strategyId);
+			dto.setKindName(similarityCase.kindName());
 			dto.setLinkageType("average");
 			dto.setProfileId((String) extra.get("profileId"));
 			dto.setTracesMaxLimit((Integer) extra.get("tracesMaxLimit"));
 			dto.setTraceType(Constants.TraceType.valueOf((String) extra.get("traceType")));
-			dto.setWeightsList(weightsList(strategyCase));
+			dto.setWeightsList(weightsList(similarityCase));
 			return dto;
 		}
-		case StrategyCase.SIMILARITY_STRUCTURE: {
+		case SimilarityCase.SIMILARITY_STRUCTURE: {
 			SimilarityScipyStructureDto dto = new SimilarityScipyStructureDto();
-			dto.setStrategyId(strategyId);
+			dto.setKindName(similarityCase.kindName());
 			dto.setLinkageType("average");
 			dto.setProfileId((String) extra.get("profileId"));
 			dto.setTraceType(Constants.TraceType.valueOf((String) extra.get("traceType")));
-			dto.setWeightsList(weightsList(strategyCase));
+			dto.setWeightsList(weightsList(similarityCase));
 			return dto;
 		}
-		case StrategyCase.SIMILARITY_CLASS_VECTORIZATION: {
+		case SimilarityCase.SIMILARITY_CLASS_VECTORIZATION: {
 			SimilarityScipyClassVectorizationDto dto = new SimilarityScipyClassVectorizationDto();
-			dto.setStrategyId(strategyId);
+			dto.setKindName(similarityCase.kindName());
 			dto.setLinkageType("average");
 			return dto;
 		}
-		case StrategyCase.SIMILARITY_ENTITY_VECTORIZATION: {
+		case SimilarityCase.SIMILARITY_ENTITY_VECTORIZATION: {
 			SimilarityScipyEntityVectorizationDto dto = new SimilarityScipyEntityVectorizationDto();
-			dto.setStrategyId(strategyId);
+			dto.setKindName(similarityCase.kindName());
 			dto.setLinkageType("average");
 			return dto;
 		}
-		case StrategyCase.SIMILARITY_FV_CALLGRAPH: {
+		case SimilarityCase.SIMILARITY_FV_CALLGRAPH: {
 			SimilarityScipyFunctionalityVectorizationByCallGraphDto dto = new SimilarityScipyFunctionalityVectorizationByCallGraphDto();
-			dto.setStrategyId(strategyId);
+			dto.setKindName(similarityCase.kindName());
 			dto.setLinkageType("average");
 			dto.setDepth((Integer) extra.get("depth"));
-			dto.setWeightsList(weightsList(strategyCase));
+			dto.setWeightsList(weightsList(similarityCase));
 			return dto;
 		}
-		case StrategyCase.SIMILARITY_FV_SEQUENCE_ACCESSES: {
+		case SimilarityCase.SIMILARITY_FV_SEQUENCE_ACCESSES: {
 			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto = new SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto();
-			dto.setStrategyId(strategyId);
+			dto.setKindName(similarityCase.kindName());
 			dto.setLinkageType("average");
-			dto.setWeightsList(weightsList(strategyCase));
+			dto.setWeightsList(weightsList(similarityCase));
 			return dto;
 		}
 		default:
-			throw new AssertionError("No DTO mapping for similarity type " + strategyCase.similarityType()
+			throw new AssertionError("No DTO mapping for similarity type " + similarityCase.similarityType()
 					+ ". Add one here and in SimilarityFactory.");
 		}
 	}
@@ -188,10 +179,10 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	 * rebuilt as the concrete {@code Weights} subclasses, keyed by the same {@code type}
 	 * literal that {@code WeightsFactory} dispatches on.
 	 */
-	private List<Weights> weightsList(StrategyCase strategyCase) {
+	private List<Weights> weightsList(SimilarityCase similarityCase) {
 		List<Weights> weightsList = new ArrayList<>();
 
-		for (Map<String, Object> weights : strategyCase.weights()) {
+		for (Map<String, Object> weights : similarityCase.weights()) {
 			String type = (String) weights.get("type");
 			switch (type) {
 			case "ACCESSES_WEIGHTS":

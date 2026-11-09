@@ -8,8 +8,17 @@ import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.ClusteringFactory;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ExpertKnowledge;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.RepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.StructureKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.ClassVectorizationKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.EntityVectorizationKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationCallGraphKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationSequenceOfAccessesKind;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
@@ -17,13 +26,6 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.CLASS_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.ENTITY_VECTORIZATION_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.REPOSITORY_STRATEGY;
-import static pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy.STRUCTURE_STRATEGY;
 
 /**
  * One test per family scan: every feature the tool has appears in its family's derivation record,
@@ -40,13 +42,15 @@ public class FamilyScanTest {
 				SelfRegistration.prototypes(SimilarityKind.class).values(), NOTHING_COLLECTED);
 
 		assertThat(record.getFeatures()).extracting(FeatureAvailability::getName).containsExactlyInAnyOrder(
-				ACCESSES_STRATEGY,
-				REPOSITORY_STRATEGY,
-				STRUCTURE_STRATEGY,
-				CLASS_VECTORIZATION_STRATEGY,
-				ENTITY_VECTORIZATION_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_CALLGRAPH_STRATEGY,
-				FUNCTIONALITY_VECTORIZATION_ACCESSES_STRATEGY);
+				AccessesKind.ACCESSES,
+				RepositoryKind.REPOSITORY,
+				StructureKind.STRUCTURE,
+				ClassVectorizationKind.CLASS_VECTORIZATION,
+				EntityVectorizationKind.ENTITY_VECTORIZATION,
+				FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
+				FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
+				// Accesses and Repository is its own kind beside Repository alone (D-026)
+				AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY);
 	}
 
 	@Test
@@ -55,7 +59,7 @@ public class FamilyScanTest {
 				SelfRegistration.prototypes(Clustering.class).values(), NOTHING_COLLECTED);
 
 		assertThat(record.getFeatures()).extracting(FeatureAvailability::getName)
-				.containsExactlyInAnyOrderElementsOf(ClusteringFactory.algorithmTypes);
+				.containsExactly(SciPyClustering.SCIPY);
 	}
 
 	/**
@@ -72,10 +76,28 @@ public class FamilyScanTest {
 		assertThat(sciPy.getFailedRequirements()).containsExactly("requires a Similarity kind as input");
 	}
 
+	/** Every kind the family finds is an input the SciPy algorithm accepts, as the check derives it. */
 	@Test
 	public void sciPyAcceptsEveryKindTheFamilyFinds() {
-		assertThat(SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY).getAlgorithmSupportedStrategyTypes())
-				.containsExactlyElementsOf(SelfRegistration.prototypes(SimilarityKind.class).keySet());
+		Clustering sciPy = SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY);
+
+		for (SimilarityKind kind : SelfRegistration.prototypes(SimilarityKind.class).values())
+			assertThat(AvailabilityCheck.derive(Collections.singletonList(sciPy), NOTHING_COLLECTED.withInput(kind)).availableNames())
+					.as(SelfRegistration.nameOf(kind)).containsExactly(SciPyClustering.SCIPY);
+	}
+
+	/**
+	 * The expert knowledge family finds the profile. Without an input there is no kind to scope, so the record names the kinds a profile can
+	 * scope, all of them alternatives (D-017).
+	 */
+	@Test
+	public void theProfileAppearsInTheExpertKnowledgeRecordWithheldWithoutAKind() {
+		DerivationRecord record = AvailabilityCheck.derive(SelfRegistration.prototypes(ExpertKnowledge.class).values(), NOTHING_COLLECTED);
+
+		assertThat(record.getFeatures()).extracting(FeatureAvailability::getName).containsExactly(Profile.PROFILE);
+		assertThat(record.getFeatures().get(0).getFailedRequirements()).containsExactly("requires any of {an " + AccessesKind.ACCESSES
+				+ " Similarity kind as input, an " + AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY + " Similarity kind as input, a "
+				+ RepositoryKind.REPOSITORY + " Similarity kind as input, a " + StructureKind.STRUCTURE + " Similarity kind as input}");
 	}
 
 	/** What the boot runs: every family, every variable feature on the classpath, and every requirement add up (D-025 point 7). */

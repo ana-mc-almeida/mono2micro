@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
@@ -83,5 +85,44 @@ public class AvailabilityCheckTest {
 				Collections.singletonList(new ExcludesStructure()), test.systemHolding(test.new AccessesUpload()));
 
 		assertThat(record.availableNames()).containsExactly("Excludes structure");
+	}
+
+	/** Needs one upload by name, any upload by family, and one of two uploads: only the first is a feature it needs on its own. */
+	@JsonTypeName("Needs alternatives")
+	class NeedsAlternatives implements VariableFeature {
+		@Override
+		public List<Requirement> requirements() {
+			return Arrays.asList(
+					Requires.of(TestFamilies.Upload.class),
+					Requires.anyOf(Requires.of(TestFamilies.AccessesUpload.class), Requires.of(TestFamilies.StructureUpload.class)),
+					Requires.of(TestFamilies.StructureUpload.class));
+		}
+	}
+
+	@Test
+	public void requireAvailableLetsAnOfferedFeatureThrough() {
+		assertThatCode(() -> AvailabilityCheck.requireAvailable(new NeedsAccesses(), test.systemHolding(test.new AccessesUpload())))
+				.doesNotThrowAnyException();
+	}
+
+	/** The same check that withholds a feature refuses a request for it (D-003). */
+	@Test
+	public void requireAvailableRefusesAWithheldFeatureNamingWhatItFailed() {
+		assertThatThrownBy(() -> AvailabilityCheck.requireAvailable(new NeedsBoth(), test.systemHolding(test.new AccessesUpload())))
+				.isInstanceOfSatisfying(UnavailableFeatureException.class, e -> assertThat(e.getFailedRequirements())
+						.containsExactly("requires a Structure upload"))
+				.hasMessage("Needs both is not available: requires a Structure upload");
+	}
+
+	@Test
+	public void theRequiredFeaturesAreTheFamilysSharedOnesFirst() {
+		assertThat(AvailabilityCheck.requiredFeatures(test.new StructureKind(), test.families))
+				.containsExactly(FeatureId.of(TestFamilies.AccessesUpload.class), FeatureId.of(TestFamilies.StructureUpload.class));
+	}
+
+	@Test
+	public void theRequiredFeaturesLeaveOutFamiliesAndAlternatives() {
+		assertThat(AvailabilityCheck.requiredFeatures(new NeedsAlternatives(), test.families))
+				.containsExactly(FeatureId.of(TestFamilies.StructureUpload.class));
 	}
 }

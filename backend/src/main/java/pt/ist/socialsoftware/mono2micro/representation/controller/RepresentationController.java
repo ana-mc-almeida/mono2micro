@@ -74,13 +74,13 @@ public class RepresentationController {
 	}
 
 	@PostMapping(value = "/softwareSystems/{softwareSystemId}/addRepresentations/{representationInfoType}")
-	public ResponseEntity<HttpStatus> createStrategy(
+	public ResponseEntity<HttpStatus> addRepresentations(
 			@PathVariable String softwareSystemId,
 			@PathVariable String representationInfoType,
 			@Nullable @RequestParam List<String> representationTypes,
 			@Nullable @RequestParam List<Object> representations
 	) {
-		logger.debug("createStrategy");
+		logger.debug("addRepresentations");
 
 		try {
 			representationService.addRepresentations(softwareSystemId, representationInfoType, representationTypes, representations);

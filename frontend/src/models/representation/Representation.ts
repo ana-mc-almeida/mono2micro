@@ -13,8 +13,9 @@ export default abstract class Representation {
         this.inputFile = representation.inputFile;
     }
 
-    // This function is used to be displayed in the context of the software system
-    abstract printCard(handleDeleteRepresentation: (representation: Representation) => void): JSX.Element;
+    // This function is used to be displayed in the context of the software system. offersProfiles: whether the backend
+    // offers profiles on this representation, which the cards of representations with units follow (D-017).
+    abstract printCard(handleDeleteRepresentation: (representation: Representation) => void, offersProfiles?: boolean): JSX.Element;
 }
 
 export enum RepresentationFile {

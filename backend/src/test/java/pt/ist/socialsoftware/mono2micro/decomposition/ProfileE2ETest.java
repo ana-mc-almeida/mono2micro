@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,13 +46,13 @@ class ProfileE2ETest {
 	@BeforeEach
 	void buildASoftwareSystemWithAccesses() {
 		Stack.assumeDecompositionStack();
-		StrategyCase strategyCase = StrategyCase.accesses();
-		List<String> missing = RepresentationFiles.missing(CASE, strategyCase.fixtureSuffixes());
+		SimilarityCase similarityCase = SimilarityCase.accesses();
+		List<String> missing = RepresentationFiles.missing(CASE, similarityCase.fixtureSuffixes());
 		assumeTrue(missing.isEmpty(), "No fixture for " + CASE + ": missing " + String.join(", ", missing));
 
 		pipeline = new HttpDecompositionPipeline(rest, port, CASE);
 		softwareSystem = pipeline.createSoftwareSystem(CASE + "-profiles-" + System.nanoTime());
-		pipeline.addRepresentations(softwareSystem, strategyCase);
+		pipeline.addRepresentations(softwareSystem, similarityCase);
 		accesses = pipeline.representationId(softwareSystem, "Accesses");
 	}
 
@@ -129,9 +130,9 @@ class ProfileE2ETest {
 	void noProfileMeansEveryFunctionality() {
 		List<String> every = strings(pipeline.getProfiles(accesses).path("unassigned"));
 		pipeline.moveUnits(accesses, every.subList(0, 20), pipeline.createProfile(accesses, "Quizzes"));
-		StrategyCase unscoped = StrategyCase.accesses();
+		SimilarityCase unscoped = SimilarityCase.accesses();
 
-		String similarity = pipeline.createSimilarity(pipeline.createStrategy(softwareSystem, unscoped), unscoped);
+		String similarity = pipeline.createSimilarity(softwareSystem, unscoped);
 
 		assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity))).isEqualTo(every);
 	}
@@ -143,7 +144,7 @@ class ProfileE2ETest {
 	@Test
 	@DisplayName("A vectorization Similarity keeps the functionalities moved into a profile")
 	void vectorizationKeepsMovedFunctionalities() {
-		StrategyCase entityVectorization = StrategyCase.entityVectorization();
+		SimilarityCase entityVectorization = SimilarityCase.entityVectorization();
 		assumeTrue(RepresentationFiles.missing(CASE, entityVectorization.fixtureSuffixes()).isEmpty(), "No code embeddings fixture for " + CASE);
 		String system = pipeline.createSoftwareSystem(CASE + "-profiles-vectorization-" + System.nanoTime());
 		try {
@@ -152,9 +153,41 @@ class ProfileE2ETest {
 			List<String> every = strings(pipeline.getProfiles(systemAccesses).path("unassigned"));
 			pipeline.moveUnits(systemAccesses, every.subList(0, 20), pipeline.createProfile(systemAccesses, "Quizzes"));
 
-			String similarity = pipeline.createSimilarity(pipeline.createStrategy(system, entityVectorization), entityVectorization);
+			String similarity = pipeline.createSimilarity(system, entityVectorization);
 
 			assertThat(pipeline.functionalityNames(pipeline.createDecomposition(similarity))).isEqualTo(every);
+		} finally {
+			pipeline.deleteSoftwareSystem(system);
+		}
+	}
+
+	/** The selector lists the profiles of the representation the kind scopes, chosen by the backend (D-017). */
+	@Test
+	@DisplayName("The profile selector lists the Accesses profiles for an Accesses Similarity")
+	void theSelectorListsTheScopedRepresentationsProfiles() {
+		pipeline.createProfile(accesses, "Quizzes");
+
+		ResponseEntity<JsonNode> offered = pipeline.getOfferedProfiles(softwareSystem, "Accesses");
+
+		assertThat(offered.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(offered.getBody()).extracting(profile -> profile.path("name").asText()).containsExactly("Quizzes");
+	}
+
+	/** A crafted request is refused by the same check that hides the profile selector for the kind (D-003, D-017). */
+	@Test
+	@DisplayName("A vectorization Similarity refuses a profile with 422")
+	void vectorizationRefusesAProfile() {
+		SimilarityCase entityVectorization = SimilarityCase.entityVectorization();
+		assumeTrue(RepresentationFiles.missing(CASE, entityVectorization.fixtureSuffixes()).isEmpty(), "No code embeddings fixture for " + CASE);
+		String system = pipeline.createSoftwareSystem(CASE + "-profiles-vectorization-refused-" + System.nanoTime());
+		try {
+			pipeline.addRepresentations(system, entityVectorization);
+			String profile = pipeline.createProfile(pipeline.representationId(system, "Accesses"), "Quizzes");
+
+			assertThat(pipeline.getOfferedProfiles(system, entityVectorization.kindName()).getStatusCode())
+					.as("the selector's list").isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+			assertThat(pipeline.requestSimilarity(system, entityVectorization.withProfile(profile)))
+					.as("the crafted request").isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
 		} finally {
 			pipeline.deleteSoftwareSystem(system);
 		}
@@ -211,7 +244,7 @@ class ProfileE2ETest {
 	@Test
 	@DisplayName("A Similarity refuses a profile of a representation its kind does not read")
 	void wrongRepresentationProfileIsRefused() {
-		StrategyCase structure = StrategyCase.structure();
+		SimilarityCase structure = SimilarityCase.structure();
 		assumeTrue(RepresentationFiles.missing(STRUCTURE_CASE, structure.fixtureSuffixes()).isEmpty(), "No structure fixture for " + STRUCTURE_CASE);
 		HttpDecompositionPipeline structurePipeline = new HttpDecompositionPipeline(rest, port, STRUCTURE_CASE);
 		String system = structurePipeline.createSoftwareSystem(STRUCTURE_CASE + "-profiles-" + System.nanoTime());
@@ -219,13 +252,13 @@ class ProfileE2ETest {
 			structurePipeline.addRepresentations(system, structure);
 			String structureProfile = structurePipeline.createProfile(structurePipeline.representationId(system, "Structure"), "Entities");
 			String accessesProfile = structurePipeline.createProfile(structurePipeline.representationId(system, "Accesses"), "Functionalities");
-			StrategyCase accessesScopedByStructure = StrategyCase.accesses().withProfile(structureProfile);
-			StrategyCase structureScopedByAccesses = structure.withProfile(accessesProfile);
+			SimilarityCase accessesScopedByStructure = SimilarityCase.accesses().withProfile(structureProfile);
+			SimilarityCase structureScopedByAccesses = structure.withProfile(accessesProfile);
 
-			assertThat(structurePipeline.requestSimilarity(structurePipeline.createStrategy(system, accessesScopedByStructure), accessesScopedByStructure))
+			assertThat(structurePipeline.requestSimilarity(system, accessesScopedByStructure))
 					.as("an Accesses Similarity with a Structure profile")
 					.isEqualTo(HttpStatus.BAD_REQUEST);
-			assertThat(structurePipeline.requestSimilarity(structurePipeline.createStrategy(system, structureScopedByAccesses), structureScopedByAccesses))
+			assertThat(structurePipeline.requestSimilarity(system, structureScopedByAccesses))
 					.as("a Structure Similarity with an Accesses profile")
 					.isEqualTo(HttpStatus.BAD_REQUEST);
 		} finally {
@@ -234,8 +267,8 @@ class ProfileE2ETest {
 	}
 
 	private String scopedSimilarity(String profileId) {
-		StrategyCase scoped = StrategyCase.accesses().withProfile(profileId);
-		return pipeline.createSimilarity(pipeline.createStrategy(softwareSystem, scoped), scoped);
+		SimilarityCase scoped = SimilarityCase.accesses().withProfile(profileId);
+		return pipeline.createSimilarity(softwareSystem, scoped);
 	}
 
 	private String profileId(String profileName) {

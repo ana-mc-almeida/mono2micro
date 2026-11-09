@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccessesAndRepository;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
@@ -8,9 +9,9 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccessesAndRepository.SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 
+@JsonTypeName(SIMILARITY_SCIPY_ACCESSES_REPOSITORY)
 public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 	private List<Weights> weightsList;
 	private String linkageType;
@@ -21,9 +22,8 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 
 	public SimilarityScipyAccessesAndRepositoryDto(SimilarityScipyAccessesAndRepository similarity) {
 		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
-		this.strategyId = similarity.getStrategy().getId();
-		this.strategyName = similarity.getStrategy().getName();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
+		copySource(similarity);
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.weightsList = similarity.getWeightsList();
@@ -33,9 +33,9 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		this.traceType = similarity.getTraceType();
 	}
 
-	public SimilarityScipyAccessesAndRepositoryDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+	@Override
+	public void describeCandidate(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
+		copyCandidateSource(recommend);
 		this.type = SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 		this.weightsList = weightsList;
 		copyProfile(recommend.getProfile());
@@ -44,14 +44,9 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		this.traceType = recommend.getTraceType();
 	}
 
-	@Override
-	public String scopedRepresentationType() {
-		return ACCESSES;
-	}
-
 	public String getName() {
 		if (this.name == null) {
-			this.name = this.strategyName + " "
+			this.name = namePrefix() + " "
 					+ "params" + "(" + this.linkageType + "," + profileLabel() + "," + this.tracesMaxLimit + "," + this.traceType + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
@@ -59,6 +54,11 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 		}
 
 		return this.name;
+	}
+
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
 	}
 
 	public List<Weights> getWeightsList() {

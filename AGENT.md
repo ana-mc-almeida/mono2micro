@@ -115,7 +115,7 @@ make build
     `InMemoryHistory`, and **Gap 7** in `../implementation/docs/gap-analysis.md` for the
     findings they pin.
   - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test),
-    `DecompositionE2ETest`, which drives the real pipeline for every case x strategy
+    `DecompositionE2ETest`, which drives the real pipeline for every case x Similarity kind
     combination and pins the clusters each produces, and `PipelineCharacterizationE2ETest`,
     which pins manual editing, undo/redo, metrics, MoJo/Purity, expert import and the
     Context Mapper export over REST. **Needs the stack up** —
@@ -344,7 +344,7 @@ beans and reach services through the static `<pkg>/fileManager/ContextManager.ja
 Every entity has a generated id (an ObjectId hex string, set at construction); `name` is a
 display field. GridFS files and REST routes are keyed by id. References go from child to
 parent only, and a parent finds its children by repository query (`findBySoftwareSystemId`,
-`findByStrategyId`, `findBySimilarityId`) — no class keeps a list of its children (D-016),
+`findByRepresentations_Id`, `findBySimilarityId`) — no class keeps a list of its children (D-016),
 except `Decomposition.history` and the information blocks' functionality map, which tickets
 10–12 replace (D-024).
 
@@ -352,19 +352,21 @@ except `Decomposition.history` and the information blocks' functionality map, wh
 SoftwareSystem
 ├── Representation*        (imported collector files; at most one per kind)
 │   └── Profile*           (a named selection of its units; immutable — D-017)
-└── Strategy*              (a decomposition approach)
-    ├── Similarity*  ──►  Dendrogram (built by SciPy), Profile? (null: every unit)
-    ├── Recommendation*  ──►  Profile? (null: every unit)
-    └── Decomposition*
-        ├── Cluster / Partition ──► Element (DomainEntity)
-        ├── RepresentationInformation*
-        ├── Operation*  (undo/redo via History)
-        └── metrics: Map<String, Object>
+├── Similarity*            (of one kind)  ──►  Representation+ (those its kind reads),
+│   │                                         Dendrogram (built by SciPy), Profile? (null: every unit)
+│   └── Decomposition*
+│       ├── Cluster / Partition ──► Element (DomainEntity)
+│       ├── RepresentationInformation*
+│       ├── Operation*  (undo/redo via History)
+│       └── metrics: Map<String, Object>
+└── Recommendation*        (of one kind)  ──►  Representation+, Profile? (null: every unit)
 ```
 
 The tree reads parent → child, but each arrow is stored the other way, as a `@DBRef` on the
-child. References to concrete types (`SoftwareSystem`, `Strategy`, `Profile`) are lazy;
-references to abstract types (`Decomposition.similarity`, `Profile.representation`) stay
+child. A Similarity stores no software system: its software system is its representations'
+(D-016), so the system's Similarities are those that read its representations. References to
+concrete types (`SoftwareSystem`, `Profile`) are lazy; references to abstract types
+(`Decomposition.similarity`, `Similarity.representations`, `Profile.representation`) stay
 eager, because a lazy proxy subclasses the declared type and cannot be downcast (D-024).
 A service that needs a software system's representation of some kind calls
 `RepresentationRepository.findBySoftwareSystemIdAndType`; domain code still calls
@@ -376,9 +378,9 @@ A service that needs a software system's representation of some kind calls
 | ------- | -------- | ----- |
 | **SoftwareSystem** | `<pkg>/softwareSystem/` | Top-level container `{id, name}`; REST under `/softwareSystems`. Not `System`, because of `java.lang.System` |
 | **Representation** | `<pkg>/representation/` | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
-| **Strategy** | `<pkg>/strategy/domain/` | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations |
-| **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves |
-| **Profile** | `<pkg>/refactoring/domainKnowledge/expertKnowledge/` | _Expert knowledge_ (D-017): `{id, name, units, representation, retired}`, a named selection of a representation's units that scopes a Similarity or recommendation. **Immutable**: a move saves new versions of the profiles it changes; discarding one (by a move or a delete) retires it while a Similarity or recommendation uses it, and deletes it otherwise. Unassigned is computed, never stored. `Similarity.profile` and `Recommendation.profile` are nullable, and null means every unit; consumers go through `Profile.unitsOf`. A representation lists its units with `Representation.readUnits` (null: no profile can scope it). Endpoints in `ProfileController`. The repositories query `existsByProfile_Id`: the underscore walks the reference, since a plain `ProfileId` clashes with the `getProfileId()` getter |
+| **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves. Holds `kindName` and the `representations` its kind reads, and is unique on them, its profile, settings and weights (D-010, D-016). Made on the software system: `GET /softwareSystems/{id}/similarities/available` is the kinds' derivation record, `POST …/similarities/create` refuses a kind the system does not offer with 422 |
+| **Similarity kind** | `<pkg>/similarity/kind/` | 8 kinds, each a `VariableFeature` of `SimilarityKindFamily` named by its `@JsonTypeName`. A kind declares what it requires, the `SimilarityScipy` type that computes it (`similarityType()`), its `informationBlocks()`, its `weightsTypes()`, and where they apply `scopedRepresentationType()` (the representation a profile of it selects) and `requiresClusterTypeConversion()`. `SimilarityKind.getByName` finds one |
+| **Profile** | `<pkg>/refactoring/domainKnowledge/expertKnowledge/` | _Expert knowledge_ (D-017): `{id, name, units, representation, retired}`, a named selection of a representation's units that scopes a Similarity or recommendation. **Immutable**: a move saves new versions of the profiles it changes; discarding one (by a move or a delete) retires it while a Similarity or recommendation uses it, and deletes it otherwise. Unassigned is computed, never stored. `Similarity.profile` and `Recommendation.profile` are nullable, and null means every unit; consumers go through `Profile.unitsOf`. A representation lists its units with `Representation.readUnits` (null: no profile can scope it). Endpoints in `ProfileController`. `Profile` is the one feature of `ExpertKnowledgeFamily` (member type `ExpertKnowledge`): it requires any kind that declares a `scopedRepresentationType()`, so the selector (`GET /softwareSystems/{id}/profiles/available?kindName=`, then `GET …/profiles?kindName=` for the list) and the Profiles button (`GET …/profiles/representationTypes`) follow the kinds, and a profile on a kind that takes none is a 422. The repositories query `existsByProfile_Id`: the underscore walks the reference, since a plain `ProfileId` clashes with the `getProfileId()` getter |
 | **Weights** | `<pkg>/similarity/domain/similarityMatrix/weights/` | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100` |
 | **Clustering** | `<pkg>/clusteringAlgorithm/` | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions |
 | **Decomposition** | `<pkg>/decomposition/domain/` | Abstract; one subclass `PartitionsDecomposition`. `metrics` is a `Map<String,Object>` keyed by metric type |
@@ -387,15 +389,14 @@ A service that needs a software system's representation of some kind calls
 | **Metrics** | `<pkg>/qualityAssessment/metrics/` | `singleDecomposition/` (Cohesion, Complexity, Coupling, Performance, TSR), with `functionality/` and `functionalityRedesign/` under it |
 | **Operation** | `<pkg>/operation/` | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/` |
 | **comparisonTool** | `<pkg>/qualityAssessment/metrics/severalDecompositions/` | MoJoFM and Purity; vendored MoJo in `mojo/` |
-| **VariableFeature** | `<pkg>/feature/` | A feature's `requirements()` and an always-empty `excludes()`, read by the one `AvailabilityCheck` into a derivation record (D-019, D-025). The context is the set of present features: built once per software system by asking each family which of its features the system holds, and extended by `withInput`, which asks the families again for an input; every requirement is then a lookup in that set. A requirement has three shapes, all built in `feature/`: `Requires.of(FeatureClass.class)` (that feature), `Requires.of(MemberType.class)` (some feature of that family, as SciPy's `Requires.of(SimilarityKind.class)`), and `Requires.anyOf(...)` over either. Its record line is generated from the family's label. Every feature belongs to one `FeatureFamily`, which lives with the data and decides presence: `representation/RepresentationKindFamily`, `similarity/kind/SimilarityKindFamily` (shares IDToEntity and Accesses), `clusteringAlgorithm/ClusteringAlgorithmFamily`. A feature's id is its class and its name its `@JsonTypeName`; `utils/SelfRegistration` scans features and families. `feature/` imports no module (D-022), and `FeatureRegistrationCheck` fails the boot when the families do not add up |
+| **VariableFeature** | `<pkg>/feature/` | A feature's `requirements()` and an always-empty `excludes()`, read by the one `AvailabilityCheck` into a derivation record (D-019, D-025). The context is the set of present features: built once per software system by asking each family which of its features the system holds, and extended by `withInput`, which asks the families again for an input; every requirement is then a lookup in that set. A requirement has three shapes, all built in `feature/`: `Requires.of(FeatureClass.class)` (that feature), `Requires.of(MemberType.class)` (some feature of that family, as SciPy's `Requires.of(SimilarityKind.class)`), and `Requires.anyOf(...)` over either. Its record line is generated from the family's label. Every feature belongs to one `FeatureFamily`, which lives with the data and decides presence: `representation/RepresentationKindFamily`, `similarity/kind/SimilarityKindFamily` (shares IDToEntity and Accesses), `clusteringAlgorithm/ClusteringAlgorithmFamily`, `refactoring/domainKnowledge/expertKnowledge/ExpertKnowledgeFamily`. A feature's id is its class and its name its `@JsonTypeName`; `utils/SelfRegistration` scans features and families. `feature/` imports no module (D-022), and `FeatureRegistrationCheck` fails the boot when the families do not add up |
 <!-- prettier-ignore-end -->
 
 ## Extension points
 
 Every extensible axis is a `*Factory` dispatching on a type string:
 `RepresentationFactory`, `SimilarityFactory` / `SimilarityScipyFactory`,
-`ClusteringFactory`, `RecommendationFactory`, `WeightsFactory`,
-`RepresentationInformationFactory`.
+`ClusteringFactory`, `RecommendationFactory`, `WeightsFactory`.
 
 The Python side documents its own seam in `scripts/main.py:20`:
 
@@ -411,15 +412,13 @@ The Python side documents its own seam in `scripts/main.py:20`:
    `requirements()`. `Requires.of(SimilarityKind.class)` accepts every kind, as SciPy
    does; a kind's class, or a `Requires.anyOf` of several, accepts only those.
    `ClusteringAlgorithmFamily` claims the new class without an edit.
-2. Register in `ClusteringFactory` — **both** the `switch` **and** the
-   `algorithmTypes` list. The frontend reads that list via
-   `GET /mono2micro/clustering/{algorithmType}/getAlgorithmSupportedStrategyTypes`.
+2. Register in `ClusteringFactory`'s `switch`.
 3. New numerics: add a router in `scripts/`, `include_router` it in `scripts/main.py`,
    call it over `WebClient` the way `SciPyClustering` does.
 
 That requirement is how "not every algorithm supports every Similarity kind" is
-expressed: `getAlgorithmSupportedStrategyTypes()` runs it through the shared availability
-check once per kind.
+expressed: the shared availability check reads it with the kind as input
+(`FamilyScanTest.sciPyAcceptsEveryKindTheFamilyFinds` asks it once per kind).
 
 ### New metric
 
@@ -441,25 +440,35 @@ if a profile can select its units → case in
 → matching `RepresentationInformation` subclass + factory case → frontend
 `models/representation/files/` + `RepresentationFactory.ts`.
 
-### New similarity generator — budget for ~9 files
+### New Similarity kind
 
-The type string is duplicated across five registries and mirrored in TypeScript:
+A kind computed by an existing `SimilarityScipy` type (another weighting of the Accesses
+family, say) needs three places:
 
-1. `<pkg>/similarity/domain/SimilarityScipyXxx.java` — subclass `SimilarityScipy`
-2. `<pkg>/similarity/domain/SimilarityFactory.java` — case
-3. `<pkg>/similarity/domain/SimilarityScipyFactory.java` — case
-4. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` + `@JsonSubTypes` in `SimilarityDto.java`
-5. `<pkg>/recommendation/domain/RecommendationsType.java` + `RecommendationFactory`
-6. `<pkg>/strategy/domain/Strategy.java` — constant + entries in **both** static maps
-   (`strategiesToRepresentations` now feeds only the representation delete cascade)
-7. `<pkg>/similarity/kind/XxxKind.java` — `@JsonTypeName` + `requirements()` for what it
-   needs beyond the IDToEntity and Accesses representations its family shares.
-   `SimilarityKindFamily` finds it, and SciPy accepts it with no edit
-8. If new weight dimensions: `.../weights/XxxWeights.java` + `@JsonSubTypes` in
-   `Weights.java` + `WeightsFactory` case
-9. Frontend: `models/similarity/` + `SimilarityFactory.ts`, `StrategyTypes.ts`,
-   `RecommendationTypes.ts` + `RecommendationFactory.ts`, `models/weights/` +
-   `WeightsFactory.ts`, a form under `components/similarity/forms/`
+1. `<pkg>/similarity/kind/XxxKind.java` — subclass `SimilarityKind`, its name as
+   `@JsonTypeName`, `requirements()` for what it needs beyond the IDToEntity and Accesses
+   representations its family shares, `similarityType()`, `informationBlocks()` and
+   `weightsTypes()`; `scopedRepresentationType()` if a profile can scope it, and
+   `requiresClusterTypeConversion()` if its recommendation's clusters need it.
+   `SimilarityKindFamily` finds it, SciPy accepts it, and `Profile` offers itself for it, all
+   with no edit
+2. Frontend: its name in `models/similarity/SimilarityKinds.ts`, its form in
+   `components/similarity/forms/similarityForms.js`, its default weights in
+   `WeightsFactory.getWeightListByKind`
+3. If new weight dimensions: `.../weights/XxxWeights.java` — `@JsonTypeName`; the scan makes
+   it a JSON subtype and `WeightsFactory` builds it by name; and its frontend twin under
+   `models/weights/`
+
+A kind with a new computation also needs its type string in these registries:
+
+4. `<pkg>/similarity/domain/SimilarityScipyXxx.java` — subclass `SimilarityScipy`
+5. `<pkg>/similarity/domain/SimilarityFactory.java` — case
+6. `<pkg>/similarity/domain/SimilarityScipyFactory.java` — case (a recommendation's candidates)
+7. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` — `@JsonTypeName`; the self-registration
+   scan makes it a JSON subtype of `SimilarityDto` (`JsonSubtypeConfiguration`). Override
+   `describeCandidate` if a recommendation's candidates should be saveable (Gap 9, D-027)
+8. Frontend: `models/similarity/` + `SimilarityFactory.ts`, and a form under
+   `components/similarity/forms/`
 
 Miss one and the variant fails at runtime rather than compile time. This fan-out is a
 known finding, not an accident of your change — see

@@ -20,7 +20,6 @@ import SoftwareSystem from "../models/softwareSystem/SoftwareSystem";
 import {RecommendationFactory} from "../models/recommendation/RecommendationFactory";
 import Recommendation from "../models/recommendation/Recommendation";
 import Representation from "../models/representation/Representation";
-import Strategy from "../models/strategy/Strategy";
 
 export class APIService {
     axios: AxiosInstance;
@@ -52,9 +51,9 @@ export class APIService {
 
     // Recommendation
     recommendation(
-        requestedStrategyRecommendation: Recommendation
+        requestedRecommendation: Recommendation
     ) {
-        return this.axios.put("recommendation/createRecommendation", requestedStrategyRecommendation)
+        return this.axios.put("recommendation/createRecommendation", requestedRecommendation)
             .then((response) => {return RecommendationFactory.getRecommendation(response.data)});
     }
 
@@ -92,11 +91,6 @@ export class APIService {
         return this.axios.get("/softwareSystems/" + softwareSystemId).then(response => new SoftwareSystem(response.data));
     }
 
-    getSoftwareSystemStrategies(softwareSystemId: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemStrategies")
-            .then(response => {return response.data.map((strategy:any) => new Strategy(strategy))});
-    }
-
     getSoftwareSystemDecompositions(softwareSystemId: string) {
         return this.axios.get<Decomposition[]>("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemDecompositions");
     }
@@ -117,6 +111,24 @@ export class APIService {
 
     getRepresentationGroups() {
         return this.axios.get("/softwareSystems/getRepresentationGroups");
+    }
+
+    // Whether a profile is offered for a Similarity of the kind: the Profile feature's derivation record (D-017).
+    isProfileOffered(softwareSystemId: string, kindName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/profiles/available", {params: {kindName}}).then(
+            response => response.data.features.some((feature: { available: boolean }) => feature.available));
+    }
+
+    // The profiles a Similarity of the kind can be scoped by: those of the representation the backend says the kind scopes.
+    getOfferedProfiles(softwareSystemId: string, kindName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/profiles", {params: {kindName}}).then(
+            response => response.data);
+    }
+
+    // The types of the software system's representations whose cards link to their profiles.
+    getProfiledRepresentationTypes(softwareSystemId: string) {
+        return this.axios.get<string[]>("/softwareSystems/" + softwareSystemId + "/profiles/representationTypes").then(
+            response => response.data);
     }
 
     // Profiles
@@ -210,58 +222,22 @@ export class APIService {
             response => { return SimilarityFactory.getSimilarity(response.data); });
     }
 
-    createSimilarity(similarity: Similarity) {
-        return this.axios.post("/similarity/create", similarity);
+    // A Similarity of a kind, on the software system. A kind the software system does not offer is refused with 422, and a type or
+    // weights the kind is not computed with with 400.
+    createSimilarity(softwareSystemId: string, similarity: Similarity) {
+        return this.axios.post("/softwareSystems/" + softwareSystemId + "/similarities/create", similarity);
     }
 
-    getAllowableSoftwareSystemStrategyTypes(softwareSystemId: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemId + "/getAllowableSoftwareSystemStrategyTypes");
+    // The derivation record: every Similarity kind, with whether the software system offers it (D-013).
+    getAvailableSimilarityKinds(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/similarities/available").then(
+            response => response.data.features);
     }
 
-    getAlgorithmSupportedStrategyTypes(algorithmType: string) {
-        return this.axios.get("/clustering/" + algorithmType + "/getAlgorithmSupportedStrategyTypes");
-    }
-
-
-    //Strategies
-    createStrategy(
-        softwareSystemId: string,
-        strategyRepresentations: string[],
-        strategyAlgorithm: string
-    ) {
-        const config = {
-            headers: {
-                'content-type': 'multipart/form-data'
-            }
-        }
-        const data = new FormData();
-        strategyRepresentations.forEach(repr => data.append("strategyTypes", repr));
-        data.append("algorithmType", strategyAlgorithm);
-
-        return this.axios.post("/softwareSystems/" + softwareSystemId + "/createStrategy", data, config);
-    }
-
-    getAlgorithms() {
-        return this.axios.get("/strategy/getAlgorithms");
-    }
-
-    getStrategySimilarities(strategyId: string) {
-        return this.axios.get("/strategy/" + strategyId + "/getStrategySimilarities").then(
+    // The Similarities made on the software system.
+    getSimilarities(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/similarities").then(
             response => response.data.map((similarity: any) => SimilarityFactory.getSimilarity(similarity)));
-    }
-
-    getStrategyDecompositions(strategyId: string) {
-        return this.axios.get("/strategy/" + strategyId + "/getStrategyDecompositions").then(
-            response => response.data.map((decomposition: any) => DecompositionFactory.getDecomposition(decomposition)));
-    }
-
-    getStrategy(strategyId: string) {
-        return this.axios.get("/strategy/" + strategyId + "/getStrategy").then(
-            response => new Strategy(response.data));
-    }
-
-    deleteStrategy(strategyId: string) {
-        return this.axios.delete<null>("/strategy/" + strategyId + "/delete");
     }
 
     getEdgeWeights(decompositionId: string, viewType: string) {

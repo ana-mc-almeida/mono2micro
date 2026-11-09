@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
@@ -13,6 +14,7 @@ import java.util.*;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation.AUTHOR;
 import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation.COMMIT;
 
+@JsonTypeName(RepositoryWeights.REPOSITORY_WEIGHTS)
 public class RepositoryWeights extends Weights {
 	public static final String REPOSITORY_WEIGHTS = "REPOSITORY_WEIGHTS";
 	private float authorMetricWeight;
@@ -92,10 +94,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), AUTHOR).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getSoftwareSystem(), AUTHOR).getId()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getStrategy().getSoftwareSystem(), COMMIT).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(similarity.getSoftwareSystem(), COMMIT).getId()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 
@@ -104,10 +106,10 @@ public class RepositoryWeights extends Weights {
 			throws IOException {
 		fillRawMatrix(rawMatrix, elements, fillFromIndex,
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), AUTHOR).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(), AUTHOR).getId()),
 						new TypeReference<Map<Short, ArrayList<String>>>() {}),
 				new ObjectMapper().readValue(
-						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getStrategy().getSoftwareSystem(), COMMIT).getId()),
+						gridFsService.getFileAsString(Representation.ofSoftwareSystem(recommendation.getSoftwareSystem(), COMMIT).getId()),
 						new TypeReference<Map<String, Map<String, Integer>>>() {}));
 	}
 

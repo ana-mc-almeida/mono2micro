@@ -3,18 +3,16 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import FormControl from "react-bootstrap/FormControl";
-import {APIService} from "../../../services/APIService";
 import Button from "react-bootstrap/Button";
 import HttpStatus from "http-status-codes";
-import {RepresentationFile} from "../../../models/representation/Representation";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType, RepresentationInfoParameters} from "../../../type-declarations/types";
 import {SIMILARITY_SCIPY_ACCESSES_REPOSITORY} from "../../../models/similarity/SimilarityScipyAccessesAndRepository";
+import {APIService} from "../../../services/APIService";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdateStrategies}) => {
-    const service = new APIService();
+export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, onCreated}) => {
     const [isUploaded, setIsUploaded] = useState("");
     const [profileId, setProfileId] = useState(null);
     const [linkageType, setLinkageType] = useState("average");
@@ -25,15 +23,15 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByStrategyType(strategy.strategyTypes));
+        setWeightsList(WeightsFactory.getWeightListByKind(kindName));
     }, [])
 
     function handleSubmit(event) {
         event.preventDefault();
         setIsUploaded("Uploading...");
 
-        service.createSimilarity({
-            strategyId: strategy.id,
+        new APIService().createSimilarity(softwareSystemId, {
+            kindName,
             type: SIMILARITY_SCIPY_ACCESSES_REPOSITORY,
             weightsList,
             profileId,
@@ -44,7 +42,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
             .then(response => {
                 if (response.status === HttpStatus.CREATED) {
                     setIsUploaded("");
-                    setUpdateStrategies({}); // Calls function responsible for updating similarity
+                    onCreated(); // Lets the screen reload its Similarities
                 } else {
                     setIsUploaded("Upload failed.");
                 }
@@ -93,7 +91,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, strategy, setUpdate
             <Form onSubmit={handleSubmit} className="mt-2 mb-3">
                 <ProfileSelect
                     softwareSystemId={softwareSystemId}
-                    representationType={RepresentationFile.ACCESSES}
+                    kindName={kindName}
                     profileId={profileId}
                     setProfileId={setProfileId}
                 />

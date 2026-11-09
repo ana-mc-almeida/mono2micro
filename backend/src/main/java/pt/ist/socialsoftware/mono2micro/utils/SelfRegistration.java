@@ -3,7 +3,9 @@ package pt.ist.socialsoftware.mono2micro.utils;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
+import org.springframework.core.type.filter.TypeFilter;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -108,8 +110,28 @@ public final class SelfRegistration {
 
 	/** Every concrete class assignable to {@code type}, in class-name order. */
 	public static <T> List<Class<? extends T>> types(Class<T> type) {
+		return scanTypes(new AssignableTypeFilter(type), type);
+	}
+
+	/**
+	 * Every concrete class that declares a {@code @JsonTypeName}, in class-name order, so that a polymorphic JSON type finds its subtypes here
+	 * rather than in an {@code @JsonSubTypes} list (D-019 point 8).
+	 */
+	public static List<Class<?>> namedTypes() {
+		return new ArrayList<>(scanTypes(new AnnotationTypeFilter(JsonTypeName.class, false), Object.class));
+	}
+
+	/** A new member of {@code family} named {@code name}, for a caller that needs its own copy rather than the shared prototype. */
+	public static <T> T newMember(Class<T> family, String name) {
+		T prototype = prototypes(family).get(name);
+		if (prototype == null)
+			throw new IllegalArgumentException("No " + family.getSimpleName() + " is named \"" + name + "\"");
+		return family.cast(instantiate(prototype.getClass()));
+	}
+
+	private static <T> List<Class<? extends T>> scanTypes(TypeFilter filter, Class<T> type) {
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-		scanner.addIncludeFilter(new AssignableTypeFilter(type));
+		scanner.addIncludeFilter(filter);
 		List<Class<? extends T>> types = new ArrayList<>();
 		for (BeanDefinition candidate : scanner.findCandidateComponents(BASE_PACKAGE))
 			types.add(load(candidate.getBeanClassName(), type));

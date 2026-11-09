@@ -111,7 +111,7 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
                     className={"d-block mb-4"}
                     width="70%"
                     src={URL + "/similarity/" + similarityId + "/image?" + new Date().getTime()}
-                    alt="Strategy"
+                    alt="Dendrogram"
                 />
 
                 <Form.Group as={Row} controlId="height" className="mb-3">

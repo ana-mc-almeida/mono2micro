@@ -1,6 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.domain;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,7 +18,6 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityTo
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
@@ -38,23 +38,19 @@ public abstract class SimilarityScipy extends Similarity {
 
 	public SimilarityScipy() {}
 
-	public SimilarityScipy(Strategy strategy, String name, String linkageType, List<Weights> weightsList) {
-		super(strategy, name);
+	public SimilarityScipy(String kindName, List<Representation> representations, String name, String linkageType, List<Weights> weightsList) {
+		super(kindName, representations, name);
 		this.linkageType = linkageType;
 		this.weightsList = weightsList;
 	}
 
 	/** A temporary similarity for a recommendation; its matrices are keyed by the recommendation's id. */
-	// FIXME (ticket 09): recommendations should not need a temporary similarity; remove this constructor once a recommendation finds or creates its Similarity
+	// FIXME (ticket 10): recommendations should not need a temporary similarity; remove this constructor once the recommendation run and its candidates go
+	// through SciPyOperation
 	public SimilarityScipy(RecommendMatrixSciPy recommendation) {
-		this(recommendation.getStrategy(), recommendation.getName(), recommendation.getLinkageType(), recommendation.getWeightsList());
+		this(recommendation.getKindName(), recommendation.getRepresentations(), recommendation.getName(), recommendation.getLinkageType(),
+				recommendation.getWeightsList());
 		this.id = recommendation.getId();
-	}
-
-	public SimilarityScipy(Strategy strategy, String name, RecommendMatrixSciPy recommendation) {
-		super(strategy, name);
-		this.linkageType = recommendation.getLinkageType();
-		this.weightsList = recommendation.getWeightsList();
 	}
 
 	@Override
@@ -65,13 +61,13 @@ public abstract class SimilarityScipy extends Similarity {
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ID_TO_ENTITY);
+		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getSoftwareSystem(), ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
 	}
 
 	public Map<String, Short> getEntityToId() throws IOException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(getStrategy().getSoftwareSystem(), ENTITY_TO_ID);
+		EntityToIDRepresentation entityToId = (EntityToIDRepresentation) Representation.ofSoftwareSystem(getSoftwareSystem(), ENTITY_TO_ID);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(entityToId.getId()), new TypeReference<Map<String, Short>>() {});
 	}
 
@@ -97,10 +93,10 @@ public abstract class SimilarityScipy extends Similarity {
 		}
 	}
 
-	public JSONObject getCodeEmbeddings(Strategy strategy) throws IOException, JSONException {
+	public JSONObject getCodeEmbeddings(SoftwareSystem softwareSystem) throws IOException, JSONException {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 
-		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) Representation.ofSoftwareSystem(strategy.getSoftwareSystem(),
+		CodeEmbeddingsRepresentation codeEmbeddingsRepresentation = (CodeEmbeddingsRepresentation) Representation.ofSoftwareSystem(softwareSystem,
 				CODE_EMBEDDINGS);
 		JSONObject codeEmbeddings = new JSONObject(
 				gridFsService.getFileAsString(codeEmbeddingsRepresentation.getId())

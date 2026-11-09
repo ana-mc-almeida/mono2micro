@@ -13,7 +13,6 @@ import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityTo
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyStructureDto;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
@@ -33,8 +32,8 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 
 	public SimilarityScipyStructure() {}
 
-	public SimilarityScipyStructure(Strategy strategy, String name, SimilarityScipyStructureDto dto) {
-		super(strategy, name, dto.getLinkageType(), dto.getWeightsList());
+	public SimilarityScipyStructure(String kindName, List<Representation> representations, String name, SimilarityScipyStructureDto dto) {
+		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
 		this.traceType = dto.getTraceType();
 	}
 
@@ -55,7 +54,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 			return false;
 
 		SimilarityScipyStructureDto similarityDto = (SimilarityScipyStructureDto) dto;
-		return similarityDto.getStrategyId().equals(this.getStrategy().getId()) &&
+		return sameSource(similarityDto) &&
 				Objects.equals(similarityDto.getProfileId(), getProfileId()) &&
 				similarityDto.getLinkageType().equals(this.linkageType) &&
 				equalWeights(similarityDto.getWeightsList());
@@ -122,7 +121,7 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 
 	public Set<Short> fillElements(GridFsService gridFsService, Similarity similarity) throws IOException {
 		EntityToIDRepresentation entityToIDRepresentation = (EntityToIDRepresentation) Representation.ofSoftwareSystem(
-				similarity.getStrategy().getSoftwareSystem(),
+				similarity.getSoftwareSystem(),
 				ENTITY_TO_ID);
 		Map<String, Short> entityToId = new ObjectMapper().readValue(
 				gridFsService.getFileAsString(entityToIDRepresentation.getId()),

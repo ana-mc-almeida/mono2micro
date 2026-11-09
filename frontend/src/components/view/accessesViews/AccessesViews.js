@@ -15,8 +15,8 @@ import {FunctionalityView, functionalityViewHelp} from "./functionalityView/Func
 import AppContext from "../../AppContext";
 import {AccessesViewModal} from "./accessView/AccessesViewModal";
 import {AccessesViewMetricTable} from "./accessView/AccessesViewMetricTable";
-import {StrategyType} from "../../../models/strategy/StrategyTypes";
 import {RepresentationType} from "../../../models/representation/Representation";
+import {similarityBase} from "../../../services/similarityRoutes";
 
 export const clusterViewHelp = (<div>
     Double click a node to see its properties.<br />
@@ -44,7 +44,7 @@ export const views = {
 export const AccessesViews = () => {
     const context = useContext(AppContext);
     const { updateEntityTranslationFile } = context;
-    let { softwareSystemId, strategyId, similarityId, decompositionId } = useParams();
+    let { softwareSystemId, similarityId, decompositionId } = useParams();
     const [decomposition, setDecomposition] = useState(undefined);
 
     const [view, setView] = useState(views.CLUSTERS);
@@ -176,10 +176,7 @@ export const AccessesViews = () => {
                 <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}`}>
                     {decomposition?.softwareSystemName}
                 </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/similarity`}>
-                    {decomposition?.strategyName}
-                </Breadcrumb.Item>
-                <Breadcrumb.Item href={`/softwareSystems/${softwareSystemId}/${strategyId}/${similarityId}/decomposition`}>
+                <Breadcrumb.Item href={`${similarityBase(softwareSystemId)}/${similarityId}/decomposition`}>
                     {decomposition?.similarityName}
                 </Breadcrumb.Item>
                 <Breadcrumb.Item active>
@@ -253,7 +250,7 @@ export const AccessesViews = () => {
             />
 
             <ViewSearchBar
-                viewType={StrategyType.ACCESSES_STRATEGY}
+                viewType={RepresentationType.ACCESSES_TYPE}
                 dataFields={['name', 'type', 'funcType', 'cluster', 'entities']}
                 openSearch={openSearch}
                 setOpenSearch={setOpenSearch}

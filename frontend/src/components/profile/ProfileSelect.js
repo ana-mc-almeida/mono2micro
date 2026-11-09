@@ -8,21 +8,37 @@ import {APIService} from "../../services/APIService";
 
 /**
  * Chooses the profile that scopes a Similarity or a recommendation. The default, a null profileId, is no profile: every
- * unit (D-017). Only offered profiles are listed; Unassigned is not a profile and cannot be chosen.
+ * unit (D-017). Only offered profiles are listed; Unassigned is not a profile and cannot be chosen. It shows only when the
+ * backend offers a profile for the kind (the Profile feature's derivation record), and otherwise keeps no profile. Which
+ * representation's profiles it lists is the backend's call, from the kind.
  */
-export const ProfileSelect = ({softwareSystemId, representationType, profileId, setProfileId}) => {
+export const ProfileSelect = ({softwareSystemId, kindName, profileId, setProfileId}) => {
     const [profiles, setProfiles] = useState([]);
+    const [offered, setOffered] = useState(false);
     const noProfile = "No profile (all units)";
 
     useEffect(() => {
         const service = new APIService();
-        service.getSoftwareSystemRepresentation(softwareSystemId, representationType)
-            .then(representation => service.getProfiles(representation.id))
-            .then(response => setProfiles(response.data.profiles))
-            .catch(() => setProfiles([]));
-    }, [softwareSystemId, representationType]);
+        service.isProfileOffered(softwareSystemId, kindName)
+            .then(isOffered => {
+                setOffered(isOffered);
+                if (!isOffered) {
+                    setProfileId(null);
+                    return [];
+                }
+                return service.getOfferedProfiles(softwareSystemId, kindName);
+            })
+            .then(offeredProfiles => setProfiles(offeredProfiles))
+            .catch(() => {
+                setOffered(false);
+                setProfiles([]);
+            });
+    }, [softwareSystemId, kindName]);
 
     const selected = profiles.find(profile => profile.id === profileId);
+
+    if (!offered)
+        return null;
 
     return (
         <Form.Group as={Row} controlId="selectProfile" className="align-items-center mb-3">

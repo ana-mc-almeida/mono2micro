@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph.SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
 
+@JsonTypeName(SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH)
 public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends SimilarityDto {
 	private String linkageType;
 
@@ -20,9 +22,8 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(SimilarityScipyFunctionalityVectorizationByCallGraph similarity) {
 		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
-		this.strategyId = similarity.getStrategy().getId();
-		this.strategyName = similarity.getStrategy().getName();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
+		copySource(similarity);
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.linkageType = similarity.getLinkageType();
@@ -31,8 +32,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 	}
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+		copyCandidateSource(recommend);
 		this.name = recommend.getName();
 		this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
 		this.linkageType = recommend.getLinkageType();
@@ -42,7 +42,7 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 
 	public String getName() {
 		if (this.name == null) {
-			this.name = this.strategyName + " "
+			this.name = namePrefix() + " "
 					+ "params" + "(" + this.linkageType + "," + this.depth + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
@@ -58,6 +58,11 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 
 	public void setLinkageType(String linkageType) {
 		this.linkageType = linkageType;
+	}
+
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
 	}
 
 	public List<Weights> getWeightsList() {

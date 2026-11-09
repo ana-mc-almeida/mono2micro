@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
@@ -8,9 +9,9 @@ import pt.ist.socialsoftware.mono2micro.utils.Constants;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure.SIMILARITY_SCIPY_STRUCTURE;
 
+@JsonTypeName(SIMILARITY_SCIPY_STRUCTURE)
 public class SimilarityScipyStructureDto extends SimilarityDto {
 	private List<Weights> weightsList;
 	private String linkageType;
@@ -20,9 +21,8 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 
 	public SimilarityScipyStructureDto(SimilarityScipyStructure similarity) {
 		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getStrategy().getSoftwareSystem().getId();
-		this.strategyId = similarity.getStrategy().getId();
-		this.strategyName = similarity.getStrategy().getName();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
+		copySource(similarity);
 		this.name = similarity.getName();
 		this.type = similarity.getType();
 		this.weightsList = similarity.getWeightsList();
@@ -32,9 +32,9 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 
 	}
 
-	public SimilarityScipyStructureDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		this.strategyId = recommend.getStrategy().getId();
-		this.strategyName = recommend.getStrategy().getName();
+	@Override
+	public void describeCandidate(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
+		copyCandidateSource(recommend);
 		this.type = SIMILARITY_SCIPY_STRUCTURE;
 		this.weightsList = weightsList;
 		copyProfile(recommend.getProfile());
@@ -42,14 +42,9 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 		this.linkageType = recommend.getLinkageType();
 	}
 
-	@Override
-	public String scopedRepresentationType() {
-		return STRUCTURE;
-	}
-
 	public String getName() {
 		if (this.name == null) {
-			this.name = this.strategyName + " "
+			this.name = namePrefix() + " "
 					+ "params" + "(" + profileLabel() + "," + this.linkageType + "," + this.traceType + ") "
 					+ this.weightsList.stream()
 							.map(weights -> weights.getName())
@@ -57,6 +52,11 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 		}
 
 		return this.name;
+	}
+
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
 	}
 
 	public List<Weights> getWeightsList() {

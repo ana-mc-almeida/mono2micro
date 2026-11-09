@@ -2,21 +2,19 @@ package pt.ist.socialsoftware.mono2micro.softwareSystem;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
+import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
-import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
-import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
-import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
-import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
-import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.List;
@@ -31,16 +29,19 @@ public class SoftwareSystemService {
 	RepresentationService representationService;
 
 	@Autowired
-	StrategyService strategyService;
-
-	@Autowired
 	SoftwareSystemRepository softwareSystemRepository;
 
 	@Autowired
 	RepresentationRepository representationRepository;
 
 	@Autowired
-	StrategyRepository strategyRepository;
+	SimilarityService similarityService;
+
+	@Autowired
+	RecommendationService recommendationService;
+
+	@Autowired
+	DecompositionRepository decompositionRepository;
 
 	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
 		if (softwareSystemRepository.existsByName(softwareSystemName))
@@ -77,24 +78,19 @@ public class SoftwareSystemService {
 		return representationRepository.findBySoftwareSystemId(softwareSystemId);
 	}
 
-	public List<Strategy> getSoftwareSystemStrategies(String softwareSystemId) {
-		return strategyRepository.findBySoftwareSystemId(softwareSystemId);
-	}
-
-	public List<String> getAllowableSoftwareSystemStrategyTypes(String softwareSystemId) {
-		return AvailabilityCheck.derive(SelfRegistration.prototypes(SimilarityKind.class).values(), availabilityContext(softwareSystemId))
-				.availableNames();
-	}
-
-	/** The software system's context: each family is asked once which of its features the system's collected representations make present (D-025). */
-	private AvailabilityContext availabilityContext(String softwareSystemId) {
-		return FeatureFamilies.scanned().contextFor(representationRepository.findBySoftwareSystemId(softwareSystemId));
+	/** The decompositions of the software system: those of its Similarities. */
+	public List<Decomposition> getDecompositions(String softwareSystemId) {
+		return similarityService.getSimilarities(softwareSystemId).stream()
+				.flatMap(similarity -> decompositionRepository.findBySimilarityId(similarity.getId()).stream())
+				.collect(Collectors.toList());
 	}
 
 	public void deleteSoftwareSystem(String softwareSystemId) {
 		SoftwareSystem softwareSystem = getSoftwareSystemById(softwareSystemId);
-		for (Strategy strategy : strategyRepository.findBySoftwareSystemId(softwareSystemId))
-			strategyService.deleteStrategy(strategy);
+		for (Similarity similarity : similarityService.getSimilarities(softwareSystemId))
+			similarityService.deleteSimilarity(similarity);
+		for (Recommendation recommendation : recommendationService.getRecommendations(softwareSystemId))
+			recommendationService.deleteRecommendation(recommendation);
 		for (Representation representation : representationRepository.findBySoftwareSystemId(softwareSystemId))
 			representationService.deleteRepresentation(representation.getId());
 		softwareSystemRepository.delete(softwareSystem);

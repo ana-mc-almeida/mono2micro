@@ -4,16 +4,16 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationFactory;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,13 +22,13 @@ import java.util.List;
 @Service
 public class RecommendationService {
 	@Autowired
-	StrategyRepository strategyRepository;
-
-	@Autowired
 	RecommendationRepository recommendationRepository;
 
 	@Autowired
 	SimilarityRepository similarityRepository;
+
+	@Autowired
+	SimilarityService similarityService;
 
 	@Autowired
 	ProfileService profileService;
@@ -36,28 +36,51 @@ public class RecommendationService {
 	@Autowired
 	GridFsService gridFsService;
 
+	/**
+	 * Returns the new recommendation of the requested kind on the software system, or the existing one equal to the request.
+	 *
+	 * @throws IllegalArgumentException
+	 * if no kind has the requested name, or the request's weights are not the ones its kind is computed with
+	 * @throws pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException
+	 * if the software system's representations do not offer the requested kind
+	 */
 	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
-		Strategy strategy = strategyRepository.getById(recommendationDto.getStrategyId());
-		List<Recommendation> strategyRecommendations = recommendationRepository.findByStrategyId(strategy.getId());
-		RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategyRecommendations.stream()
-				.filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
+		String softwareSystemId = recommendationDto.getSoftwareSystemId();
+		SimilarityKind kind = SimilarityKind.getByName(recommendationDto.getKindName());
+		kind.requireWeights(recommendationDto.weightsTypes());
+		List<Representation> representations = similarityService.resolveRepresentations(kind, softwareSystemId);
 
-		Recommendation recommendation;
-		// Create from scratch
-		if (existingRecommendation == null) {
-			recommendation = RecommendationFactory.getRecommendation(strategy, strategyRecommendations, recommendationDto);
-			recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), strategy.getSoftwareSystem().getId(),
-					recommendationDto.scopedRepresentationType()));
-			recommendationRepository.save(recommendation);
-		} else return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
+		List<Recommendation> softwareSystemRecommendations = recommendationRepository.findBySoftwareSystemId(softwareSystemId);
+		Recommendation existingRecommendation = softwareSystemRecommendations.stream()
+				.filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
+		if (existingRecommendation != null)
+			return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
+
+		Recommendation recommendation = RecommendationFactory.getRecommendation(representations, softwareSystemRecommendations, recommendationDto);
+		recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), softwareSystemId, kind));
+		recommendationRepository.save(recommendation);
 
 		recommendation.generateRecommendation(recommendationRepository);
 		return RecommendationDtoFactory.getRecommendationDto(recommendation);
 	}
 
+	/**
+	 * Saves the chosen candidates, each with the Similarity of its weights, found among those of the same kind or created (D-016). A found
+	 * one reads the same representations, which {@code equalsDto} compares, so it is the software system's.
+	 */
 	public void createDecompositions(String recommendationId, List<String> decompositionNames) throws Exception {
 		Recommendation recommendation = getRecommendationById(recommendationId);
-		recommendation.createDecompositions(similarityRepository.findByStrategyId(recommendation.getStrategy().getId()), decompositionNames);
+		recommendation.createDecompositions(similarityRepository.findByKindName(recommendation.getKindName()), decompositionNames);
+	}
+
+	public List<Recommendation> getRecommendations(String softwareSystemId) {
+		return recommendationRepository.findBySoftwareSystemId(softwareSystemId);
+	}
+
+	/** Deletes the recommendations whose Similarities read the representation, as deleting a representation must. */
+	public void deleteRecommendationsReading(String representationId) {
+		for (Recommendation recommendation : recommendationRepository.findByRepresentations_Id(representationId))
+			deleteRecommendation(recommendation);
 	}
 
 	public void deleteRecommendation(Recommendation recommendation) {

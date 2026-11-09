@@ -1,25 +1,19 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.dto;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 
-import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.*;
+import java.util.Collections;
+import java.util.List;
 
+/** Its subclasses are JSON subtypes by their {@code @JsonTypeName}, found by the self-registration scan (D-019 point 8). */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
-@JsonSubTypes({
-		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_SCIPY_STRUCTURE),
-		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_SCIPY),
-		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_CLASS_VECTORIZATION),
-		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_ENTITY_VECTORIZATION),
-		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_CALLGRAPH),
-		@JsonSubTypes.Type(value = RecommendMatrixSciPyDto.class, name = RECOMMEND_MATRIX_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES)
-})
 public abstract class RecommendationDto {
 	String type;
 	String id;
-	String strategyId;
-	String strategyName;
+	String softwareSystemId;
+	/** The name of the Similarity kind whose weights it explores. */
+	String kindName;
 	String name;
 	boolean isCompleted;
 	/** Null for no profile (D-017). */
@@ -50,12 +44,9 @@ public abstract class RecommendationDto {
 		this.profileName = profileName;
 	}
 
-	/**
-	 * The representation kind whose units a profile of the recommended Similarities selects, or null when they take no
-	 * profile. Not a getter, so that it never appears in the JSON.
-	 */
-	public String scopedRepresentationType() {
-		return null;
+	/** The types of the weights the request explores, in order, which must be the ones its kind is computed with (D-013). */
+	public List<String> weightsTypes() {
+		return Collections.emptyList();
 	}
 
 	/** Not a setter, so that a request's JSON never binds to it. */
@@ -72,20 +63,20 @@ public abstract class RecommendationDto {
 		this.id = id;
 	}
 
-	public String getStrategyId() {
-		return strategyId;
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
 	}
 
-	public void setStrategyId(String strategyId) {
-		this.strategyId = strategyId;
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
 	}
 
-	public String getStrategyName() {
-		return strategyName;
+	public String getKindName() {
+		return kindName;
 	}
 
-	public void setStrategyName(String strategyName) {
-		this.strategyName = strategyName;
+	public void setKindName(String kindName) {
+		this.kindName = kindName;
 	}
 
 	public String getName() {

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The six steps that turn uploaded representations into a decomposition, as one interface so
+ * The five steps that turn uploaded representations into a decomposition, as one interface so
  * the same assertions can run against more than one layer of the backend.
  *
  * <p>There are two implementations, and they are not equally valuable:
@@ -27,7 +27,7 @@ import java.util.Map;
  * <p>Every {@code create*} method on the services returns {@code void}, and the backend
  * generates the names of the similarity and the decomposition itself. Both implementations
  * therefore read the generated name back rather than reconstructing it: the formatting rules
- * live in three separate classes ({@code Strategy}, {@code SimilarityScipyAccessesAndRepositoryDto},
+ * live in separate classes ({@code SimilarityScipyAccessesAndRepositoryDto},
  * {@code AccessesWeights}) and duplicating them here would pin the test to internals it is
  * meant to be free of.
  *
@@ -49,19 +49,16 @@ interface DecompositionPipeline {
 	 * <p>It has to be one request: {@code RepresentationService} rejects a second upload of a
 	 * type the software system already holds with "Re-sending representations is not allowed."
 	 */
-	void addRepresentations(String softwareSystemId, StrategyCase strategyCase);
+	void addRepresentations(String softwareSystemId, SimilarityCase similarityCase);
 
-	/** Step 3. Returns the strategy's id. */
-	String createStrategy(String softwareSystemId, StrategyCase strategyCase);
+	/** Step 3. Returns the similarity's id: a Similarity of the case's kind, created on the software system. */
+	String createSimilarity(String softwareSystemId, SimilarityCase similarityCase);
 
-	/** Step 4. Returns the similarity's id. */
-	String createSimilarity(String strategyId, StrategyCase strategyCase);
-
-	/** Step 5. Returns the generated decomposition's id, read back from the similarity. */
+	/** Step 4. Returns the generated decomposition's id, read back from the similarity. */
 	String createDecomposition(String similarityId);
 
 	/**
-	 * Step 6. The clusters of the finished decomposition, as cluster name → entity names, both
+	 * Step 5. The clusters of the finished decomposition, as cluster name → entity names, both
 	 * sorted. A list rather than a set, so that an entity listed twice shows.
 	 *
 	 * <p>Plain strings rather than the domain's cluster class, so that an assertion on them

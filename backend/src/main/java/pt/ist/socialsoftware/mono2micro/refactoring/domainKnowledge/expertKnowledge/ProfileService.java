@@ -4,6 +4,13 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import java.util.Collection;
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
+import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
+import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
+import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
@@ -69,21 +76,78 @@ public class ProfileService {
 	}
 
 	/**
-	 * The profile a new Similarity or recommendation of the software system is scoped by, or null for none. Only an
-	 * offered profile of that software system, selecting units of the representation kind the request reads
-	 * ({@code scopedRepresentationType}, null when it takes no profile), can scope one.
+	 * Whether a profile is offered for a Similarity of {@code kindName} on the software system: the {@link Profile} feature's derivation record,
+	 * with the kind as input (D-013, D-017). The profile selector follows it.
 	 */
-	public Profile getScopingProfile(String profileId, String softwareSystemId, String scopedRepresentationType) {
+	public DerivationRecord getAvailability(String softwareSystemId, String kindName) {
+		return AvailabilityCheck.derive(SelfRegistration.prototypes(Profile.class).values(),
+				systemContext(softwareSystemId).withInput(SimilarityKind.getByName(kindName)));
+	}
+
+	/**
+	 * The profiles the selector lists for a Similarity of {@code kindName}: the offered profiles of the software system's representation the kind
+	 * scopes, so the frontend never decides which representation that is.
+	 *
+	 * @throws pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException
+	 * if no profile is offered for the kind
+	 */
+	public List<Profile> getOfferedProfiles(String softwareSystemId, String kindName) {
+		SimilarityKind kind = SimilarityKind.getByName(kindName);
+		AvailabilityCheck.requireAvailable(profilePrototype(), systemContext(softwareSystemId).withInput(kind));
+
+		return representationRepository.findBySoftwareSystemIdAndType(softwareSystemId, kind.scopedRepresentationType())
+				.map(representation -> profileRepository.findByRepresentationIdAndRetiredFalse(representation.getId()))
+				.orElse(Collections.emptyList());
+	}
+
+	/**
+	 * The types of the software system's representations that offer profiles: those a Similarity kind scopes, where the kind is offered and a
+	 * profile is offered for it. The Profiles link follows it: whether it shows comes from the {@link Profile} feature, and which cards show it
+	 * from the kind's {@link SimilarityKind#scopedRepresentationType()}.
+	 */
+	public Set<String> getProfiledRepresentationTypes(String softwareSystemId) {
+		AvailabilityContext context = systemContext(softwareSystemId);
+		Collection<SimilarityKind> kinds = SelfRegistration.prototypes(SimilarityKind.class).values();
+		Set<String> offeredKinds = new HashSet<>(AvailabilityCheck.derive(kinds, context).availableNames());
+		return kinds.stream()
+				.filter(kind -> offeredKinds.contains(SelfRegistration.nameOf(kind)))
+				.filter(kind -> isProfileOfferedFor(kind, context))
+				.map(SimilarityKind::scopedRepresentationType)
+				.collect(Collectors.toCollection(TreeSet::new));
+	}
+
+	/**
+	 * The profile a new Similarity or recommendation of {@code kind} on the software system is scoped by, or null for none. A profile must be
+	 * offered for the kind (422 otherwise), and must be an offered profile of that software system that selects units of the representation the
+	 * kind scopes.
+	 *
+	 * @throws pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException
+	 * if a profile is requested for a kind that takes none
+	 */
+	public Profile getScopingProfile(String profileId, String softwareSystemId, SimilarityKind kind) {
 		if (profileId == null)
 			return null;
+		AvailabilityCheck.requireAvailable(profilePrototype(), systemContext(softwareSystemId).withInput(kind));
 
 		Profile profile = profileRepository.getById(profileId);
 		if (profile.isRetired() || !profile.belongsTo(softwareSystemId))
 			throw new IllegalArgumentException("Profile " + profileId + " is not offered for software system " + softwareSystemId + ".");
-		if (!profile.getRepresentation().getType().equals(scopedRepresentationType))
+		if (!profile.getRepresentation().getType().equals(kind.scopedRepresentationType()))
 			throw new IllegalArgumentException("Profile " + profileId + " selects " + profile.getRepresentation().getType()
-					+ " units, but the request reads " + (scopedRepresentationType == null ? "no profile" : scopedRepresentationType + " units") + ".");
+					+ " units, but a " + SelfRegistration.nameOf(kind) + " Similarity reads " + kind.scopedRepresentationType() + " units.");
 		return profile;
+	}
+
+	private boolean isProfileOfferedFor(SimilarityKind kind, AvailabilityContext context) {
+		return !AvailabilityCheck.derive(Collections.singletonList(profilePrototype()), context.withInput(kind)).availableNames().isEmpty();
+	}
+
+	private static Profile profilePrototype() {
+		return SelfRegistration.prototypes(Profile.class).get(Profile.PROFILE);
+	}
+
+	private AvailabilityContext systemContext(String softwareSystemId) {
+		return FeatureFamilies.scanned().contextFor(representationRepository.findBySoftwareSystemId(softwareSystemId));
 	}
 
 	/** Stops offering the profile: retires it while a Similarity or recommendation uses it, and deletes it otherwise. */

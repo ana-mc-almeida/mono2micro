@@ -13,11 +13,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The 7 Similarity kinds (D-021, D-025). Every kind reads the ID-to-entity map and the Accesses representation, so the family shares those two
+ * The 8 Similarity kinds (D-021, D-025). Every kind reads the ID-to-entity map and the Accesses representation, so the family shares those two
  * requirements, and each kind declares only what it needs on top.
  *
- * <p>No kind is present in a software system. For an input, the family answers with the input's kind: today the input is the kind itself, and
- * it becomes a Similarity holding its kind when Similarities stop hanging off a strategy (ticket 10).
+ * <p>No kind is present in a software system. For an input, the family answers with the input's kind: the input is the kind itself.
  */
 public class SimilarityKindFamily extends FeatureFamily<SimilarityKind> {
 
