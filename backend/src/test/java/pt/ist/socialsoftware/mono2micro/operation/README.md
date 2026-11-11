@@ -1,6 +1,7 @@
 # `operation/` tests
 
-Offline unit tests for the five decomposition edit operations, and for undo and redo.
+Offline unit tests for the five decomposition edit operations, their handler registry, and
+undo and redo.
 No Spring context, no Mongo, no Docker — a bare `mvn test` runs these and only these,
 because the stack-dependent classes elsewhere are tagged `@Tag("integration")` and
 excluded by default. See `AGENT.md`'s Testing section.
@@ -12,8 +13,9 @@ operation/                               shared helpers, public
 ├── DecompositionFixture
 ├── DecompositionSnapshot
 ├── InMemoryHistory
-├── unit/                                one production class at a time
-│   ├── <Op>PartitionsOperationTest      × 5
+├── unit/                                one production concern at a time
+│   ├── <Op>PartitionsHandlerTest        × 5
+│   ├── ManualOperationHandlersTest
 │   ├── OperationDtoTest
 │   ├── OperationHistoryBookkeepingTest
 │   └── RecordingRepresentationInformation
@@ -43,9 +45,10 @@ no special access to its parent. So:
 <!-- prettier-ignore-start -->
 | File | Kind | Role |
 |---|---|---|
-| `unit/<Op>PartitionsOperationTest` | test | one class per operation: its cluster arithmetic, coupling dependencies and guards |
+| `unit/<Op>PartitionsHandlerTest` | test | one class per operation's partition handler, driven through the operation: its cluster arithmetic, coupling dependencies and guards |
+| `unit/ManualOperationHandlersTest` | test | the handler registry (D-014): lookup by (operation, cluster kind), fallback to the superclass, the boot check failing on a missing handler, and the scan covering every pair |
 | `unit/OperationHistoryBookkeepingTest` | test | depth/undo/redo bookkeeping across operations |
-| `unit/OperationDtoTest` | test | type strings, and the copy constructors that make a request executable |
+| `unit/OperationDtoTest` | test | type strings, a bound request executing as it is, and merge's undo state staying out of requests |
 | `unit/RecordingRepresentationInformation` | helper | records which hooks an operation calls |
 | `characterization/ManualOperationCharacterizationTest` | test | each operation end to end, as the architect sees it: clusters, functionalities and redesigns, undo/redo, history position. Undo losing functionalities is a known defect: the "today" tests pin it, and `@Disabled` twins assert the fix ticket 12 brings |
 | `characterization/ManualEditing` | helper | issues edits, undo and redo through the services the controllers call |
@@ -63,7 +66,8 @@ cover. Read `InMemoryHistory` before writing a test that calls `execute()`, and
 ## Adding a test
 
 1. Name it `SomethingTest` or surefire will skip it silently.
-2. Build inputs with `DecompositionFixture.with()`, not by hand.
+2. Build inputs with `DecompositionFixture.with()`, not by hand. The exception is
+   `ManualOperationHandlersTest`, which needs only a decomposition's class, not its clusters.
 3. Compare decompositions with `DecompositionSnapshot`, not `assertEquals` — `Cluster`
    declares no `equals`, so direct comparison compares references and passes wrongly.
 4. Never let a test reach the real `ContextManager`. It caches a whole application context
