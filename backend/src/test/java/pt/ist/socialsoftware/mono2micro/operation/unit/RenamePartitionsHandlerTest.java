@@ -9,7 +9,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposi
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
 import pt.ist.socialsoftware.mono2micro.operation.InMemoryHistory;
-import pt.ist.socialsoftware.mono2micro.operation.rename.RenamePartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.rename.RenameOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Collections;
@@ -18,22 +18,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * {@code RenamePartitionsOperation} — renaming a cluster and the dependencies pointing at it.
+ * {@code RenamePartitionsHandler} — renaming a cluster and the dependencies pointing at it.
  *
  * <p>The simplest of the five operations, and the one whose quirk matters most elsewhere:
  * renaming a cluster to the name it already has is <b>allowed</b>, because the duplicate-name
  * guard carries {@code && !clusterName.equals(newClusterName)}
- * ({@code RenamePartitionsOperation.java:42}). That escape hatch looks permissive in isolation
- * but is load-bearing — {@code MergePartitionsOperation.undo} finishes with a self-rename in
+ * ({@code RenamePartitionsHandler.java:39}). That escape hatch looks permissive in isolation
+ * but is load-bearing — {@code MergePartitionsHandler.undo} finishes with a self-rename in
  * two of its three branches, so tightening this guard would silently break merge's undo. See
- * {@link MergePartitionsOperationTest} and {@link SelfRename} below.
+ * {@link MergePartitionsHandlerTest} and {@link SelfRename} below.
  *
  * <p>Runs entirely in memory: no Spring context, no Mongo, no Docker. See
  * {@link DecompositionFixture} for why that is possible and {@link InMemoryHistory} for the one
  * stand-in involved.
  */
 @DisplayName("Rename operation")
-class RenamePartitionsOperationTest {
+class RenamePartitionsHandlerTest {
 
 	@Nested
 	@DisplayName("renaming")
@@ -48,7 +48,7 @@ class RenamePartitionsOperationTest {
 					.build();
 			Cluster original = decomposition.getCluster("C1");
 
-			new RenamePartitionsOperation("C1", "Renamed").executeOperation(decomposition);
+			new RenameOperation("C1", "Renamed").executeOperation(decomposition);
 
 			assertThat(decomposition.getClusters()).containsOnlyKeys("Renamed", "C2");
 			assertThat(decomposition.getCluster("Renamed").getElementsIDs())
@@ -69,7 +69,7 @@ class RenamePartitionsOperationTest {
 					.cluster("C2", 2, 3)
 					.build();
 
-			new RenamePartitionsOperation("C1", "Renamed").executeOperation(decomposition);
+			new RenameOperation("C1", "Renamed").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C2").getElementsIDs())
 					.containsExactlyInAnyOrder((short) 2, (short) 3);
@@ -91,7 +91,7 @@ class RenamePartitionsOperationTest {
 					.dependency("C3", "C1", 1)
 					.build();
 
-			new RenamePartitionsOperation("C1", "Renamed").executeOperation(decomposition);
+			new RenameOperation("C1", "Renamed").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C2"))
 					.containsOnlyKeys("Renamed")
@@ -110,7 +110,7 @@ class RenamePartitionsOperationTest {
 					.dependency("C3", "C2", 2)
 					.build();
 
-			new RenamePartitionsOperation("C1", "Renamed").executeOperation(decomposition);
+			new RenameOperation("C1", "Renamed").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C3"))
 					.containsOnlyKeys("Renamed", "C2")
@@ -119,7 +119,7 @@ class RenamePartitionsOperationTest {
 
 		/**
 		 * A dependency key can outlive the cluster it names — see
-		 * {@link SplitPartitionsOperationTest} on per-cluster dependency ownership — so renaming
+		 * {@link SplitPartitionsHandlerTest} on per-cluster dependency ownership — so renaming
 		 * onto a stale key has to merge rather than overwrite.
 		 *
 		 * <p>This is also the one place {@code addCouplingDependencies}' {@code containsKey}
@@ -139,7 +139,7 @@ class RenamePartitionsOperationTest {
 					.build();
 
 			// No cluster is named "Stale", so the guard permits the rename.
-			new RenamePartitionsOperation("C1", "Stale").executeOperation(decomposition);
+			new RenameOperation("C1", "Stale").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C2"))
 					.containsOnlyKeys("Stale")
@@ -152,10 +152,10 @@ class RenamePartitionsOperationTest {
 	class SelfRename {
 
 		/**
-		 * Permitted, and depended upon by {@code MergePartitionsOperation.undo}: its
+		 * Permitted, and depended upon by {@code MergePartitionsHandler.undo}: its
 		 * else-branch finishes with {@code rename(newName, cluster2Name)}, which is a self-rename
 		 * whenever the merge kept cluster2's name. Remove the {@code !clusterName.equals(...)}
-		 * half of the guard at {@code RenamePartitionsOperation.java:42} and merge undo starts
+		 * half of the guard at {@code RenamePartitionsHandler.java:39} and merge undo starts
 		 * throwing {@code KeyAlreadyExistsException}.
 		 */
 		@Test
@@ -168,7 +168,7 @@ class RenamePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			new RenamePartitionsOperation("C1", "C1").executeOperation(decomposition);
+			new RenameOperation("C1", "C1").executeOperation(decomposition);
 
 			DecompositionSnapshot after = DecompositionSnapshot.of(decomposition);
 			assertThat(after.clusters()).isEqualTo(before.clusters());
@@ -185,7 +185,7 @@ class RenamePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			RenamePartitionsOperation operation = new RenamePartitionsOperation("C1", "C1");
+			RenameOperation operation = new RenameOperation("C1", "C1");
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -209,7 +209,7 @@ class RenamePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			assertThatThrownBy(() -> new RenamePartitionsOperation("C1", "C2").executeOperation(decomposition))
+			assertThatThrownBy(() -> new RenameOperation("C1", "C2").executeOperation(decomposition))
 					.isInstanceOf(KeyAlreadyExistsException.class)
 					.hasMessageContaining("C2");
 
@@ -232,7 +232,7 @@ class RenamePartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			assertThatThrownBy(() -> new RenamePartitionsOperation("Absent", "Renamed").executeOperation(decomposition))
+			assertThatThrownBy(() -> new RenameOperation("Absent", "Renamed").executeOperation(decomposition))
 					.isInstanceOf(Error.class)
 					.hasMessageContaining("Absent");
 		}
@@ -252,7 +252,7 @@ class RenamePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			RenamePartitionsOperation operation = new RenamePartitionsOperation("C1", "Renamed");
+			RenameOperation operation = new RenameOperation("C1", "Renamed");
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -271,7 +271,7 @@ class RenamePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			RenamePartitionsOperation operation = new RenamePartitionsOperation("C1", "Renamed");
+			RenameOperation operation = new RenameOperation("C1", "Renamed");
 			operation.execute(decomposition);
 			DecompositionSnapshot renamed = DecompositionSnapshot.of(decomposition);
 
@@ -310,7 +310,7 @@ class RenamePartitionsOperationTest {
 
 			assertThat(decomposition.getRepresentationInformations()).isEmpty();
 
-			new RenamePartitionsOperation("C1", "Renamed").executeOperation(decomposition);
+			new RenameOperation("C1", "Renamed").executeOperation(decomposition);
 
 			assertThat(decomposition.getClusters()).containsOnlyKeys("Renamed");
 		}
@@ -324,7 +324,7 @@ class RenamePartitionsOperationTest {
 					.representationInformation(recorder)
 					.build();
 
-			new RenamePartitionsOperation("C1", "Renamed").executeOperation(decomposition);
+			new RenameOperation("C1", "Renamed").executeOperation(decomposition);
 
 			assertThat(recorder.renames()).containsExactly("C1 -> Renamed");
 			assertThat(recorder.removedEntityIDs()).isEmpty();

@@ -23,7 +23,10 @@ public abstract class Operation {
 
 	public abstract String getOperationType();
 
+	/** Applies this operation to {@code decomposition} and records it as the newest edit of its history. */
 	public void execute(Decomposition decomposition) {
+		executeOperation(decomposition);
+
 		History history = decomposition.getHistory();
 
 		Long newHistoryOperationDepth = history.incrementCurrentHistoryDepth();
@@ -35,9 +38,15 @@ public abstract class Operation {
 		history.addOperation(this);
 	}
 
-	public void executeOperation(Decomposition decomposition) {}
+	/** Applies this operation to {@code decomposition} through its handler (D-014), without touching the history. */
+	public void executeOperation(Decomposition decomposition) {
+		ManualOperationHandlers.scanned().apply(this, decomposition);
+	}
 
-	public void undo(Decomposition decomposition) {}
+	/** Reverts this operation on {@code decomposition} through its handler (D-014), without touching the history. */
+	public void undo(Decomposition decomposition) {
+		ManualOperationHandlers.scanned().undo(this, decomposition);
+	}
 
 	public void redo(Decomposition decomposition) { executeOperation(decomposition); }
 

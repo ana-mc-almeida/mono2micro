@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * The tests go through {@link ManualEditing}, which issues requests the way the controllers do,
  * so nothing here names an operation class. Ticket 05 should pass them unchanged; tickets 11 and
  * 12 port them by changing {@code ManualEditing}, not the assertions, with one exception below.
- * The per-operation {@code *PartitionsOperationTest} classes pin the cluster arithmetic in more
+ * The per-operation {@code *PartitionsHandlerTest} classes pin the cluster arithmetic in more
  * detail, coupling dependencies included; this class pins one worked example per operation end
  * to end.
  *

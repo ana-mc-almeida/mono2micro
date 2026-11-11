@@ -2,10 +2,12 @@ package pt.ist.socialsoftware.mono2micro.operation.formCluster;
 
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
-import pt.ist.socialsoftware.mono2micro.operation.split.SplitPartitionsOperation;
-import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferPartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandler;
+import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandlers;
+import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
+import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Collection;
@@ -13,46 +15,49 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FormClusterPartitionsOperation extends FormClusterOperation {
-	public FormClusterPartitionsOperation() {}
+/**
+ * Gathers entities from several partitions into a new one, dropping the partitions it empties; undo sends each back, splitting a dropped
+ * partition out again.
+ */
+public class FormClusterPartitionsHandler implements ManualOperationHandler<FormClusterOperation, PartitionsDecomposition> {
 
-	public FormClusterPartitionsOperation(FormClusterOperation operation) {
-		super(operation);
+	@Override
+	public Class<FormClusterOperation> operation() {
+		return FormClusterOperation.class;
 	}
 
 	@Override
-	public void execute(Decomposition decomposition) {
-		executeOperation(decomposition);
-		super.execute(decomposition);
+	public Class<PartitionsDecomposition> clusterKind() {
+		return PartitionsDecomposition.class;
 	}
 
 	@Override
-	public void executeOperation(Decomposition decomposition) {
-		formCluster(decomposition);
+	public void apply(FormClusterOperation operation, PartitionsDecomposition decomposition) {
+		formCluster(operation, decomposition);
 		decomposition.getRepresentationInformations().forEach(representationInformation -> representationInformation.removeFunctionalitiesWithEntityIDs(
 				decomposition,
-				getEntities().values().stream().flatMap(Collection::stream).collect(Collectors.toSet())
+				operation.getEntities().values().stream().flatMap(Collection::stream).collect(Collectors.toSet())
 		)
 		);
 	}
 
 	@Override
-	public void undo(Decomposition decomposition) {
-		getEntities().forEach((clusterName, entitiesID) -> {
+	public void undo(FormClusterOperation operation, PartitionsDecomposition decomposition) {
+		operation.getEntities().forEach((clusterName, entitiesID) -> {
 			Cluster toCluster = decomposition.getClusters().get(clusterName);
+			String entities = entitiesID.stream().map(Object::toString).collect(Collectors.joining(","));
 			if (toCluster == null) // If there is no cluster, the operation is a split, if there is, it is a transfer
-				new SplitPartitionsOperation(getNewCluster(), clusterName, entitiesID.stream().map(Object::toString).collect(Collectors.joining(",")))
-						.executeOperation(decomposition);
+				ManualOperationHandlers.scanned().apply(new SplitOperation(operation.getNewCluster(), clusterName, entities), decomposition);
 			else
-				new TransferPartitionsOperation(getNewCluster(), toCluster.getName(),
-						entitiesID.stream().map(Object::toString).collect(Collectors.joining(","))).executeOperation(decomposition);
+				ManualOperationHandlers.scanned().apply(new TransferOperation(operation.getNewCluster(), toCluster.getName(), entities), decomposition);
 		});
 
-		decomposition.removeCluster(getNewCluster());
+		decomposition.removeCluster(operation.getNewCluster());
 	}
 
-	protected void formCluster(Decomposition decomposition) {
-		List<Short> entitiesIDs = entities.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+	private void formCluster(FormClusterOperation operation, PartitionsDecomposition decomposition) {
+		String newCluster = operation.getNewCluster();
+		List<Short> entitiesIDs = operation.getEntities().values().stream().flatMap(Collection::stream).collect(Collectors.toList());
 
 		if (decomposition.clusterNameExists(newCluster)) {
 			Cluster previousCluster = decomposition.getClusters().values().stream().filter(cluster -> cluster.getName().equals(newCluster)).findFirst()

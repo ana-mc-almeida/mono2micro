@@ -6,7 +6,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposi
 import pt.ist.socialsoftware.mono2micro.history.domain.History;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.InMemoryHistory;
-import pt.ist.socialsoftware.mono2micro.operation.rename.RenamePartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.rename.RenameOperation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -14,8 +14,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * {@code Operation.execute}'s history bookkeeping, independent of any one operation.
  *
- * <p>Every {@code *PartitionsOperation.execute} ends in {@code super.execute}, which does four
- * things ({@code Operation.java:26-36}): increment the history's depth cursor, stamp that depth
+ * <p>Every {@code execute} applies the operation through its handler and then does four
+ * things ({@code Operation.java:30-38}): increment the history's depth cursor, stamp that depth
  * on the operation, ask the history to drop operations the new one overrides, and append. Rename
  * is the vehicle here because its {@code execute} adds nothing of its own — merge's, by
  * contrast, also captures pre-merge state.
@@ -41,9 +41,9 @@ class OperationHistoryBookkeepingTest {
 	void stampsIncrementingDepths() {
 		PartitionsDecomposition decomposition = threeClusters();
 
-		RenamePartitionsOperation first = new RenamePartitionsOperation("C1", "A");
-		RenamePartitionsOperation second = new RenamePartitionsOperation("C2", "B");
-		RenamePartitionsOperation third = new RenamePartitionsOperation("C3", "C");
+		RenameOperation first = new RenameOperation("C1", "A");
+		RenameOperation second = new RenameOperation("C2", "B");
+		RenameOperation third = new RenameOperation("C3", "C");
 		first.execute(decomposition);
 		second.execute(decomposition);
 		third.execute(decomposition);
@@ -63,8 +63,8 @@ class OperationHistoryBookkeepingTest {
 	void resolvesOperationsByDepth() {
 		PartitionsDecomposition decomposition = threeClusters();
 
-		RenamePartitionsOperation first = new RenamePartitionsOperation("C1", "A");
-		RenamePartitionsOperation second = new RenamePartitionsOperation("C2", "B");
+		RenameOperation first = new RenameOperation("C1", "A");
+		RenameOperation second = new RenameOperation("C2", "B");
 		first.execute(decomposition);
 		second.execute(decomposition);
 
@@ -87,9 +87,9 @@ class OperationHistoryBookkeepingTest {
 	void dropsOverriddenOperations() {
 		PartitionsDecomposition decomposition = threeClusters();
 
-		RenamePartitionsOperation first = new RenamePartitionsOperation("C1", "A");
-		RenamePartitionsOperation second = new RenamePartitionsOperation("C2", "B");
-		RenamePartitionsOperation third = new RenamePartitionsOperation("C3", "C");
+		RenameOperation first = new RenameOperation("C1", "A");
+		RenameOperation second = new RenameOperation("C2", "B");
+		RenameOperation third = new RenameOperation("C3", "C");
 		first.execute(decomposition);
 		second.execute(decomposition);
 		third.execute(decomposition);
@@ -104,7 +104,7 @@ class OperationHistoryBookkeepingTest {
 		// The two undone operations are still in the list, above the cursor.
 		assertThat(history.getHistoryOperationList()).containsExactly(first, second, third);
 
-		RenamePartitionsOperation branch = new RenamePartitionsOperation("C2", "Branch");
+		RenameOperation branch = new RenameOperation("C2", "Branch");
 		branch.execute(decomposition);
 
 		assertThat(branch.getHistoryDepth()).isEqualTo(2L);
@@ -117,7 +117,7 @@ class OperationHistoryBookkeepingTest {
 	void redoDoesNotRestampOrAppend() {
 		PartitionsDecomposition decomposition = threeClusters();
 
-		RenamePartitionsOperation operation = new RenamePartitionsOperation("C1", "A");
+		RenameOperation operation = new RenameOperation("C1", "A");
 		operation.execute(decomposition);
 		operation.undo(decomposition);
 
@@ -146,13 +146,13 @@ class OperationHistoryBookkeepingTest {
 				.noHistory()
 				.build();
 
-		assertThatThrownBy(() -> new RenamePartitionsOperation("C1", "A").execute(decomposition))
+		assertThatThrownBy(() -> new RenameOperation("C1", "A").execute(decomposition))
 				.isInstanceOf(NullPointerException.class);
 
 		// The mutation still happened: execute applies the operation, then records it.
 		assertThat(decomposition.getClusters()).containsOnlyKeys("A");
 
-		new RenamePartitionsOperation("A", "B").executeOperation(decomposition);
+		new RenameOperation("A", "B").executeOperation(decomposition);
 		assertThat(decomposition.getClusters()).containsOnlyKeys("B");
 	}
 

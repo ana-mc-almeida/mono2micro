@@ -10,10 +10,10 @@ public class TransferOperation extends Operation {
 
 	public TransferOperation() {}
 
-	public TransferOperation(TransferOperation operation) {
-		this.fromCluster = operation.getFromCluster();
-		this.toCluster = operation.getToCluster();
-		this.entities = operation.getEntities();
+	public TransferOperation(String fromCluster, String toCluster, String entities) {
+		this.fromCluster = fromCluster;
+		this.toCluster = toCluster;
+		this.entities = entities;
 	}
 
 	@Override

@@ -6,16 +6,6 @@ import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.history.domain.PositionHistory;
 import pt.ist.socialsoftware.mono2micro.history.service.HistoryService;
 import pt.ist.socialsoftware.mono2micro.history.service.PositionHistoryService;
-import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
-import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterPartitionsOperation;
-import pt.ist.socialsoftware.mono2micro.operation.merge.MergeOperation;
-import pt.ist.socialsoftware.mono2micro.operation.merge.MergePartitionsOperation;
-import pt.ist.socialsoftware.mono2micro.operation.rename.RenameOperation;
-import pt.ist.socialsoftware.mono2micro.operation.rename.RenamePartitionsOperation;
-import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
-import pt.ist.socialsoftware.mono2micro.operation.split.SplitPartitionsOperation;
-import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
-import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferPartitionsOperation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 
 import java.util.*;
@@ -64,36 +54,6 @@ public class PartitionsDecomposition extends Decomposition {
 	public void update() throws Exception {
 		for (RepresentationInformation representationInformation : representationInformations)
 			representationInformation.update(this);
-	}
-
-	@Override
-	public void renameCluster(RenameOperation operation) {
-		RenamePartitionsOperation partitionsOperation = new RenamePartitionsOperation(operation);
-		partitionsOperation.execute(this);
-	}
-
-	@Override
-	public void mergeClusters(MergeOperation operation) {
-		MergePartitionsOperation partitionsOperation = new MergePartitionsOperation(operation);
-		partitionsOperation.execute(this);
-	}
-
-	@Override
-	public void splitCluster(SplitOperation operation) {
-		SplitPartitionsOperation partitionsOperation = new SplitPartitionsOperation(operation);
-		partitionsOperation.execute(this);
-	}
-
-	@Override
-	public void transferEntities(TransferOperation operation) {
-		TransferPartitionsOperation partitionsOperation = new TransferPartitionsOperation(operation);
-		partitionsOperation.execute(this);
-	}
-
-	@Override
-	public void formCluster(FormClusterOperation operation) {
-		FormClusterPartitionsOperation partitionsOperation = new FormClusterPartitionsOperation(operation);
-		partitionsOperation.execute(this);
 	}
 
 	@Override

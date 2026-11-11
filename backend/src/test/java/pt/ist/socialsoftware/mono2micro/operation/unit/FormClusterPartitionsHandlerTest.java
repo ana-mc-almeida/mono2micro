@@ -8,7 +8,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposi
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
 import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
-import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterPartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * {@code FormClusterPartitionsOperation} — gathering entities from several clusters into a new one.
+ * {@code FormClusterPartitionsHandler} — gathering entities from several clusters into a new one.
  *
  * <p>The most branch-heavy of the five, and the only one whose input is a
  * {@code Map<String, List<Short>>} of source cluster name to entity IDs rather than a
@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <p>Runs entirely in memory — see {@link DecompositionFixture}.
  */
 @DisplayName("Form cluster operation")
-class FormClusterPartitionsOperationTest {
+class FormClusterPartitionsHandlerTest {
 
 	@Nested
 	@DisplayName("forming")
@@ -247,7 +247,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", 1));
+			FormClusterOperation operation = operation("NC", entities("C1", 1));
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -267,7 +267,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", 1));
+			FormClusterOperation operation = operation("NC", entities("C1", 1));
 			operation.executeOperation(decomposition);
 			assertThat(decomposition.getClusters()).doesNotContainKey("C1");
 
@@ -288,7 +288,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 2 }));
+			FormClusterOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 2 }));
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -316,7 +316,7 @@ class FormClusterPartitionsOperationTest {
 					.cluster("C2", 9)
 					.build();
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C2", 1));
+			FormClusterOperation operation = operation("NC", entities("C2", 1));
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -336,7 +336,7 @@ class FormClusterPartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			FormClusterPartitionsOperation operation = operation("NC", new LinkedHashMap<>());
+			FormClusterOperation operation = operation("NC", new LinkedHashMap<>());
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -354,7 +354,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 3 }));
+			FormClusterOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 3 }));
 			operation.execute(decomposition);
 			DecompositionSnapshot formed = DecompositionSnapshot.of(decomposition);
 
@@ -407,16 +407,12 @@ class FormClusterPartitionsOperationTest {
 		}
 	}
 
-	/**
-	 * {@code FormClusterPartitionsOperation} has no {@code (String, Map)} constructor, unlike the
-	 * other four operations, so it is built through its {@code FormClusterOperation} copy
-	 * constructor.
-	 */
-	private static FormClusterPartitionsOperation operation(String newCluster, Map<String, List<Short>> entities) {
-		FormClusterOperation dto = new FormClusterOperation();
-		dto.setNewCluster(newCluster);
-		dto.setEntities(entities);
-		return new FormClusterPartitionsOperation(dto);
+	/** {@code FormClusterOperation} has no {@code (String, Map)} constructor, unlike the other four operations, so it is built with setters. */
+	private static FormClusterOperation operation(String newCluster, Map<String, List<Short>> entities) {
+		FormClusterOperation operation = new FormClusterOperation();
+		operation.setNewCluster(newCluster);
+		operation.setEntities(entities);
+		return operation;
 	}
 
 	/** {@code entities("C1", 1)} — one source cluster. */

@@ -120,35 +120,35 @@ public class DecompositionService {
 
 	public void mergeClustersOperation(String decompositionId, MergeOperation operation) {
 		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.mergeClusters(operation);
+		operation.execute(decomposition);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void renameClusterOperation(String decompositionId, RenameOperation operation) {
 		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.renameCluster(operation);
+		operation.execute(decomposition);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void splitClusterOperation(String decompositionId, SplitOperation operation) {
 		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.splitCluster(operation);
+		operation.execute(decomposition);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void transferEntitiesOperation(String decompositionId, TransferOperation operation) {
 		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.transferEntities(operation);
+		operation.execute(decomposition);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}
 
 	public void formClusterOperation(String decompositionId, FormClusterOperation operation) {
 		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.formCluster(operation);
+		operation.execute(decomposition);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}

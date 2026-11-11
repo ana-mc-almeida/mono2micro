@@ -10,7 +10,7 @@ import pt.ist.socialsoftware.mono2micro.cluster.Partition;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
-import pt.ist.socialsoftware.mono2micro.operation.merge.MergePartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.merge.MergeOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Collections;
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * {@code MergePartitionsOperation} — combining two clusters into one.
+ * {@code MergePartitionsHandler} — combining two clusters into one.
  *
  * <p>Merge is the operation with the most state to get right, and two findings here matter more
  * than the rest:
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <ul>
  * <li><b>The merged cluster loses its outgoing coupling dependencies.</b> {@code merge}
  * rewrites dependencies in a loop over {@code getClusters().values()} and only then adds
- * the merged cluster ({@code MergePartitionsOperation.java:68-76}), which is besides a
+ * the merged cluster ({@code MergePartitionsHandler.java:67-75}), which is besides a
  * fresh {@code Partition} ({@code :62}). Dependencies the two inputs held are therefore
  * dropped rather than carried over, and {@code undo} cannot bring them back. Since the
  * thesis minimizes exactly this quantity, it is recorded as a defect — see
@@ -38,19 +38,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * {@code cluster1Name.equals(newName)} ({@code :47}) to choose which side to split back
  * off, so that the subsequent rename always has a free target. When the merge kept
  * cluster2's name, that rename is a <em>self-rename</em>, which only works because
- * {@code RenamePartitionsOperation}'s duplicate-name guard exempts it
- * ({@code RenamePartitionsOperation.java:42}). Tighten that guard and merge undo breaks.
+ * {@code RenamePartitionsHandler}'s duplicate-name guard exempts it
+ * ({@code RenamePartitionsHandler.java:39}). Tighten that guard and merge undo breaks.
  * See {@link Undo#undoRestoresBothClusters(String)}.
  * </ul>
  *
  * <p>Merge is also the one operation whose {@code execute} does more than
  * {@code executeOperation}: it first calls {@code storeState} to capture the pre-merge
- * membership that {@code undo} needs ({@code :29}). So unlike the other four,
+ * membership that {@code undo} needs ({@code MergeOperation.java:36}). So unlike the other four,
  * {@code executeOperation} followed by {@code undo} does not work — see
  * {@link Undo#undoWithoutExecuteFails()}.
  */
 @DisplayName("Merge operation")
-class MergePartitionsOperationTest {
+class MergePartitionsHandlerTest {
 
 	@Nested
 	@DisplayName("merging")
@@ -65,7 +65,7 @@ class MergePartitionsOperationTest {
 					.cluster("Bystander", 9)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(decomposition.getClusters()).containsOnlyKeys("M", "Bystander");
 			assertThat(decomposition.getCluster("M").getElementsIDs())
@@ -81,7 +81,7 @@ class MergePartitionsOperationTest {
 					.cluster("C2", 3)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", newName).executeOperation(decomposition);
+			new MergeOperation("C1", "C2", newName).executeOperation(decomposition);
 
 			assertThat(decomposition.getClusters()).containsOnlyKeys(newName);
 			assertThat(decomposition.getCluster(newName).getElementsIDs())
@@ -104,7 +104,7 @@ class MergePartitionsOperationTest {
 			decomposition.getCluster("C1").addMetric("cohesion", 0.5);
 			decomposition.getCluster("C2").addMetric("cohesion", 0.25);
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("M").getMetrics()).isEmpty();
 		}
@@ -125,7 +125,7 @@ class MergePartitionsOperationTest {
 					.dependency("C3", "C2", 3)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			// Both source keys collapse into one, since both now name the same cluster.
 			assertThat(dependenciesOf(decomposition, "C3"))
@@ -145,7 +145,7 @@ class MergePartitionsOperationTest {
 					.dependency("C3", "C4", 9)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C3"))
 					.containsOnlyKeys("M", "C4")
@@ -177,7 +177,7 @@ class MergePartitionsOperationTest {
 					.dependency("C1", "C4", 9)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "M"))
 					.containsEntry("C4", Collections.singleton((short) 9));
@@ -194,7 +194,7 @@ class MergePartitionsOperationTest {
 					.dependency("C1", "C4", 9)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "M")).isEmpty();
 		}
@@ -215,7 +215,7 @@ class MergePartitionsOperationTest {
 					.dependency("C1", "C2", 3)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "M")).isEmpty();
 		}
@@ -236,7 +236,7 @@ class MergePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			assertThatThrownBy(() -> new MergePartitionsOperation("C1", "C2", "C3").executeOperation(decomposition))
+			assertThatThrownBy(() -> new MergeOperation("C1", "C2", "C3").executeOperation(decomposition))
 					.isInstanceOf(KeyAlreadyExistsException.class)
 					.hasMessageContaining("C3");
 
@@ -254,7 +254,7 @@ class MergePartitionsOperationTest {
 					.cluster("C2", 2)
 					.build();
 
-			assertThatThrownBy(() -> new MergePartitionsOperation(cluster1, cluster2, "M").executeOperation(decomposition))
+			assertThatThrownBy(() -> new MergeOperation(cluster1, cluster2, "M").executeOperation(decomposition))
 					.isInstanceOf(Error.class)
 					.hasMessageContaining("Absent");
 		}
@@ -283,7 +283,7 @@ class MergePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			MergePartitionsOperation operation = new MergePartitionsOperation("C1", "C2", newName);
+			MergeOperation operation = new MergeOperation("C1", "C2", newName);
 			operation.execute(decomposition);
 			operation.undo(decomposition);
 
@@ -293,10 +293,10 @@ class MergePartitionsOperationTest {
 		}
 
 		/**
-		 * {@code storeState} is reached only from {@code execute} ({@code :29}), so for merge
+		 * {@code storeState} is reached only from {@code execute} ({@code MergeOperation.java:36}), so for merge
 		 * alone the {@code executeOperation}-then-{@code undo} pairing the other four operations
 		 * support does not work: {@code cluster1Entities} is still null and
-		 * {@code SplitPartitionsOperation} dereferences it.
+		 * {@code SplitPartitionsHandler} dereferences it.
 		 */
 		@Test
 		@DisplayName("fails when the merge was applied without execute")
@@ -306,7 +306,7 @@ class MergePartitionsOperationTest {
 					.cluster("C2", 3)
 					.build();
 
-			MergePartitionsOperation operation = new MergePartitionsOperation("C1", "C2", "M");
+			MergeOperation operation = new MergeOperation("C1", "C2", "M");
 			operation.executeOperation(decomposition);
 
 			assertThat(operation.getCluster1Entities()).isNull();
@@ -316,7 +316,7 @@ class MergePartitionsOperationTest {
 
 		/**
 		 * {@code storeState}'s {@code if (cluster1Entities == null)} guard
-		 * ({@code MergeOperation.java:31}) is what makes this work: {@code redo} goes through
+		 * ({@code MergeOperation.java:41}) is what makes this work: {@code redo} goes through
 		 * {@code executeOperation} and so never re-captures, and even if it did,
 		 * {@code execute} would decline to overwrite. Were the capture repeated on the
 		 * post-undo state, the third-name shape would throw on the second undo.
@@ -332,7 +332,7 @@ class MergePartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			MergePartitionsOperation operation = new MergePartitionsOperation("C1", "C2", "M");
+			MergeOperation operation = new MergeOperation("C1", "C2", "M");
 			operation.execute(decomposition);
 			DecompositionSnapshot merged = DecompositionSnapshot.of(decomposition);
 			String capturedCluster1 = operation.getCluster1Entities();
@@ -367,7 +367,7 @@ class MergePartitionsOperationTest {
 
 			assertThat(decomposition.getRepresentationInformations()).isEmpty();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(decomposition.getClusters()).containsOnlyKeys("M");
 		}
@@ -383,7 +383,7 @@ class MergePartitionsOperationTest {
 					.representationInformation(recorder)
 					.build();
 
-			new MergePartitionsOperation("C1", "C2", "M").executeOperation(decomposition);
+			new MergeOperation("C1", "C2", "M").executeOperation(decomposition);
 
 			assertThat(recorder.onlyRemovedEntityIDs())
 					.containsExactly((short) 1, (short) 2, (short) 3);

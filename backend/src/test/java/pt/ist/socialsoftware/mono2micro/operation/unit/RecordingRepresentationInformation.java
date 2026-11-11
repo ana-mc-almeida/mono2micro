@@ -28,7 +28,7 @@ import java.util.TreeSet;
  * downstream and makes no attempt to reproduce {@code AccessesInformation}'s semantics of
  * deleting functionalities or flagging the decomposition outdated. What it pins is the contract
  * — which entity IDs each operation considers affected — and that contract is not uniform.
- * {@code TransferPartitionsOperation} reports the IDs it was <em>asked</em> to move, including
+ * {@code TransferPartitionsHandler} reports the IDs it was <em>asked</em> to move, including
  * any it silently skipped, while merge and split report actual cluster membership.
  */
 class RecordingRepresentationInformation extends RepresentationInformation {

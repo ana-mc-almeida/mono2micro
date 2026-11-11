@@ -10,7 +10,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposi
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
-import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferPartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
 
 import java.util.Collections;
 import java.util.Map;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * {@code TransferPartitionsOperation} — moving entities between two existing clusters.
+ * {@code TransferPartitionsHandler} — moving entities between two existing clusters.
  *
  * <p>The simplest operation by membership arithmetic, and the one with the sharpest
  * dependency-bookkeeping problem. {@code Partition.transferCouplingDependencies} suppresses a
@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <p>Runs entirely in memory — see {@link DecompositionFixture}.
  */
 @DisplayName("Transfer operation")
-class TransferPartitionsOperationTest {
+class TransferPartitionsHandlerTest {
 
 	@Nested
 	@DisplayName("transferring")
@@ -53,7 +53,7 @@ class TransferPartitionsOperationTest {
 					.build();
 			Element entity1 = decomposition.getCluster("C1").getElementByID((short) 1);
 
-			new TransferPartitionsOperation("C1", "C2", "1,2").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1,2").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C1").getElementsIDs()).containsExactly((short) 3);
 			assertThat(decomposition.getCluster("C2").getElementsIDs())
@@ -69,7 +69,7 @@ class TransferPartitionsOperationTest {
 					.cluster("C2", 4)
 					.build();
 
-			new TransferPartitionsOperation("C1", "C2", "1,99").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1,99").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C2").getElementsIDs())
 					.containsExactlyInAnyOrder((short) 1, (short) 4);
@@ -83,7 +83,7 @@ class TransferPartitionsOperationTest {
 					.cluster("C2", 4)
 					.build();
 
-			new TransferPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(decomposition.getClusters()).containsOnlyKeys("C1", "C2");
 			assertThat(decomposition.getCluster("C1").getElements()).isEmpty();
@@ -105,7 +105,7 @@ class TransferPartitionsOperationTest {
 					.build();
 
 			// Entity 4 lives in C2 already; the transfer moves nothing.
-			new TransferPartitionsOperation("C1", "C2", "4").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "4").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C2").getElementsIDs()).containsExactly((short) 4);
 			assertThat(dependenciesOf(decomposition, "C3"))
@@ -128,7 +128,7 @@ class TransferPartitionsOperationTest {
 					.dependency("C3", "C1", 1, 3)
 					.build();
 
-			new TransferPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C3"))
 					.containsOnlyKeys("C1", "C2")
@@ -150,7 +150,7 @@ class TransferPartitionsOperationTest {
 					.dependency("C2", "C1", 1)
 					.build();
 
-			new TransferPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C2"))
 					.as("no self-loop, and no leftover key")
@@ -169,7 +169,7 @@ class TransferPartitionsOperationTest {
 					.dependency("C3", "C4", 9)
 					.build();
 
-			new TransferPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C3"))
 					.containsOnlyKeys("C2", "C4")
@@ -188,7 +188,7 @@ class TransferPartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			assertThatThrownBy(() -> new TransferPartitionsOperation("Absent", "C1", "1").executeOperation(decomposition))
+			assertThatThrownBy(() -> new TransferOperation("Absent", "C1", "1").executeOperation(decomposition))
 					.isInstanceOf(Error.class)
 					.hasMessageContaining("Absent");
 		}
@@ -200,7 +200,7 @@ class TransferPartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			assertThatThrownBy(() -> new TransferPartitionsOperation("C1", "Absent", "1").executeOperation(decomposition))
+			assertThatThrownBy(() -> new TransferOperation("C1", "Absent", "1").executeOperation(decomposition))
 					.isInstanceOf(Error.class)
 					.hasMessageContaining("Absent");
 		}
@@ -214,7 +214,7 @@ class TransferPartitionsOperationTest {
 					.cluster("C2", 2)
 					.build();
 
-			assertThatThrownBy(() -> new TransferPartitionsOperation("C1", "C2", entities).executeOperation(decomposition))
+			assertThatThrownBy(() -> new TransferOperation("C1", "C2", entities).executeOperation(decomposition))
 					.isInstanceOf(NumberFormatException.class);
 		}
 	}
@@ -234,7 +234,7 @@ class TransferPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			TransferPartitionsOperation operation = new TransferPartitionsOperation("C1", "C2", "1");
+			TransferOperation operation = new TransferOperation("C1", "C2", "1");
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -264,7 +264,7 @@ class TransferPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			TransferPartitionsOperation operation = new TransferPartitionsOperation("C1", "C2", "1");
+			TransferOperation operation = new TransferOperation("C1", "C2", "1");
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -289,7 +289,7 @@ class TransferPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			TransferPartitionsOperation operation = new TransferPartitionsOperation("C1", "C2", "1");
+			TransferOperation operation = new TransferOperation("C1", "C2", "1");
 			operation.execute(decomposition);
 			DecompositionSnapshot transferred = DecompositionSnapshot.of(decomposition);
 
@@ -320,7 +320,7 @@ class TransferPartitionsOperationTest {
 
 			assertThat(decomposition.getRepresentationInformations()).isEmpty();
 
-			new TransferPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C2").getElementsIDs())
 					.containsExactlyInAnyOrder((short) 1, (short) 2);
@@ -341,7 +341,7 @@ class TransferPartitionsOperationTest {
 					.representationInformation(recorder)
 					.build();
 
-			new TransferPartitionsOperation("C1", "C2", "1,99").executeOperation(decomposition);
+			new TransferOperation("C1", "C2", "1,99").executeOperation(decomposition);
 
 			assertThat(recorder.onlyRemovedEntityIDs()).containsExactly((short) 1, (short) 99);
 			assertThat(recorder.renames()).isEmpty();
