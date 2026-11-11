@@ -221,7 +221,7 @@ class RenamePartitionsHandlerTest {
 
 		/**
 		 * {@code Decomposition.removeCluster} throws {@code java.lang.Error} rather than an
-		 * exception ({@code Decomposition.java:147-153}). {@code DecompositionController}
+		 * exception ({@code Decomposition.java:146-152}). {@code DecompositionController}
 		 * catches {@code Exception}, so this reaches the client as a 500 rather than a 400 —
 		 * recorded in the gap analysis, pinned here so the behaviour is not changed by accident.
 		 */
