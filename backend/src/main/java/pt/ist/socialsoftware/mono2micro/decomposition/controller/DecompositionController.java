@@ -12,11 +12,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.Decompos
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
 import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.DecompositionRequest;
 import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
-import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
-import pt.ist.socialsoftware.mono2micro.operation.merge.MergeOperation;
-import pt.ist.socialsoftware.mono2micro.operation.rename.RenameOperation;
-import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
-import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
+import pt.ist.socialsoftware.mono2micro.operation.Operation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import javax.servlet.http.HttpServletResponse;
@@ -148,12 +144,16 @@ public class DecompositionController {
 		}
 	}
 
-	@PostMapping(value = "/decomposition/{decompositionId}/merge")
-	public ResponseEntity<Map<String, Cluster>> mergeClusters(
+	/**
+	 * Applies one manual operation, whichever it is: the body's {@code type} picks the {@link Operation} subclass, and the operation finds its
+	 * handler (D-014), so a new manual operation needs no endpoint of its own.
+	 */
+	@PostMapping(value = "/decomposition/{decompositionId}/operations")
+	public ResponseEntity<Map<String, Cluster>> applyOperation(
 			@PathVariable String decompositionId,
-			@RequestBody MergeOperation operation
+			@RequestBody Operation operation
 	) {
-		logger.debug("mergeClusters");
+		logger.debug("applyOperation {}", operation.getOperationType());
 		try {
 			decompositionService.applyOperation(decompositionId, operation);
 			return new ResponseEntity<>(HttpStatus.OK);
@@ -161,78 +161,6 @@ public class DecompositionController {
 		} catch (KeyAlreadyExistsException e) {
 			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@PostMapping(value = "/decomposition/{decompositionId}/rename")
-	public ResponseEntity<Map<String, Cluster>> renameCluster(
-			@PathVariable String decompositionId,
-			@RequestBody RenameOperation operation
-	) {
-		logger.debug("renameCluster");
-		try {
-			decompositionService.applyOperation(decompositionId, operation);
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (KeyAlreadyExistsException e) {
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@PostMapping(value = "/decomposition/{decompositionId}/split")
-	public ResponseEntity<Map<String, Cluster>> splitCluster(
-			@PathVariable String decompositionId,
-			@RequestBody SplitOperation operation
-	) {
-		logger.debug("splitCluster");
-		try {
-			decompositionService.applyOperation(decompositionId, operation);
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (KeyAlreadyExistsException e) {
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@PostMapping(value = "/decomposition/{decompositionId}/transfer")
-	public ResponseEntity<Map<String, Cluster>> transferEntities(
-			@PathVariable String decompositionId,
-			@RequestBody TransferOperation operation
-	) {
-		logger.debug("transferEntities");
-		try {
-			decompositionService.applyOperation(decompositionId, operation);
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@PostMapping(value = "/decomposition/{decompositionId}/formCluster")
-	public ResponseEntity<Map<String, Cluster>> formCluster(
-			@PathVariable String decompositionId,
-			@RequestBody FormClusterOperation operation
-	) {
-		logger.debug("formCluster");
-		try {
-			decompositionService.applyOperation(decompositionId, operation);
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (KeyAlreadyExistsException e) {
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

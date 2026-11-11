@@ -213,7 +213,7 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		body.put("cluster1Name", cluster1);
 		body.put("cluster2Name", cluster2);
 		body.put("newName", newName);
-		edit(decompositionId, "merge", body);
+		edit(decompositionId, body);
 	}
 
 	void split(String decompositionId, String originalCluster, String newCluster, List<Short> entityIds) {
@@ -221,7 +221,7 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		body.put("originalCluster", originalCluster);
 		body.put("newCluster", newCluster);
 		body.put("entities", joined(entityIds));
-		edit(decompositionId, "split", body);
+		edit(decompositionId, body);
 	}
 
 	void transfer(String decompositionId, String fromCluster, String toCluster, List<Short> entityIds) {
@@ -229,21 +229,21 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		body.put("fromCluster", fromCluster);
 		body.put("toCluster", toCluster);
 		body.put("entities", joined(entityIds));
-		edit(decompositionId, "transfer", body);
+		edit(decompositionId, body);
 	}
 
 	void rename(String decompositionId, String clusterName, String newClusterName) {
 		Map<String, Object> body = operation("RenameOperation");
 		body.put("clusterName", clusterName);
 		body.put("newClusterName", newClusterName);
-		edit(decompositionId, "rename", body);
+		edit(decompositionId, body);
 	}
 
 	void formCluster(String decompositionId, String newCluster, Map<String, List<Short>> entityIdsByCluster) {
 		Map<String, Object> body = operation("FormClusterOperation");
 		body.put("newCluster", newCluster);
 		body.put("entities", entityIdsByCluster);
-		edit(decompositionId, "formCluster", body);
+		edit(decompositionId, body);
 	}
 
 	/** Returns the status, since an undo with nothing to undo is itself characterized. */
@@ -420,15 +420,15 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return body;
 	}
 
-	private void edit(String decompositionId, String endpoint, Map<String, Object> body) {
+	private void edit(String decompositionId, Map<String, Object> body) {
 		ResponseEntity<String> response = rest.exchange(
-				base + "/decomposition/{id}/" + endpoint,
+				base + "/decomposition/{id}/operations",
 				HttpMethod.POST,
 				new HttpEntity<>(body, jsonHeaders()),
 				String.class,
 				decompositionId);
 
-		require(response, HttpStatus.OK, endpoint + " on " + decompositionId + " with " + body);
+		require(response, HttpStatus.OK, body.get("type") + " on " + decompositionId + " with " + body);
 	}
 
 	private static String joined(List<Short> ids) {
