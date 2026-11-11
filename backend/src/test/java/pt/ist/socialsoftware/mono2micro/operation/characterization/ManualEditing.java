@@ -59,7 +59,7 @@ final class ManualEditing {
 		request.setCluster1Name(cluster1);
 		request.setCluster2Name(cluster2);
 		request.setNewName(newName);
-		decompositionService.mergeClustersOperation(DECOMPOSITION_ID, request);
+		decompositionService.applyOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -69,7 +69,7 @@ final class ManualEditing {
 		request.setOriginalCluster(originalCluster);
 		request.setNewCluster(newCluster);
 		request.setEntities(entities);
-		decompositionService.splitClusterOperation(DECOMPOSITION_ID, request);
+		decompositionService.applyOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -79,7 +79,7 @@ final class ManualEditing {
 		request.setFromCluster(fromCluster);
 		request.setToCluster(toCluster);
 		request.setEntities(entities);
-		decompositionService.transferEntitiesOperation(DECOMPOSITION_ID, request);
+		decompositionService.applyOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -87,7 +87,7 @@ final class ManualEditing {
 		RenameOperation request = new RenameOperation();
 		request.setClusterName(clusterName);
 		request.setNewClusterName(newClusterName);
-		decompositionService.renameClusterOperation(DECOMPOSITION_ID, request);
+		decompositionService.applyOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 
@@ -96,7 +96,7 @@ final class ManualEditing {
 		FormClusterOperation request = new FormClusterOperation();
 		request.setNewCluster(newCluster);
 		request.setEntities(entities);
-		decompositionService.formClusterOperation(DECOMPOSITION_ID, request);
+		decompositionService.applyOperation(DECOMPOSITION_ID, request);
 		return this;
 	}
 

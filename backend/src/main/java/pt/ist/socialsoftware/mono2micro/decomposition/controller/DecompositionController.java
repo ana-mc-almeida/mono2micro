@@ -155,7 +155,7 @@ public class DecompositionController {
 	) {
 		logger.debug("mergeClusters");
 		try {
-			decompositionService.mergeClustersOperation(decompositionId, operation);
+			decompositionService.applyOperation(decompositionId, operation);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (KeyAlreadyExistsException e) {
@@ -174,7 +174,7 @@ public class DecompositionController {
 	) {
 		logger.debug("renameCluster");
 		try {
-			decompositionService.renameClusterOperation(decompositionId, operation);
+			decompositionService.applyOperation(decompositionId, operation);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (KeyAlreadyExistsException e) {
@@ -193,7 +193,7 @@ public class DecompositionController {
 	) {
 		logger.debug("splitCluster");
 		try {
-			decompositionService.splitClusterOperation(decompositionId, operation);
+			decompositionService.applyOperation(decompositionId, operation);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (KeyAlreadyExistsException e) {
@@ -212,7 +212,7 @@ public class DecompositionController {
 	) {
 		logger.debug("transferEntities");
 		try {
-			decompositionService.transferEntitiesOperation(decompositionId, operation);
+			decompositionService.applyOperation(decompositionId, operation);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -228,7 +228,7 @@ public class DecompositionController {
 	) {
 		logger.debug("formCluster");
 		try {
-			decompositionService.formClusterOperation(decompositionId, operation);
+			decompositionService.applyOperation(decompositionId, operation);
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (KeyAlreadyExistsException e) {
