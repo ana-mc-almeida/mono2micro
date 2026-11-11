@@ -28,12 +28,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <ul>
  * <li><b>An emptied origin cluster is left in place.</b> {@code split} never removes it,
  * while {@code formCluster} removes sources it empties
- * ({@code FormClusterPartitionsHandler.java:85-86}). The inconsistency is not free to
+ * ({@code FormClusterPartitionsHandler.formCluster}). The inconsistency is not free to
  * fix: {@code undo} merges the new cluster back into the origin <em>by name</em>, so if
  * split removed the empty cluster, undo would throw. See {@link Undo}.
  * <li><b>Dependencies stay with the origin cluster, not with the entities.</b> The new
  * cluster is added to the decomposition only after the dependency-transfer loop
- * ({@code SplitPartitionsHandler.java:59-64}), so it never receives outgoing
+ * ({@code SplitPartitionsHandler.split}), so it never receives outgoing
  * dependencies of its own. Ownership is per-cluster, not per-entity. See
  * {@link CouplingDependencies}.
  * </ul>
@@ -66,7 +66,7 @@ class SplitPartitionsHandlerTest {
 		}
 
 		/**
-		 * {@code if (entity != null)} at {@code SplitPartitionsHandler.java:54} makes a
+		 * {@code if (entity != null)} in {@code SplitPartitionsHandler.split} makes a
 		 * mistyped entity ID a no-op rather than an error, so a request naming entities that
 		 * are not in the origin cluster half-succeeds.
 		 */
@@ -155,8 +155,8 @@ class SplitPartitionsHandlerTest {
 
 		/**
 		 * Dependency ownership is per-cluster, not per-entity. The new cluster is created at
-		 * {@code :52} but only added to the decomposition at {@code :67}, after the transfer
-		 * loop at {@code :62-65} has walked {@code getClusters().values()} — so it is never a
+		 * the start of {@code SplitPartitionsHandler.split} but only added to the decomposition at its end, after the
+		 * transfer loop has walked {@code getClusters().values()} — so it is never a
 		 * candidate to receive dependencies, and the origin keeps every outgoing dependency
 		 * even when the entity that justified it has moved away.
 		 *
@@ -219,7 +219,7 @@ class SplitPartitionsHandlerTest {
 		}
 
 		/**
-		 * {@code Short.parseShort} at {@code :55} is unguarded, so a malformed entity list
+		 * {@code Short.parseShort} in {@code SplitPartitionsHandler.split} is unguarded, so a malformed entity list
 		 * escapes as {@code NumberFormatException}. {@code DecompositionController} catches
 		 * {@code Exception}, so this one does reach the client as a 400 — unlike the
 		 * {@code Error} thrown for an unknown cluster name.

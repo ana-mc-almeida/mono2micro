@@ -15,13 +15,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * {@code Operation.execute}'s history bookkeeping, independent of any one operation.
  *
  * <p>Every {@code execute} applies the operation through its handler and then does four
- * things ({@code Operation.java:30-38}): increment the history's depth cursor, stamp that depth
+ * things ({@code Operation.execute}): increment the history's depth cursor, stamp that depth
  * on the operation, ask the history to drop operations the new one overrides, and append. Rename
  * is the vehicle here because its {@code execute} adds nothing of its own — merge's, by
  * contrast, also captures pre-merge state.
  *
  * <p>Depth is <b>1-based</b>: {@code getCurrentHistoryOperation} indexes the list at
- * {@code depth - 1} ({@code History.java:66}), and an empty history sits at depth 0. The
+ * {@code depth - 1} ({@code History.getCurrentHistoryOperation}), and an empty history sits at depth 0. The
  * invariant across undo and redo is {@code currentHistoryOperationDepth <= list.size()}, with
  * undone operations left in the list above the cursor until a new operation prunes them.
  *
@@ -80,7 +80,7 @@ class OperationHistoryBookkeepingTest {
 	 *
 	 * <p>The two {@code decrementCurrentHistoryDepth} calls stand in for
 	 * {@code HistoryService.undoOperation}, which decrements after delegating to
-	 * {@code operation.undo} ({@code HistoryService.java:38-40}).
+	 * {@code operation.undo}.
 	 */
 	@Test
 	@DisplayName("drops the operations a new one overrides")

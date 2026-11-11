@@ -28,12 +28,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * {@code Map<String, List<Short>>} of source cluster name to entity IDs rather than a
  * comma-separated string. That map is the source of its sharpest problem: <b>the keys are
  * ignored on the way forward and authoritative on the way back</b>. {@code formCluster} locates
- * each entity by scanning every cluster ({@code :66-68}) and never reads the key, while
+ * each entity by scanning every cluster ({@code FormClusterPartitionsHandler.formCluster}) and never reads the key, while
  * {@code undo} dispatches on it to decide whether to split a cluster back out or transfer into
- * an existing one ({@code :42-48}). A caller who supplies a wrong key therefore gets a working
+ * an existing one ({@code FormClusterPartitionsHandler.undo}). A caller who supplies a wrong key therefore gets a working
  * operation and a corrupting undo — see {@link Undo#undoWithAWrongKeyMisplacesEntities()}.
  *
- * <p>Unlike {@code split}, this operation removes a source cluster it empties ({@code :78-79}),
+ * <p>Unlike {@code split}, this operation removes a source cluster it empties, inside {@code formCluster}'s entity loop,
  * and {@code undo} depends on that: an absent source means "split it back out", a present one
  * means "transfer back". The same removal is what lets a cluster be re-formed under its own name.
  *
@@ -79,7 +79,7 @@ class FormClusterPartitionsHandlerTest {
 
 		/**
 		 * The keys are decorative here: entity 1 lives in C1, the map says {@code "Wrong"}, and
-		 * the operation succeeds because {@code :66-68} scans instead of looking up. Harmless
+		 * the operation succeeds because {@code formCluster} scans instead of looking up. Harmless
 		 * going forward, corrupting on undo — see {@link Undo#undoWithAWrongKeyMisplacesEntities()}.
 		 */
 		@Test
@@ -127,8 +127,8 @@ class FormClusterPartitionsHandlerTest {
 
 		/**
 		 * Permitted when the new entity set covers everything the existing cluster held
-		 * ({@code :59-60}). It works only because the old cluster is emptied and therefore
-		 * removed at {@code :78-79}, freeing the name before {@code addCluster} at {@code :81} —
+		 * (the name guard {@code formCluster} opens with). It works only because the old cluster is emptied
+		 * and therefore removed inside the entity loop, freeing the name before the final {@code addCluster} —
 		 * which would otherwise throw {@code Error}. Two behaviours holding each other up.
 		 */
 		@Test
@@ -208,8 +208,8 @@ class FormClusterPartitionsHandlerTest {
 		}
 
 		/**
-		 * The dependency loop at {@code :73-76} walks {@code getClusters().values()} while the
-		 * about-to-be-emptied source is still in the map, and the removal at {@code :78-79}
+		 * The dependency loop in {@code formCluster} walks {@code getClusters().values()} while the
+		 * about-to-be-emptied source is still in the map, and the removal of an emptied source
 		 * happens inside the same entity loop. Guards against a future reordering that would
 		 * throw {@code ConcurrentModificationException}.
 		 */

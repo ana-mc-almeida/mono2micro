@@ -18,7 +18,7 @@ import java.util.TreeSet;
  * {@code decomposition.getRepresentationInformations()} and calling either
  * {@code removeFunctionalitiesWithEntityIDs} or {@code renameClusterInFunctionalities}. Both are
  * <b>empty non-abstract</b> methods on the base class
- * ({@code RepresentationInformation.java:24,26}), and only {@code AccessesInformation} overrides
+ * {@code RepresentationInformation}, and only {@code AccessesInformation} overrides
  * them — {@code RepositoryInformation} and {@code StructureInformation} inherit the no-ops. So
  * the call site can be exercised offline by a subclass that records its arguments, even though
  * {@code AccessesInformation}'s own implementation reaches for

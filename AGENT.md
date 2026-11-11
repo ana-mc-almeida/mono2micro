@@ -214,7 +214,7 @@ make build
   Two things to know before touching that package's tests: `Cluster` and `BipartiteGraph`
   are **package-private**, so tests must sit in
   `pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.severalDecompositions.mojo.src.main.java`; and
-  `MoJo.showerrormsg()` ends in **`System.exit(0)`** (`MoJo.java:113`), so a malformed
+  `MoJo.showerrormsg()` ends in **`System.exit(0)`**, so a malformed
   argument array would kill the surefire fork. Only well-formed argv is exercised.
 
 - **Go tool:** unit and integration tests are separated by **build tags**
@@ -377,7 +377,7 @@ A service that needs a software system's representation of some kind calls
 | Concept | Location | Notes |
 | ------- | -------- | ----- |
 | **SoftwareSystem** | `<pkg>/softwareSystem/` | Top-level container `{id, name}`; REST under `/softwareSystems`. Not `System`, because of `java.lang.System` |
-| **Representation** | `<pkg>/representation/` | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
+| **Representation** | `<pkg>/representation/` | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ in `Representation`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
 | **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves. Holds `kindName` and the `representations` its kind reads, and is unique on them, its profile, settings and weights (D-010, D-016). Made on the software system: `GET /softwareSystems/{id}/similarities/available` is the kinds' derivation record, `POST …/similarities/create` refuses a kind the system does not offer with 422 |
 | **Similarity kind** | `<pkg>/similarity/kind/` | 8 kinds, each a `VariableFeature` of `SimilarityKindFamily` named by its `@JsonTypeName`. A kind declares what it requires, the `SimilarityScipy` type that computes it (`similarityType()`), its `informationBlocks()`, its `weightsTypes()`, and where they apply `scopedRepresentationType()` (the representation a profile of it selects) and `requiresClusterTypeConversion()`. `SimilarityKind.getByName` finds one |
 | **Profile** | `<pkg>/refactoring/domainKnowledge/expertKnowledge/` | _Expert knowledge_ (D-017): `{id, name, units, representation, retired}`, a named selection of a representation's units that scopes a Similarity or recommendation. **Immutable**: a move saves new versions of the profiles it changes; discarding one (by a move or a delete) retires it while a Similarity or recommendation uses it, and deletes it otherwise. Unassigned is computed, never stored. `Similarity.profile` and `Recommendation.profile` are nullable, and null means every unit; consumers go through `Profile.unitsOf`. A representation lists its units with `Representation.readUnits` (null: no profile can scope it). Endpoints in `ProfileController`. `Profile` is the one feature of `ExpertKnowledgeFamily` (member type `ExpertKnowledge`): it requires any kind that declares a `scopedRepresentationType()`, so the selector (`GET /softwareSystems/{id}/profiles/available?kindName=`, then `GET …/profiles?kindName=` for the list) and the Profiles button (`GET …/profiles/representationTypes`) follow the kinds, and a profile on a kind that takes none is a 422. The repositories query `existsByProfile_Id`: the underscore walks the reference, since a plain `ProfileId` clashes with the `getProfileId()` getter |
@@ -399,7 +399,7 @@ Most extensible axes are a `*Factory` dispatching on a type string:
 `ClusteringFactory`, `RecommendationFactory`, `WeightsFactory`. Manual operations are
 the exception: they find their code in the `ManualOperationHandlers` registry (D-014).
 
-The Python side documents its own seam in `scripts/main.py:20`:
+The Python side documents its own seam in `scripts/main.py`:
 
 ```python
 # To add different algorithms, create a new router and include it here
@@ -534,3 +534,6 @@ FenixFramework.
   grep for an existing type string to find them all.
 - When a change relates to a feature-model axis, use the model's vocabulary in
   commits and comments, and note the outcome in `../implementation/docs/decisions.md`.
+- Comments and this file cite code by class or member (`{@code MergePartitionsHandler.merge}`,
+  `MoJo.showerrormsg()`), never by line number: line numbers go stale silently whenever
+  the file above them changes.

@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * <p>The simplest operation by membership arithmetic, and the one with the sharpest
  * dependency-bookkeeping problem. {@code Partition.transferCouplingDependencies} suppresses a
- * dependency that would point at the partition itself ({@code Partition.java:47}), which is
+ * dependency that would point at the partition itself, which is
  * right going forward — once the entity lives in the cluster that reached for it, there is no
  * distributed transaction left. But nothing records that the dependency <em>was</em> there, so
  * {@code undo} finds no key to move back and returns early. The reach is gone for good.
@@ -32,8 +32,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * <p>A second, smaller asymmetry: membership changes and dependency changes are driven from
  * different inputs. Entities are moved only if they are actually in the source cluster
- * ({@code :53}), while the dependency loop runs over the <em>parsed request</em>
- * ({@code :49,59-62}) regardless. An ID that did not move still has its dependencies retargeted.
+ * ({@code TransferPartitionsHandler.transfer}), while the dependency loop runs over the
+ * <em>parsed request</em> regardless. An ID that did not move still has its dependencies retargeted.
  *
  * <p>Runs entirely in memory — see {@link DecompositionFixture}.
  */
@@ -92,7 +92,7 @@ class TransferPartitionsHandlerTest {
 		/**
 		 * The membership half and the dependency half disagree about what the request means:
 		 * entity 4 is already in the target, so nothing moves, but its dependencies are
-		 * retargeted anyway because the loop at {@code :59-62} uses the parsed request.
+		 * retargeted anyway because the dependency loop in {@code transfer} uses the parsed request.
 		 */
 		@Test
 		@DisplayName("retargets dependencies for an entity that did not move")
@@ -137,7 +137,7 @@ class TransferPartitionsHandlerTest {
 		}
 
 		/**
-		 * The self-edge suppression at {@code Partition.java:47}. C2 reached entity 1 while it
+		 * The self-edge suppression in {@code Partition.transferCouplingDependencies}. C2 reached entity 1 while it
 		 * lived in C1; once the entity moves into C2, the reach is internal and is dropped
 		 * rather than becoming {@code C2 -> C2}.
 		 */
@@ -247,8 +247,8 @@ class TransferPartitionsHandlerTest {
 		 * <b>Transfer is not reversible in general.</b> The forward pass suppressed the
 		 * {@code C2 -> C1} dependency on entity 1 rather than turning it into a self-loop, and
 		 * kept no record of it; on the way back, {@code transferCouplingDependencies} looks up
-		 * key {@code "C2"} in C2's own map, finds nothing, and returns at
-		 * {@code Partition.java:44}. Membership round-trips, coupling does not.
+		 * key {@code "C2"} in C2's own map, finds nothing, and returns early
+		 * from it. Membership round-trips, coupling does not.
 		 *
 		 * <p>Documented current behaviour, recorded in the gap analysis. It matters because
 		 * coupling is the quantity the tool exists to minimize: a user who transfers an entity

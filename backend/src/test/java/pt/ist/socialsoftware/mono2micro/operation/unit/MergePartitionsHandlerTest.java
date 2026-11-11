@@ -29,23 +29,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <ul>
  * <li><b>The merged cluster loses its outgoing coupling dependencies.</b> {@code merge}
  * rewrites dependencies in a loop over {@code getClusters().values()} and only then adds
- * the merged cluster ({@code MergePartitionsHandler.java:67-75}), which is besides a
- * fresh {@code Partition} ({@code :62}). Dependencies the two inputs held are therefore
+ * the merged cluster ({@code MergePartitionsHandler.merge}), which is besides a
+ * fresh {@code Partition}. Dependencies the two inputs held are therefore
  * dropped rather than carried over, and {@code undo} cannot bring them back. Since the
  * thesis minimizes exactly this quantity, it is recorded as a defect — see
  * {@link CouplingDependencies#mergePreservesOutgoingDependencies()}.
  * <li><b>{@code undo} is correct in all three name shapes, and only just.</b> It branches on
- * {@code cluster1Name.equals(newName)} ({@code :47}) to choose which side to split back
+ * {@code cluster1Name.equals(newName)} ({@code MergePartitionsHandler.undo}) to choose which side to split back
  * off, so that the subsequent rename always has a free target. When the merge kept
  * cluster2's name, that rename is a <em>self-rename</em>, which only works because
  * {@code RenamePartitionsHandler}'s duplicate-name guard exempts it
- * ({@code RenamePartitionsHandler.java:39}). Tighten that guard and merge undo breaks.
+ * ({@code RenamePartitionsHandler.rename}). Tighten that guard and merge undo breaks.
  * See {@link Undo#undoRestoresBothClusters(String)}.
  * </ul>
  *
  * <p>Merge is also the one operation whose {@code execute} does more than
  * {@code executeOperation}: it first calls {@code storeState} to capture the pre-merge
- * membership that {@code undo} needs ({@code MergeOperation.java:36}). So unlike the other four,
+ * membership that {@code undo} needs ({@code MergeOperation.execute}). So unlike the other four,
  * {@code executeOperation} followed by {@code undo} does not work — see
  * {@link Undo#undoWithoutExecuteFails()}.
  */
@@ -265,7 +265,7 @@ class MergePartitionsHandlerTest {
 	class Undo {
 
 		/**
-		 * All three name shapes, which is the point: the {@code :47} branch picks which side to
+		 * All three name shapes, which is the point: the branch in {@code MergePartitionsHandler.undo} picks which side to
 		 * split back off so the following rename has a free target, and for
 		 * {@code newName == "C2"} that rename is a self-rename. The three cases exercise the
 		 * else-branch with a fresh name, the if-branch, and the else-branch's self-rename path.
@@ -293,7 +293,7 @@ class MergePartitionsHandlerTest {
 		}
 
 		/**
-		 * {@code storeState} is reached only from {@code execute} ({@code MergeOperation.java:36}), so for merge
+		 * {@code storeState} is reached only from {@code MergeOperation.execute}, so for merge
 		 * alone the {@code executeOperation}-then-{@code undo} pairing the other four operations
 		 * support does not work: {@code cluster1Entities} is still null and
 		 * {@code SplitPartitionsHandler} dereferences it.
@@ -316,7 +316,7 @@ class MergePartitionsHandlerTest {
 
 		/**
 		 * {@code storeState}'s {@code if (cluster1Entities == null)} guard
-		 * ({@code MergeOperation.java:41}) is what makes this work: {@code redo} goes through
+		 * is what makes this work: {@code redo} goes through
 		 * {@code executeOperation} and so never re-captures, and even if it did,
 		 * {@code execute} would decline to overwrite. Were the capture repeated on the
 		 * post-undo state, the third-name shape would throw on the second undo.

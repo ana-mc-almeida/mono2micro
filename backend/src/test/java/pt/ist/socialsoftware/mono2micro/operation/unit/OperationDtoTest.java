@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code storeState} captures it on {@code execute} rather than it being carried in.
  *
  * <p>The type strings are the discriminators Jackson writes into the persisted history
- * ({@code Operation.java:13-20}). They are transcribed as literals here rather than referenced,
+ * ({@code Operation}'s {@code @JsonSubTypes}). They are transcribed as literals here rather than referenced,
  * so that renaming a constant shows up as a red test rather than a silent recompile — the
  * convention {@code SimilarityCase} uses for the same reason. Changing one is a migration, since
  * histories already in Mongo carry the old spelling.

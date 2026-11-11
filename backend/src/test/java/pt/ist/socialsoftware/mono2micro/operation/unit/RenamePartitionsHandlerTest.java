@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <p>The simplest of the five operations, and the one whose quirk matters most elsewhere:
  * renaming a cluster to the name it already has is <b>allowed</b>, because the duplicate-name
  * guard carries {@code && !clusterName.equals(newClusterName)}
- * ({@code RenamePartitionsHandler.java:39}). That escape hatch looks permissive in isolation
+ * ({@code RenamePartitionsHandler.rename}). That escape hatch looks permissive in isolation
  * but is load-bearing — {@code MergePartitionsHandler.undo} finishes with a self-rename in
  * two of its three branches, so tightening this guard would silently break merge's undo. See
  * {@link MergePartitionsHandlerTest} and {@link SelfRename} below.
@@ -124,7 +124,7 @@ class RenamePartitionsHandlerTest {
 		 *
 		 * <p>This is also the one place {@code addCouplingDependencies}' {@code containsKey}
 		 * branch is reached from production code. Its other branch stores the caller's
-		 * {@code Set} by reference ({@code Partition.java:33-39}); {@code rename} is safe only
+		 * {@code Set} by reference; {@code rename} is safe only
 		 * because the set it hands over is one it has just orphaned, which is worth knowing
 		 * before writing a second caller.
 		 */
@@ -155,7 +155,7 @@ class RenamePartitionsHandlerTest {
 		 * Permitted, and depended upon by {@code MergePartitionsHandler.undo}: its
 		 * else-branch finishes with {@code rename(newName, cluster2Name)}, which is a self-rename
 		 * whenever the merge kept cluster2's name. Remove the {@code !clusterName.equals(...)}
-		 * half of the guard at {@code RenamePartitionsHandler.java:39} and merge undo starts
+		 * half of the guard in {@code RenamePartitionsHandler.rename} and merge undo starts
 		 * throwing {@code KeyAlreadyExistsException}.
 		 */
 		@Test
@@ -221,7 +221,7 @@ class RenamePartitionsHandlerTest {
 
 		/**
 		 * {@code Decomposition.removeCluster} throws {@code java.lang.Error} rather than an
-		 * exception ({@code Decomposition.java:146-152}). {@code DecompositionController}
+		 * exception. {@code DecompositionController}
 		 * catches {@code Exception}, so this reaches the client as a 500 rather than a 400 —
 		 * recorded in the gap analysis, pinned here so the behaviour is not changed by accident.
 		 */
