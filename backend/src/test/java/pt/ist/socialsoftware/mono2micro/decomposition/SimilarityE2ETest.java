@@ -117,6 +117,24 @@ class SimilarityE2ETest {
 				pipeline.representationId(softwareSystem, "Accesses"));
 	}
 
+	/** An equal request is found again only among the software system's own Similarities (D-029, ticket 23 item 7). */
+	@Test
+	@DisplayName("The same request on two software systems gives each its own Similarity, which a repeat reuses")
+	void equalRequestsOnTwoSoftwareSystemsDoNotShareASimilarity() {
+		HttpDecompositionPipeline pipeline = pipeline(CASE);
+		String oneSystem = system(pipeline, CASE, SimilarityCase.accesses());
+		String otherSystem = system(pipeline, CASE, SimilarityCase.accesses());
+
+		String one = pipeline.createSimilarity(oneSystem, SimilarityCase.accesses());
+		String other = pipeline.createSimilarity(otherSystem, SimilarityCase.accesses());
+
+		assertThat(other).isNotEqualTo(one);
+		assertThat(pipeline.createSimilarity(oneSystem, SimilarityCase.accesses())).isEqualTo(one);
+		assertThat(pipeline.createSimilarity(otherSystem, SimilarityCase.accesses())).isEqualTo(other);
+		assertThat(pipeline.getSimilarities(oneSystem)).extracting(s -> s.path("id").asText()).containsExactly(one);
+		assertThat(pipeline.getSimilarities(otherSystem)).extracting(s -> s.path("id").asText()).containsExactly(other);
+	}
+
 	/** Accesses and Repository is its own kind (D-026): it reads the four representations and its decompositions get both blocks. */
 	@Test
 	@DisplayName("An Accesses and Repository Similarity is clustered into a decomposition listed with the software system's")
