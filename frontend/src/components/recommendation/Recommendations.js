@@ -22,8 +22,7 @@ export const Recommendations = () => {
         const service = new APIService();
         service.getSoftwareSystem(softwareSystemId).then(response => setSoftwareSystemName(response.name));
         // Only the kinds the backend offers for this software system's representations (D-013).
-        service.getAvailableSimilarityKinds(softwareSystemId).then(features =>
-            setOfferedKinds(features.filter(feature => feature.available).map(feature => feature.name)));
+        service.getOfferedSimilarityKinds(softwareSystemId).then(setOfferedKinds);
         loadDecompositions();
     }, []);
 
