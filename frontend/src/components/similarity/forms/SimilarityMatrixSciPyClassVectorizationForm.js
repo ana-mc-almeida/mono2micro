@@ -3,13 +3,11 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
-import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_CLASS_VECTORIZATION} from "../../../models/similarity/SimilarityScipyClassVectorization";
-import {APIService} from "../../../services/APIService";
+import {UPLOADING} from "./similarityCreationStatus";
 
 
-export const SimilarityMatrixSciPyClassVectorizationForm = ({softwareSystemId, kindName, onCreated}) => {
-    const [isUploaded, setIsUploaded] = useState("");
+export const SimilarityMatrixSciPyClassVectorizationForm = ({softwareSystemId, kindName, status, onSubmit}) => {
     const [linkageType, setLinkageType] = useState("average");
 
     // Executes when it is informed that there is information to be updated
@@ -18,28 +16,11 @@ export const SimilarityMatrixSciPyClassVectorizationForm = ({softwareSystemId, k
 
     function handleSubmit(event) {
         event.preventDefault();
-        setIsUploaded("Uploading...");
-
-        new APIService().createSimilarity(softwareSystemId, {
+        onSubmit({
             kindName,
             type: SIMILARITY_SCIPY_CLASS_VECTORIZATION,
             linkageType
-        })
-            .then(response => {
-                if (response.status === HttpStatus.CREATED) {
-                    setIsUploaded("");
-                    onCreated(); // Lets the screen reload its Similarities
-                } else {
-                    setIsUploaded("Upload failed.");
-                }
-            })
-            .catch(error => {
-                if (error.response !== undefined && error.response.status === HttpStatus.UNAUTHORIZED) {
-                    setIsUploaded("Upload failed. Name already exists.");
-                } else {
-                    setIsUploaded("Upload failed.");
-                }
-            });
+        });
     }
 
     function handleChangeLinkageType(event) {
@@ -67,12 +48,12 @@ export const SimilarityMatrixSciPyClassVectorizationForm = ({softwareSystemId, k
                     <Col sm={{offset: 2}}>
                         <Button
                             type="submit"
-                            disabled={isUploaded === "Uploading..." || false}
+                            disabled={status === UPLOADING || false}
                         >
                             Generate Similarity Distances
                         </Button>
                         <Form.Text className="ms-2">
-                            {isUploaded}
+                            {status}
                         </Form.Text>
                     </Col>
                 </Form.Group>

@@ -484,7 +484,9 @@ A kind with a new computation also needs its type string in these registries:
    scan makes it a JSON subtype of `SimilarityDto` (`JsonSubtypeConfiguration`). Override
    `describeCandidate` if a recommendation's candidates should be saveable (Gap 9, D-027)
 8. Frontend: `models/similarity/` + `SimilarityFactory.ts`, and a form under
-   `components/similarity/forms/`
+   `components/similarity/forms/`. The form only collects its kind's settings and calls
+   `onSubmit(request)`, showing the `status` it is passed; `SoftwareSystemPage` creates the
+   Similarity and turns a refusal into that status (`similarityCreationStatus.js`)
 
 Miss one and the variant fails at runtime rather than compile time. This fan-out is a
 known finding, not an accident of your change — see

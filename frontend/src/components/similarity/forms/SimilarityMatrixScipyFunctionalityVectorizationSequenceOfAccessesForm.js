@@ -4,14 +4,12 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
-import HttpStatus from "http-status-codes";
 import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "../../../models/similarity/SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
-import {APIService} from "../../../services/APIService";
+import {UPLOADING} from "./similarityCreationStatus";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm = ({softwareSystemId, kindName, onCreated}) => {
-    const [isUploaded, setIsUploaded] = useState("");
+export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm = ({softwareSystemId, kindName, status, onSubmit}) => {
     const [linkageType, setLinkageType] = useState("average");
     const [weightsList, setWeightsList] = useState([]);
     const [weightSum, setWeightSum] = useState(0);
@@ -23,29 +21,12 @@ export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesFo
 
     function handleSubmit(event) {
         event.preventDefault();
-        setIsUploaded("Uploading...");
-
-        new APIService().createSimilarity(softwareSystemId, {
+        onSubmit({
             kindName,
             type: SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
             linkageType,
             weightsList
-        })
-            .then(response => {
-                if (response.status === HttpStatus.CREATED) {
-                    setIsUploaded("");
-                    onCreated(); // Lets the screen reload its Similarities
-                } else {
-                    setIsUploaded("Upload failed.");
-                }
-            })
-            .catch(error => {
-                if (error.response !== undefined && error.response.status === HttpStatus.UNAUTHORIZED) {
-                    setIsUploaded("Upload failed. Name already exists.");
-                } else {
-                    setIsUploaded("Upload failed.");
-                }
-            });
+        });
     }
 
     function changeMetricWeight(event, weightName) {
@@ -105,14 +86,14 @@ export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesFo
                     <Col sm={{offset: 2}}>
                         <Button
                             type="submit"
-                            disabled={isUploaded === "Uploading..." ||
+                            disabled={status === UPLOADING ||
                             !(weightSum === 100)
                             }
                         >
                             Generate Similarity Distances
                         </Button>
                         <Form.Text className="ms-2">
-                            {isUploaded}
+                            {status}
                         </Form.Text>
                     </Col>
                 </Form.Group>

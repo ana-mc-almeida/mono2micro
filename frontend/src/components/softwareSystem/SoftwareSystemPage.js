@@ -18,6 +18,7 @@ import {AddCircleOutline, CheckCircle} from "@mui/icons-material";
 import MUIButton from "@mui/material/Button";
 import Card from "react-bootstrap/Card";
 import {similarityForms} from "../similarity/forms/similarityForms";
+import {creationFailure, UPLOADING} from "../similarity/forms/similarityCreationStatus";
 
 function renderBreadCrumbs(softwareSystemName) {
     return (
@@ -54,6 +55,7 @@ export function SoftwareSystemPage() {
     const [offeredKinds, setOfferedKinds] = useState([]);
     const [profiledRepresentationTypes, setProfiledRepresentationTypes] = useState([]);
     const [selectedKind, setSelectedKind] = useState(undefined);
+    const [similarityStatus, setSimilarityStatus] = useState("");
 
     //Executed on mount
     useEffect(() => {
@@ -99,6 +101,22 @@ export function SoftwareSystemPage() {
         });
     }
 
+    // The one place a Similarity is created: the chosen kind's form only collects its settings into the request.
+    function handleCreateSimilarity(request) {
+        setSimilarityStatus(UPLOADING);
+        new APIService().createSimilarity(softwareSystemId, request)
+            .then(() => {
+                setSimilarityStatus("");
+                loadSimilarities();
+            })
+            .catch(error => setSimilarityStatus(creationFailure(error)));
+    }
+
+    function handleSelectKind(kind) {
+        setSelectedKind(kind);
+        setSimilarityStatus("");
+    }
+
     // The kinds the software system offers, and the form of the chosen one: one lookup from the kind's name.
     function renderSimilarities() {
         const SimilarityForm = selectedKind !== undefined ? similarityForms[selectedKind] : undefined;
@@ -120,7 +138,7 @@ export function SoftwareSystemPage() {
                             <Row>
                                 {offeredKinds.map(kind =>
                                     <Col key={kind} sm="auto">
-                                        <Form.Check onClick={() => setSelectedKind(kind)} name="similarityKind" label={kind} type="radio" id={"kind-" + kind}/>
+                                        <Form.Check onClick={() => handleSelectKind(kind)} name="similarityKind" label={kind} type="radio" id={"kind-" + kind}/>
                                     </Col>
                                 )}
                             </Row>
@@ -132,7 +150,8 @@ export function SoftwareSystemPage() {
                         key={selectedKind}
                         softwareSystemId={softwareSystemId}
                         kindName={selectedKind}
-                        onCreated={() => loadSimilarities()}
+                        status={similarityStatus}
+                        onSubmit={handleCreateSimilarity}
                     />
                 }
                 <div className={"d-flex flex-wrap mw-100 mt-3"} style={{gap: '1rem 1rem'}}>

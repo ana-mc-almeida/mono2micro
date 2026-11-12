@@ -4,16 +4,14 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
-import HttpStatus from "http-status-codes";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType, RepresentationInfoParameters} from "../../../type-declarations/types";
 import {SIMILARITY_SCIPY_ACCESSES_REPOSITORY} from "../../../models/similarity/SimilarityScipyAccessesAndRepository";
-import {APIService} from "../../../services/APIService";
+import {UPLOADING} from "./similarityCreationStatus";
 import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
-export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, onCreated}) => {
-    const [isUploaded, setIsUploaded] = useState("");
+export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, status, onSubmit}) => {
     const [profileId, setProfileId] = useState(null);
     const [linkageType, setLinkageType] = useState("average");
     const [tracesMaxLimit, setTracesMaxLimit] = useState(0);
@@ -28,9 +26,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, onCreated
 
     function handleSubmit(event) {
         event.preventDefault();
-        setIsUploaded("Uploading...");
-
-        new APIService().createSimilarity(softwareSystemId, {
+        onSubmit({
             kindName,
             type: SIMILARITY_SCIPY_ACCESSES_REPOSITORY,
             weightsList,
@@ -38,22 +34,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, onCreated
             linkageType,
             tracesMaxLimit,
             traceType
-        })
-            .then(response => {
-                if (response.status === HttpStatus.CREATED) {
-                    setIsUploaded("");
-                    onCreated(); // Lets the screen reload its Similarities
-                } else {
-                    setIsUploaded("Upload failed.");
-                }
-            })
-            .catch(error => {
-                if (error.response !== undefined && error.response.status === HttpStatus.UNAUTHORIZED) {
-                    setIsUploaded("Upload failed. Name already exists.");
-                } else {
-                    setIsUploaded("Upload failed.");
-                }
-            });
+        });
     }
 
     function changeMetricWeight(event, weightName) {
@@ -160,14 +141,14 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, onCreated
                     <Col sm={{offset: 2}}>
                         <Button
                             type="submit"
-                            disabled={isUploaded === "Uploading..." ||
+                            disabled={status === UPLOADING ||
                             !(weightSum === 100 && traceType !== "")
                             }
                         >
                             Generate Similarity Distances
                         </Button>
                         <Form.Text className="ms-2">
-                            {isUploaded}
+                            {status}
                         </Form.Text>
                     </Col>
                 </Form.Group>
