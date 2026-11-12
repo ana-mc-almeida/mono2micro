@@ -11,11 +11,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.DecompositionR
 import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.history.service.HistoryService;
-import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
-import pt.ist.socialsoftware.mono2micro.operation.merge.MergeOperation;
-import pt.ist.socialsoftware.mono2micro.operation.rename.RenameOperation;
-import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
-import pt.ist.socialsoftware.mono2micro.operation.transfer.TransferOperation;
+import pt.ist.socialsoftware.mono2micro.operation.Operation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 import pt.ist.socialsoftware.mono2micro.utils.export.ContextMapperContractBuilder;
@@ -118,37 +114,10 @@ public class DecompositionService {
 		decompositionRepository.deleteById(decomposition.getId());
 	}
 
-	public void mergeClustersOperation(String decompositionId, MergeOperation operation) {
+	/** Applies a manual operation to the decomposition, recording it in its history, and saves both. */
+	public void applyOperation(String decompositionId, Operation operation) {
 		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.mergeClusters(operation);
-		historyService.saveHistory(decomposition.getHistory());
-		decompositionRepository.save(decomposition);
-	}
-
-	public void renameClusterOperation(String decompositionId, RenameOperation operation) {
-		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.renameCluster(operation);
-		historyService.saveHistory(decomposition.getHistory());
-		decompositionRepository.save(decomposition);
-	}
-
-	public void splitClusterOperation(String decompositionId, SplitOperation operation) {
-		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.splitCluster(operation);
-		historyService.saveHistory(decomposition.getHistory());
-		decompositionRepository.save(decomposition);
-	}
-
-	public void transferEntitiesOperation(String decompositionId, TransferOperation operation) {
-		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.transferEntities(operation);
-		historyService.saveHistory(decomposition.getHistory());
-		decompositionRepository.save(decomposition);
-	}
-
-	public void formClusterOperation(String decompositionId, FormClusterOperation operation) {
-		Decomposition decomposition = getDecompositionById(decompositionId);
-		decomposition.formCluster(operation);
+		operation.execute(decomposition);
 		historyService.saveHistory(decomposition.getHistory());
 		decompositionRepository.save(decomposition);
 	}

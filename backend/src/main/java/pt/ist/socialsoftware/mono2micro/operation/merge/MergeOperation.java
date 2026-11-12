@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.operation.merge;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
 import pt.ist.socialsoftware.mono2micro.operation.Operation;
@@ -11,20 +12,29 @@ public class MergeOperation extends Operation {
 	protected String cluster1Name;
 	protected String cluster2Name;
 	protected String newName;
+	/** Undo state, captured by {@link #execute}; read-only in JSON, so a request cannot set it. */
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String cluster1Entities;
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String cluster2Entities;
 
 	public MergeOperation() {}
 
-	public MergeOperation(MergeOperation mergeOperation) {
-		this.cluster1Name = mergeOperation.getCluster1Name();
-		this.cluster2Name = mergeOperation.getCluster2Name();
-		this.newName = mergeOperation.getNewName();
+	public MergeOperation(String cluster1Name, String cluster2Name, String newName) {
+		this.cluster1Name = cluster1Name;
+		this.cluster2Name = cluster2Name;
+		this.newName = newName;
 	}
 
 	@Override
 	public String getOperationType() {
 		return MERGE_OPERATION;
+	}
+
+	@Override
+	public void execute(Decomposition decomposition) {
+		storeState(decomposition); // needed so that when doing undo, the original entities are restored
+		super.execute(decomposition);
 	}
 
 	protected void storeState(Decomposition decomposition) {

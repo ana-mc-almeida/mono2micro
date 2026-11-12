@@ -10,7 +10,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposi
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
-import pt.ist.socialsoftware.mono2micro.operation.split.SplitPartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.split.SplitOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Collections;
@@ -21,19 +21,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * {@code SplitPartitionsOperation} — moving entities out of a cluster into a new one.
+ * {@code SplitPartitionsHandler} — moving entities out of a cluster into a new one.
  *
  * <p>Two behaviours here are worth knowing before changing anything:
  *
  * <ul>
  * <li><b>An emptied origin cluster is left in place.</b> {@code split} never removes it,
  * while {@code formCluster} removes sources it empties
- * ({@code FormClusterPartitionsOperation.java:78-79}). The inconsistency is not free to
+ * ({@code FormClusterPartitionsHandler.formCluster}). The inconsistency is not free to
  * fix: {@code undo} merges the new cluster back into the origin <em>by name</em>, so if
  * split removed the empty cluster, undo would throw. See {@link Undo}.
  * <li><b>Dependencies stay with the origin cluster, not with the entities.</b> The new
  * cluster is added to the decomposition only after the dependency-transfer loop
- * ({@code SplitPartitionsOperation.java:62-67}), so it never receives outgoing
+ * ({@code SplitPartitionsHandler.split}), so it never receives outgoing
  * dependencies of its own. Ownership is per-cluster, not per-entity. See
  * {@link CouplingDependencies}.
  * </ul>
@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <p>Runs entirely in memory — see {@link DecompositionFixture}.
  */
 @DisplayName("Split operation")
-class SplitPartitionsOperationTest {
+class SplitPartitionsHandlerTest {
 
 	@Nested
 	@DisplayName("splitting")
@@ -55,7 +55,7 @@ class SplitPartitionsOperationTest {
 					.build();
 			Element entity1 = decomposition.getCluster("C1").getElementByID((short) 1);
 
-			new SplitPartitionsOperation("C1", "C2", "1,2").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1,2").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C1").getElementsIDs()).containsExactly((short) 3);
 			assertThat(decomposition.getCluster("C2").getElementsIDs())
@@ -66,7 +66,7 @@ class SplitPartitionsOperationTest {
 		}
 
 		/**
-		 * {@code if (entity != null)} at {@code SplitPartitionsOperation.java:57} makes a
+		 * {@code if (entity != null)} in {@code SplitPartitionsHandler.split} makes a
 		 * mistyped entity ID a no-op rather than an error, so a request naming entities that
 		 * are not in the origin cluster half-succeeds.
 		 */
@@ -78,7 +78,7 @@ class SplitPartitionsOperationTest {
 					.cluster("Other", 9)
 					.build();
 
-			new SplitPartitionsOperation("C1", "C2", "1,99,9").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1,99,9").executeOperation(decomposition);
 
 			// 99 does not exist; 9 exists but lives in another cluster. Both are ignored.
 			assertThat(decomposition.getCluster("C2").getElementsIDs()).containsExactly((short) 1);
@@ -97,7 +97,7 @@ class SplitPartitionsOperationTest {
 					.cluster("C1", 1, 2)
 					.build();
 
-			new SplitPartitionsOperation("C1", "C2", "1,2").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1,2").executeOperation(decomposition);
 
 			assertThat(decomposition.getClusters()).containsOnlyKeys("C1", "C2");
 			assertThat(decomposition.getCluster("C1").getElements()).isEmpty();
@@ -110,7 +110,7 @@ class SplitPartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			new SplitPartitionsOperation("C1", "C2", "99").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "99").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C2").getElements()).isEmpty();
 			assertThat(decomposition.getCluster("C1").getElementsIDs()).containsExactly((short) 1);
@@ -130,7 +130,7 @@ class SplitPartitionsOperationTest {
 					.dependency("C3", "C1", 1, 3)
 					.build();
 
-			new SplitPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			// Entity 1 moved to C2, entity 3 stayed — so the origin key survives alongside.
 			assertThat(dependenciesOf(decomposition, "C3"))
@@ -148,15 +148,15 @@ class SplitPartitionsOperationTest {
 					.dependency("C3", "C1", 1)
 					.build();
 
-			new SplitPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C3")).containsOnlyKeys("C2");
 		}
 
 		/**
 		 * Dependency ownership is per-cluster, not per-entity. The new cluster is created at
-		 * {@code :52} but only added to the decomposition at {@code :67}, after the transfer
-		 * loop at {@code :62-65} has walked {@code getClusters().values()} — so it is never a
+		 * the start of {@code SplitPartitionsHandler.split} but only added to the decomposition at its end, after the
+		 * transfer loop has walked {@code getClusters().values()} — so it is never a
 		 * candidate to receive dependencies, and the origin keeps every outgoing dependency
 		 * even when the entity that justified it has moved away.
 		 *
@@ -172,7 +172,7 @@ class SplitPartitionsOperationTest {
 					.dependency("C1", "C4", 7)
 					.build();
 
-			new SplitPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(dependenciesOf(decomposition, "C1"))
 					.as("the origin keeps the dependency")
@@ -197,7 +197,7 @@ class SplitPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			assertThatThrownBy(() -> new SplitPartitionsOperation("C1", "C2", "1").executeOperation(decomposition))
+			assertThatThrownBy(() -> new SplitOperation("C1", "C2", "1").executeOperation(decomposition))
 					.isInstanceOf(KeyAlreadyExistsException.class)
 					.hasMessageContaining("C2");
 
@@ -213,13 +213,13 @@ class SplitPartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			assertThatThrownBy(() -> new SplitPartitionsOperation("Absent", "C2", "1").executeOperation(decomposition))
+			assertThatThrownBy(() -> new SplitOperation("Absent", "C2", "1").executeOperation(decomposition))
 					.isInstanceOf(Error.class)
 					.hasMessageContaining("Absent");
 		}
 
 		/**
-		 * {@code Short.parseShort} at {@code :55} is unguarded, so a malformed entity list
+		 * {@code Short.parseShort} in {@code SplitPartitionsHandler.split} is unguarded, so a malformed entity list
 		 * escapes as {@code NumberFormatException}. {@code DecompositionController} catches
 		 * {@code Exception}, so this one does reach the client as a 400 — unlike the
 		 * {@code Error} thrown for an unknown cluster name.
@@ -232,7 +232,7 @@ class SplitPartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			assertThatThrownBy(() -> new SplitPartitionsOperation("C1", "C2", entities).executeOperation(decomposition))
+			assertThatThrownBy(() -> new SplitOperation("C1", "C2", entities).executeOperation(decomposition))
 					.isInstanceOf(NumberFormatException.class);
 		}
 	}
@@ -251,7 +251,7 @@ class SplitPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			SplitPartitionsOperation operation = new SplitPartitionsOperation("C1", "C2", "1");
+			SplitOperation operation = new SplitOperation("C1", "C2", "1");
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -262,7 +262,7 @@ class SplitPartitionsOperationTest {
 
 		/**
 		 * Holds only because {@code split} left the emptied origin cluster in place:
-		 * {@code undo} delegates to {@code MergePartitionsOperation(origin, new, origin)}, whose
+		 * {@code undo} delegates to {@code MergePartitionsHandler} with {@code MergeOperation(origin, new, origin)}, whose
 		 * {@code merge} opens with {@code decomposition.getCluster(origin)}. Remove the empty
 		 * cluster in {@code split} and this throws {@code Error}.
 		 */
@@ -274,7 +274,7 @@ class SplitPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			SplitPartitionsOperation operation = new SplitPartitionsOperation("C1", "C2", "1,2");
+			SplitOperation operation = new SplitOperation("C1", "C2", "1,2");
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -292,7 +292,7 @@ class SplitPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			SplitPartitionsOperation operation = new SplitPartitionsOperation("C1", "C2", "1");
+			SplitOperation operation = new SplitOperation("C1", "C2", "1");
 			operation.execute(decomposition);
 			DecompositionSnapshot split = DecompositionSnapshot.of(decomposition);
 
@@ -322,7 +322,7 @@ class SplitPartitionsOperationTest {
 
 			assertThat(decomposition.getRepresentationInformations()).isEmpty();
 
-			new SplitPartitionsOperation("C1", "C2", "1").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1").executeOperation(decomposition);
 
 			assertThat(decomposition.getCluster("C2").getElementsIDs()).containsExactly((short) 1);
 		}
@@ -337,7 +337,7 @@ class SplitPartitionsOperationTest {
 					.representationInformation(recorder)
 					.build();
 
-			new SplitPartitionsOperation("C1", "C2", "1,99").executeOperation(decomposition);
+			new SplitOperation("C1", "C2", "1,99").executeOperation(decomposition);
 
 			assertThat(recorder.onlyRemovedEntityIDs()).containsExactly((short) 1);
 			assertThat(recorder.renames()).isEmpty();

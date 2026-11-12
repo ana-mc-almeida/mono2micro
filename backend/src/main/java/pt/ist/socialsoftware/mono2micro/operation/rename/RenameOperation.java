@@ -9,9 +9,9 @@ public class RenameOperation extends Operation {
 
 	public RenameOperation() {}
 
-	public RenameOperation(RenameOperation renameOperation) {
-		this.clusterName = renameOperation.getClusterName();
-		this.newClusterName = renameOperation.getNewClusterName();
+	public RenameOperation(String clusterName, String newClusterName) {
+		this.clusterName = clusterName;
+		this.newClusterName = newClusterName;
 	}
 
 	@Override

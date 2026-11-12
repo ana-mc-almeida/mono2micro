@@ -10,10 +10,10 @@ public class SplitOperation extends Operation {
 
 	public SplitOperation() {}
 
-	public SplitOperation(SplitOperation operation) {
-		this.originalCluster = operation.getOriginalCluster();
-		this.newCluster = operation.getNewCluster();
-		this.entities = operation.getEntities();
+	public SplitOperation(String originalCluster, String newCluster, String entities) {
+		this.originalCluster = originalCluster;
+		this.newCluster = newCluster;
+		this.entities = entities;
 	}
 
 	@Override

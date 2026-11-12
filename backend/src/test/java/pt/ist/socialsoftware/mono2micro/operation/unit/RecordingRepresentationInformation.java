@@ -18,7 +18,7 @@ import java.util.TreeSet;
  * {@code decomposition.getRepresentationInformations()} and calling either
  * {@code removeFunctionalitiesWithEntityIDs} or {@code renameClusterInFunctionalities}. Both are
  * <b>empty non-abstract</b> methods on the base class
- * ({@code RepresentationInformation.java:24,26}), and only {@code AccessesInformation} overrides
+ * {@code RepresentationInformation}, and only {@code AccessesInformation} overrides
  * them — {@code RepositoryInformation} and {@code StructureInformation} inherit the no-ops. So
  * the call site can be exercised offline by a subclass that records its arguments, even though
  * {@code AccessesInformation}'s own implementation reaches for
@@ -28,7 +28,7 @@ import java.util.TreeSet;
  * downstream and makes no attempt to reproduce {@code AccessesInformation}'s semantics of
  * deleting functionalities or flagging the decomposition outdated. What it pins is the contract
  * — which entity IDs each operation considers affected — and that contract is not uniform.
- * {@code TransferPartitionsOperation} reports the IDs it was <em>asked</em> to move, including
+ * {@code TransferPartitionsHandler} reports the IDs it was <em>asked</em> to move, including
  * any it silently skipped, while merge and split report actual cluster membership.
  */
 class RecordingRepresentationInformation extends RepresentationInformation {

@@ -8,7 +8,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposi
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
 import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
-import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterPartitionsOperation;
+import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Arrays;
@@ -22,25 +22,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * {@code FormClusterPartitionsOperation} — gathering entities from several clusters into a new one.
+ * {@code FormClusterPartitionsHandler} — gathering entities from several clusters into a new one.
  *
  * <p>The most branch-heavy of the five, and the only one whose input is a
  * {@code Map<String, List<Short>>} of source cluster name to entity IDs rather than a
  * comma-separated string. That map is the source of its sharpest problem: <b>the keys are
  * ignored on the way forward and authoritative on the way back</b>. {@code formCluster} locates
- * each entity by scanning every cluster ({@code :66-68}) and never reads the key, while
+ * each entity by scanning every cluster ({@code FormClusterPartitionsHandler.formCluster}) and never reads the key, while
  * {@code undo} dispatches on it to decide whether to split a cluster back out or transfer into
- * an existing one ({@code :42-48}). A caller who supplies a wrong key therefore gets a working
+ * an existing one ({@code FormClusterPartitionsHandler.undo}). A caller who supplies a wrong key therefore gets a working
  * operation and a corrupting undo — see {@link Undo#undoWithAWrongKeyMisplacesEntities()}.
  *
- * <p>Unlike {@code split}, this operation removes a source cluster it empties ({@code :78-79}),
+ * <p>Unlike {@code split}, this operation removes a source cluster it empties, inside {@code formCluster}'s entity loop,
  * and {@code undo} depends on that: an absent source means "split it back out", a present one
  * means "transfer back". The same removal is what lets a cluster be re-formed under its own name.
  *
  * <p>Runs entirely in memory — see {@link DecompositionFixture}.
  */
 @DisplayName("Form cluster operation")
-class FormClusterPartitionsOperationTest {
+class FormClusterPartitionsHandlerTest {
 
 	@Nested
 	@DisplayName("forming")
@@ -79,7 +79,7 @@ class FormClusterPartitionsOperationTest {
 
 		/**
 		 * The keys are decorative here: entity 1 lives in C1, the map says {@code "Wrong"}, and
-		 * the operation succeeds because {@code :66-68} scans instead of looking up. Harmless
+		 * the operation succeeds because {@code formCluster} scans instead of looking up. Harmless
 		 * going forward, corrupting on undo — see {@link Undo#undoWithAWrongKeyMisplacesEntities()}.
 		 */
 		@Test
@@ -127,8 +127,8 @@ class FormClusterPartitionsOperationTest {
 
 		/**
 		 * Permitted when the new entity set covers everything the existing cluster held
-		 * ({@code :59-60}). It works only because the old cluster is emptied and therefore
-		 * removed at {@code :78-79}, freeing the name before {@code addCluster} at {@code :81} —
+		 * (the name guard {@code formCluster} opens with). It works only because the old cluster is emptied
+		 * and therefore removed inside the entity loop, freeing the name before the final {@code addCluster} —
 		 * which would otherwise throw {@code Error}. Two behaviours holding each other up.
 		 */
 		@Test
@@ -208,8 +208,8 @@ class FormClusterPartitionsOperationTest {
 		}
 
 		/**
-		 * The dependency loop at {@code :73-76} walks {@code getClusters().values()} while the
-		 * about-to-be-emptied source is still in the map, and the removal at {@code :78-79}
+		 * The dependency loop in {@code formCluster} walks {@code getClusters().values()} while the
+		 * about-to-be-emptied source is still in the map, and the removal of an emptied source
 		 * happens inside the same entity loop. Guards against a future reordering that would
 		 * throw {@code ConcurrentModificationException}.
 		 */
@@ -247,7 +247,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", 1));
+			FormClusterOperation operation = operation("NC", entities("C1", 1));
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -267,7 +267,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", 1));
+			FormClusterOperation operation = operation("NC", entities("C1", 1));
 			operation.executeOperation(decomposition);
 			assertThat(decomposition.getClusters()).doesNotContainKey("C1");
 
@@ -288,7 +288,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 2 }));
+			FormClusterOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 2 }));
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -316,7 +316,7 @@ class FormClusterPartitionsOperationTest {
 					.cluster("C2", 9)
 					.build();
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C2", 1));
+			FormClusterOperation operation = operation("NC", entities("C2", 1));
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -336,7 +336,7 @@ class FormClusterPartitionsOperationTest {
 					.cluster("C1", 1)
 					.build();
 
-			FormClusterPartitionsOperation operation = operation("NC", new LinkedHashMap<>());
+			FormClusterOperation operation = operation("NC", new LinkedHashMap<>());
 			operation.executeOperation(decomposition);
 			operation.undo(decomposition);
 
@@ -354,7 +354,7 @@ class FormClusterPartitionsOperationTest {
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
 
-			FormClusterPartitionsOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 3 }));
+			FormClusterOperation operation = operation("NC", entities("C1", new int[] { 1 }, "C2", new int[] { 3 }));
 			operation.execute(decomposition);
 			DecompositionSnapshot formed = DecompositionSnapshot.of(decomposition);
 
@@ -407,16 +407,12 @@ class FormClusterPartitionsOperationTest {
 		}
 	}
 
-	/**
-	 * {@code FormClusterPartitionsOperation} has no {@code (String, Map)} constructor, unlike the
-	 * other four operations, so it is built through its {@code FormClusterOperation} copy
-	 * constructor.
-	 */
-	private static FormClusterPartitionsOperation operation(String newCluster, Map<String, List<Short>> entities) {
-		FormClusterOperation dto = new FormClusterOperation();
-		dto.setNewCluster(newCluster);
-		dto.setEntities(entities);
-		return new FormClusterPartitionsOperation(dto);
+	/** {@code FormClusterOperation} has no {@code (String, Map)} constructor, unlike the other four operations, so it is built with setters. */
+	private static FormClusterOperation operation(String newCluster, Map<String, List<Short>> entities) {
+		FormClusterOperation operation = new FormClusterOperation();
+		operation.setNewCluster(newCluster);
+		operation.setEntities(entities);
+		return operation;
 	}
 
 	/** {@code entities("C1", 1)} — one source cluster. */
