@@ -8,7 +8,7 @@ import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType, RepresentationInfoParameters} from "../../../type-declarations/types";
 import {SIMILARITY_SCIPY_ACCESSES_REPOSITORY} from "../../../models/similarity/SimilarityScipyAccessesAndRepository";
 import {UPLOADING} from "./similarityCreationStatus";
-import {WeightsFactory} from "../../../models/weights/WeightsFactory";
+import {APIService} from "../../../services/APIService";
 
 
 export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, status, onSubmit}) => {
@@ -21,7 +21,7 @@ export const SimilarityMatrixSciPyForm = ({softwareSystemId, kindName, status, o
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByKind(kindName));
+        new APIService().getSimilarityKindDefaultWeights(kindName).then(setWeightsList);
     }, [])
 
     function handleSubmit(event) {

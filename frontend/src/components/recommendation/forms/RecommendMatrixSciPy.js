@@ -12,7 +12,6 @@ import BootstrapTable from "react-bootstrap-table-next";
 import {RecommendationType} from "../../../models/recommendation/RecommendationTypes";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType} from "../../../type-declarations/types";
-import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 
 const nFilter = numberFilter({placeholder: "filter"});
@@ -81,7 +80,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCr
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByKind(kind));
+        new APIService().getSimilarityKindDefaultWeights(kind).then(setWeightsList);
     }, [])
 
     function handleChangeLinkageType(event) {

@@ -2,9 +2,11 @@ package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * One of the eight Similarity kinds the tool offers (with Repository alone and Accesses and Repository apart, D-026), as a feature that declares what a
@@ -29,10 +31,17 @@ public abstract class SimilarityKind implements VariableFeature {
 	public abstract List<RepresentationInformation> informationBlocks();
 
 	/**
-	 * The types of the {@code Weights} a Similarity of this kind is computed with, in order: the kind fixes its criteria (D-013), so a
-	 * request for it must send exactly these. Empty for a kind computed without weights.
+	 * The weights a Similarity of this kind is computed with, in order, at the values its form starts from; built afresh on each call, since
+	 * a form edits them (D-029). Empty for a kind computed without weights.
 	 */
-	public abstract List<String> weightsTypes();
+	public abstract List<Weights> defaultWeights();
+
+	/**
+	 * The types of the {@link #defaultWeights()}: the kind fixes its criteria (D-013), so a request for it must send exactly these, in order.
+	 */
+	public List<String> weightsTypes() {
+		return defaultWeights().stream().map(Weights::getType).collect(Collectors.toList());
+	}
 
 	/**
 	 * Refuses a request that sends other weights than this kind is computed with (D-013): with them it would compute another kind under this

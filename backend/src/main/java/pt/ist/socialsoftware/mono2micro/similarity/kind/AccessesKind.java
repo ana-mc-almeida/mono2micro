@@ -5,6 +5,7 @@ import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.Accesse
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.AccessesWeights;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,8 +28,8 @@ public class AccessesKind extends SimilarityKind {
 	}
 
 	@Override
-	public List<String> weightsTypes() {
-		return Collections.singletonList(AccessesWeights.ACCESSES_WEIGHTS);
+	public List<Weights> defaultWeights() {
+		return Collections.singletonList(new AccessesWeights(25, 25, 25, 25));
 	}
 
 	@Override

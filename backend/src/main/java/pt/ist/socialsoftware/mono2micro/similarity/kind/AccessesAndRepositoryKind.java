@@ -11,6 +11,7 @@ import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorR
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.AccessesWeights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.RepositoryWeights;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,8 +44,8 @@ public class AccessesAndRepositoryKind extends SimilarityKind {
 	}
 
 	@Override
-	public List<String> weightsTypes() {
-		return Arrays.asList(AccessesWeights.ACCESSES_WEIGHTS, RepositoryWeights.REPOSITORY_WEIGHTS);
+	public List<Weights> defaultWeights() {
+		return Arrays.asList(new AccessesWeights(17, 17, 17, 17), new RepositoryWeights(16, 16));
 	}
 
 	@Override

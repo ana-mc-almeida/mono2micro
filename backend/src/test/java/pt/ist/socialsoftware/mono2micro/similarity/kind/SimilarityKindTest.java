@@ -71,6 +71,37 @@ class SimilarityKindTest {
 						Arrays.asList("FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS")));
 	}
 
+	/** The default weights each kind's form starts from, as the frontend's {@code WeightsFactory.ts} held them before the backend sent them. */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("defaultWeightsPerKind")
+	void eachKindStartsFromItsDefaultWeights(String kind, List<String> defaultWeights) {
+		assertThat(SimilarityKind.getByName(kind).defaultWeights().stream()
+				.map(weights -> weights.getType() + Arrays.toString(weights.getWeights())).collect(Collectors.toList()))
+				.containsExactlyElementsOf(defaultWeights);
+	}
+
+	static Stream<Arguments> defaultWeightsPerKind() {
+		return Stream.of(
+				Arguments.of(AccessesKind.ACCESSES, Arrays.asList("ACCESSES_WEIGHTS[25.0, 25.0, 25.0, 25.0]")),
+				Arguments.of(RepositoryKind.REPOSITORY, Arrays.asList("REPOSITORY_WEIGHTS[50.0, 50.0]")),
+				Arguments.of(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY,
+						Arrays.asList("ACCESSES_WEIGHTS[17.0, 17.0, 17.0, 17.0]", "REPOSITORY_WEIGHTS[16.0, 16.0]")),
+				Arguments.of(StructureKind.STRUCTURE, Arrays.asList("STRUCTURE_WEIGHTS[33.0, 33.0, 34.0]")),
+				Arguments.of(ClassVectorizationKind.CLASS_VECTORIZATION, Collections.emptyList()),
+				Arguments.of(EntityVectorizationKind.ENTITY_VECTORIZATION, Collections.emptyList()),
+				Arguments.of(FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
+						Arrays.asList("FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS[25.0, 25.0, 25.0, 25.0]")),
+				Arguments.of(FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES,
+						Arrays.asList("FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS[50.0, 50.0]")));
+	}
+
+	/** Each call returns new objects, since a form edits the weights it is given. */
+	@Test
+	void theDefaultWeightsAreNotShared() {
+		SimilarityKind kind = SimilarityKind.getByName(AccessesKind.ACCESSES);
+		assertThat(kind.defaultWeights().get(0)).isNotSameAs(kind.defaultWeights().get(0));
+	}
+
 	@Test
 	void everyKindNamesAWeightsTypeThatExists() {
 		for (SimilarityKind kind : SelfRegistration.prototypes(SimilarityKind.class).values())

@@ -6,7 +6,7 @@ import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
 import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "../../../models/similarity/SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
 import {UPLOADING} from "./similarityCreationStatus";
-import {WeightsFactory} from "../../../models/weights/WeightsFactory";
+import {APIService} from "../../../services/APIService";
 
 
 export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesForm = ({softwareSystemId, kindName, status, onSubmit}) => {
@@ -16,7 +16,7 @@ export const SimilarityMatrixScipyFunctionalityVectorizationSequenceOfAccessesFo
 
     // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByKind(kindName));
+        new APIService().getSimilarityKindDefaultWeights(kindName).then(setWeightsList);
     }, [])
 
     function handleSubmit(event) {

@@ -117,6 +117,25 @@ class SimilarityE2ETest {
 				pipeline.representationId(softwareSystem, "Accesses"));
 	}
 
+	/** A form starts from the weights its kind is computed with, which the backend sends (D-029, ticket 23 item 11). */
+	@Test
+	@DisplayName("A Similarity kind's form gets its default weights from the backend")
+	void aKindsDefaultWeightsComeFromTheBackend() {
+		HttpDecompositionPipeline pipeline = pipeline(CASE);
+
+		JsonNode kind = pipeline.getSimilarityKind("Accesses and Repository");
+
+		assertThat(kind.path("name").asText()).isEqualTo("Accesses and Repository");
+		JsonNode weights = kind.path("defaultWeights");
+		assertThat(weights).hasSize(2);
+		assertThat(weights.get(0).path("type").asText()).isEqualTo("ACCESSES_WEIGHTS");
+		assertThat(weights.get(0).path("accessMetricWeight").asDouble()).isEqualTo(17);
+		assertThat(weights.get(1).path("type").asText()).isEqualTo("REPOSITORY_WEIGHTS");
+		assertThat(weights.get(1).path("commitMetricWeight").asDouble()).isEqualTo(16);
+		assertThat(pipeline.getSimilarityKind("Class Vectorization").path("defaultWeights")).isEmpty();
+		assertThat(pipeline.requestSimilarityKind("Accesses and Structure")).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
 	/** An equal request is found again only among the software system's own Similarities (D-029, ticket 23 item 7). */
 	@Test
 	@DisplayName("The same request on two software systems gives each its own Similarity, which a repeat reuses")
