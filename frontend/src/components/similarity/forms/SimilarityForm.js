@@ -7,7 +7,7 @@ import Button from "react-bootstrap/Button";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType} from "../../../type-declarations/types";
 import {SimilaritySetting} from "../../../models/similarity/SimilarityKindDescription";
-import {UPLOADING} from "./similarityCreationStatus";
+import {KIND_NOT_LOADED, UPLOADING} from "./similarityCreationStatus";
 import {APIService} from "../../../services/APIService";
 
 /**
@@ -17,6 +17,7 @@ import {APIService} from "../../../services/APIService";
  */
 export const SimilarityForm = ({softwareSystemId, kindName, status, onSubmit}) => {
     const [kind, setKind] = useState(undefined);
+    const [kindNotLoaded, setKindNotLoaded] = useState(false);
     const [profileId, setProfileId] = useState(null);
     const [tracesMaxLimit, setTracesMaxLimit] = useState(0);
     const [traceType, setTraceType] = useState(TraceType.ALL);
@@ -26,10 +27,12 @@ export const SimilarityForm = ({softwareSystemId, kindName, status, onSubmit}) =
     const [weightSum, setWeightSum] = useState(0);
 
     useEffect(() => {
-        new APIService().getSimilarityKind(kindName).then(description => {
-            setKind(description);
-            setWeightsList(description.defaultWeights);
-        });
+        new APIService().getSimilarityKind(kindName)
+            .then(description => {
+                setKind(description);
+                setWeightsList(description.defaultWeights);
+            })
+            .catch(() => setKindNotLoaded(true));
     }, [kindName]);
 
     useEffect(() => {
@@ -160,7 +163,7 @@ export const SimilarityForm = ({softwareSystemId, kindName, status, onSubmit}) =
                         Generate Similarity Distances
                     </Button>
                     <Form.Text className="ms-2">
-                        {status}
+                        {kindNotLoaded ? KIND_NOT_LOADED : status}
                     </Form.Text>
                 </Col>
             </Form.Group>
