@@ -9,6 +9,7 @@ import {TraceType} from "../../../type-declarations/types";
 import {SimilaritySetting} from "../../../models/similarity/SimilarityKindDescription";
 import {KIND_NOT_LOADED, UPLOADING} from "./similarityCreationStatus";
 import {APIService} from "../../../services/APIService";
+import {WeightsFactory} from "../../../models/weights/WeightsFactory";
 
 /**
  * The form of any Similarity kind (D-029). It shows what the backend's kind declares: the settings it takes and the weights it starts from,
@@ -58,17 +59,15 @@ export const SimilarityForm = ({softwareSystemId, kindName, status, onSubmit}) =
         });
     }
 
+    // A new Weights for the one that holds weightName, so the state is replaced rather than edited.
     function changeMetricWeight(event, weightName) {
-        setWeightsList(prev => prev.map(weight => {
-            if (weight[weightName] || weight[weightName] === 0)
-                weight[weightName] = event.target.value === 0 ? -1 : Number(event.target.value);
-            return weight;
-        }));
+        setWeightsList(prev => prev.map(weight => weight[weightName] || weight[weightName] === 0 ?
+            WeightsFactory.getWeights({...weight, [weightName]: event.target.value === 0 ? -1 : Number(event.target.value)}) :
+            weight));
     }
 
     const complete = kind !== undefined
         && (!hasWeights || weightSum === 100)
-        && (!takes(SimilaritySetting.TRACE_TYPE) || traceType !== "")
         && (!takes(SimilaritySetting.MAX_DEPTH) || depth > 0);
 
     return (
