@@ -20,6 +20,9 @@ import SoftwareSystem from "../models/softwareSystem/SoftwareSystem";
 import {RecommendationFactory} from "../models/recommendation/RecommendationFactory";
 import Recommendation from "../models/recommendation/Recommendation";
 import Representation from "../models/representation/Representation";
+import {availableNames, DerivationRecord} from "../models/feature/DerivationRecord";
+import {WeightsFactory} from "../models/weights/WeightsFactory";
+import {SimilarityKindDescription} from "../models/similarity/SimilarityKindDescription";
 
 export class APIService {
     axios: AxiosInstance;
@@ -116,7 +119,7 @@ export class APIService {
     // Whether a profile is offered for a Similarity of the kind: the Profile feature's derivation record (D-017).
     isProfileOffered(softwareSystemId: string, kindName: string) {
         return this.axios.get("/softwareSystems/" + softwareSystemId + "/profiles/available", {params: {kindName}}).then(
-            response => response.data.features.some((feature: { available: boolean }) => feature.available));
+            response => availableNames(response.data).length > 0);
     }
 
     // The profiles a Similarity of the kind can be scoped by: those of the representation the backend says the kind scopes.
@@ -228,10 +231,16 @@ export class APIService {
         return this.axios.post("/softwareSystems/" + softwareSystemId + "/similarities/create", similarity);
     }
 
-    // The derivation record: every Similarity kind, with whether the software system offers it (D-013).
-    getAvailableSimilarityKinds(softwareSystemId: string) {
-        return this.axios.get("/softwareSystems/" + softwareSystemId + "/similarities/available").then(
-            response => response.data.features);
+    // What the Similarity form needs to render a kind, which the backend's kind declares (D-029).
+    getSimilarityKind(kindName: string): Promise<SimilarityKindDescription> {
+        return this.axios.get("/similarityKinds/" + encodeURIComponent(kindName)).then(
+            response => ({...response.data, defaultWeights: WeightsFactory.getWeightsList(response.data.defaultWeights)}));
+    }
+
+    // The names of the Similarity kinds the software system offers, from their derivation record (D-013).
+    getOfferedSimilarityKinds(softwareSystemId: string) {
+        return this.axios.get<DerivationRecord>("/softwareSystems/" + softwareSystemId + "/similarities/available").then(
+            response => availableNames(response.data));
     }
 
     // The Similarities made on the software system.

@@ -137,6 +137,16 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return getJson("/softwareSystems/{id}/similarities/available", softwareSystemId).path("features");
 	}
 
+	/** What a Similarity kind's form starts from: its name and default weights. */
+	JsonNode getSimilarityKind(String kindName) {
+		return getJson("/similarityKinds/{name}", kindName);
+	}
+
+	/** The status of a request for a Similarity kind's description, for a test that expects it refused. */
+	HttpStatus requestSimilarityKind(String kindName) {
+		return rest.getForEntity(base + "/similarityKinds/{name}", String.class, kindName).getStatusCode();
+	}
+
 	/** The Similarities created on the software system: those that read its representations. */
 	JsonNode getSimilarities(String softwareSystemId) {
 		return getJson("/softwareSystems/{id}/similarities", softwareSystemId);

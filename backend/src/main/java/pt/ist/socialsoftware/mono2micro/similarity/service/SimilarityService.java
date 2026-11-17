@@ -82,6 +82,13 @@ public class SimilarityService {
 		return similarityRepository.findByRepresentationsIn(representationRepository.findBySoftwareSystemId(softwareSystemId));
 	}
 
+	/** The Similarities of the kind created on the software system, where an equal request finds the one it reuses. */
+	public List<Similarity> getSimilaritiesOfKind(String softwareSystemId, String kindName) {
+		return getSimilarities(softwareSystemId).stream()
+				.filter(similarity -> similarity.getKindName().equals(kindName))
+				.collect(Collectors.toList());
+	}
+
 	/**
 	 * Returns the new Similarity of the requested kind on the software system, or the existing one equal to the request.
 	 *
@@ -101,7 +108,7 @@ public class SimilarityService {
 		similarityDto.setRepresentationIds(representations.stream().map(Representation::getId).collect(Collectors.toList()));
 		Profile profile = profileService.getScopingProfile(similarityDto.getProfileId(), softwareSystemId, kind);
 		similarityDto.setProfileName(Profile.nameOf(profile)); // the generated name shows the profile
-		for (Similarity existing : similarityRepository.findByKindName(similarityDto.getKindName()))
+		for (Similarity existing : getSimilaritiesOfKind(softwareSystemId, similarityDto.getKindName()))
 			if (existing.equalsDto(similarityDto))
 				return existing;
 		Similarity similarity = SimilarityFactory.createSimilarity(representations, similarityDto);

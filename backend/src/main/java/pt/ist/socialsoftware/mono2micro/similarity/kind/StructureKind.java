@@ -5,6 +5,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInfor
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.StructureInformation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.StructureWeights;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
@@ -42,8 +43,13 @@ public class StructureKind extends SimilarityKind {
 	}
 
 	@Override
-	public List<String> weightsTypes() {
-		return Collections.singletonList(StructureWeights.STRUCTURE_WEIGHTS);
+	public List<Weights> defaultWeights() {
+		return Collections.singletonList(new StructureWeights(33, 33, 34));
+	}
+
+	@Override
+	public List<SimilaritySetting> settings() {
+		return Collections.singletonList(SimilaritySetting.TRACE_TYPE);
 	}
 
 	@Override

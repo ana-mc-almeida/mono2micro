@@ -117,6 +117,59 @@ class SimilarityE2ETest {
 				pipeline.representationId(softwareSystem, "Accesses"));
 	}
 
+	/** A form starts from the weights its kind is computed with, which the backend sends (D-029, ticket 23 item 11). */
+	@Test
+	@DisplayName("A Similarity kind's form gets its default weights from the backend")
+	void aKindsDefaultWeightsComeFromTheBackend() {
+		HttpDecompositionPipeline pipeline = pipeline(CASE);
+
+		JsonNode kind = pipeline.getSimilarityKind("Accesses and Repository");
+
+		assertThat(kind.path("name").asText()).isEqualTo("Accesses and Repository");
+		JsonNode weights = kind.path("defaultWeights");
+		assertThat(weights).hasSize(2);
+		assertThat(weights.get(0).path("type").asText()).isEqualTo("ACCESSES_WEIGHTS");
+		assertThat(weights.get(0).path("accessMetricWeight").asDouble()).isEqualTo(17);
+		assertThat(weights.get(1).path("type").asText()).isEqualTo("REPOSITORY_WEIGHTS");
+		assertThat(weights.get(1).path("commitMetricWeight").asDouble()).isEqualTo(16);
+		assertThat(pipeline.getSimilarityKind("Class Vectorization").path("defaultWeights")).isEmpty();
+		assertThat(pipeline.requestSimilarityKind("Accesses and Structure")).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
+	/** One form renders every kind from what the backend says the kind's request takes (D-029, ticket 23 item 8). */
+	@Test
+	@DisplayName("A Similarity kind's request type and settings come from the backend")
+	void aKindsSettingsComeFromTheBackend() {
+		HttpDecompositionPipeline pipeline = pipeline(CASE);
+
+		JsonNode structure = pipeline.getSimilarityKind("Structure");
+		JsonNode callGraph = pipeline.getSimilarityKind("Functionality Vectorization Call Graph");
+
+		assertThat(structure.path("similarityType").asText()).isEqualTo("SIMILARITY_SCIPY_STRUCTURE");
+		assertThat(structure.path("settings")).extracting(JsonNode::asText).containsExactly("TRACE_TYPE");
+		assertThat(callGraph.path("similarityType").asText()).isEqualTo("SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH");
+		assertThat(callGraph.path("settings")).extracting(JsonNode::asText).containsExactly("MAX_DEPTH");
+		assertThat(pipeline.getSimilarityKind("Class Vectorization").path("settings")).isEmpty();
+	}
+
+	/** An equal request is found again only among the software system's own Similarities (D-029, ticket 23 item 7). */
+	@Test
+	@DisplayName("The same request on two software systems gives each its own Similarity, which a repeat reuses")
+	void equalRequestsOnTwoSoftwareSystemsDoNotShareASimilarity() {
+		HttpDecompositionPipeline pipeline = pipeline(CASE);
+		String oneSystem = system(pipeline, CASE, SimilarityCase.accesses());
+		String otherSystem = system(pipeline, CASE, SimilarityCase.accesses());
+
+		String one = pipeline.createSimilarity(oneSystem, SimilarityCase.accesses());
+		String other = pipeline.createSimilarity(otherSystem, SimilarityCase.accesses());
+
+		assertThat(other).isNotEqualTo(one);
+		assertThat(pipeline.createSimilarity(oneSystem, SimilarityCase.accesses())).isEqualTo(one);
+		assertThat(pipeline.createSimilarity(otherSystem, SimilarityCase.accesses())).isEqualTo(other);
+		assertThat(pipeline.getSimilarities(oneSystem)).extracting(s -> s.path("id").asText()).containsExactly(one);
+		assertThat(pipeline.getSimilarities(otherSystem)).extracting(s -> s.path("id").asText()).containsExactly(other);
+	}
+
 	/** Accesses and Repository is its own kind (D-026): it reads the four representations and its decompositions get both blocks. */
 	@Test
 	@DisplayName("An Accesses and Repository Similarity is clustered into a decomposition listed with the software system's")

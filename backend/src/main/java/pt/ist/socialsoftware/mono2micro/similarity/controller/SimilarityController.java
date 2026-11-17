@@ -14,6 +14,8 @@ import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDtoFactory;
+import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityKindDto;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.util.List;
@@ -39,6 +41,21 @@ public class SimilarityController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/** What a Similarity kind's form starts from (D-029). An unknown kind is not found. */
+	@GetMapping(value = "/similarityKinds/{kindName}")
+	public ResponseEntity<SimilarityKindDto> getSimilarityKind(
+			@PathVariable String kindName
+	) {
+		logger.debug("getSimilarityKind");
+
+		try {
+			return new ResponseEntity<>(new SimilarityKindDto(SimilarityKind.getByName(kindName)), HttpStatus.OK);
+		} catch (IllegalArgumentException e) {
+			logger.debug(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
 

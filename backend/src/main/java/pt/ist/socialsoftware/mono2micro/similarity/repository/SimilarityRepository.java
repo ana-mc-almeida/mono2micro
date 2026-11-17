@@ -9,8 +9,6 @@ import java.util.List;
 
 public interface SimilarityRepository extends MongoRepository<Similarity, String> {
 
-	List<Similarity> findByKindName(String kindName);
-
 	/** The Similarities that read the representation. The underscore walks the reference, which Spring Data turns into a DBRef. */
 	List<Similarity> findByRepresentations_Id(String representationId);
 

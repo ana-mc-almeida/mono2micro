@@ -12,7 +12,7 @@ import BootstrapTable from "react-bootstrap-table-next";
 import {RecommendationType} from "../../../models/recommendation/RecommendationTypes";
 import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType} from "../../../type-declarations/types";
-import {WeightsFactory} from "../../../models/weights/WeightsFactory";
+import {KIND_NOT_LOADED} from "../../similarity/forms/similarityCreationStatus";
 
 
 const nFilter = numberFilter({placeholder: "filter"});
@@ -76,12 +76,18 @@ export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCr
     const [loading, setLoading] = useState(false);
     const [isSelected, setIsSelected] = useState("");
     const [weightsList, setWeightsList] = useState([]);
+    // A kind may have no weights, so an empty list does not tell whether they have arrived.
+    const [weightsLoaded, setWeightsLoaded] = useState(false);
     const [recommendation, setRecommendation] = useState(undefined);
     const [decompositionInfo, setDecompositionInfo] = useState([]);
 
-    // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        setWeightsList(WeightsFactory.getWeightListByKind(kind));
+        new APIService().getSimilarityKind(kind)
+            .then(description => {
+                setWeightsList(description.defaultWeights);
+                setWeightsLoaded(true);
+            })
+            .catch(() => setIsUploaded(KIND_NOT_LOADED));
     }, [])
 
     function handleChangeLinkageType(event) {
@@ -259,7 +265,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCr
                     <Col sm={{offset: 2}}>
                         <Button
                             type="submit"
-                            disabled={isUploaded === "Gathering recommendations..." || loading}
+                            disabled={!weightsLoaded || isUploaded === "Gathering recommendations..." || loading}
                         >
                             Recommend Decompositions
                         </Button>

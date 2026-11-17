@@ -12,7 +12,6 @@ import pt.ist.socialsoftware.mono2micro.recommendation.repository.Recommendation
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
-import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.io.IOException;
@@ -23,9 +22,6 @@ import java.util.List;
 public class RecommendationService {
 	@Autowired
 	RecommendationRepository recommendationRepository;
-
-	@Autowired
-	SimilarityRepository similarityRepository;
 
 	@Autowired
 	SimilarityService similarityService;
@@ -64,13 +60,11 @@ public class RecommendationService {
 		return RecommendationDtoFactory.getRecommendationDto(recommendation);
 	}
 
-	/**
-	 * Saves the chosen candidates, each with the Similarity of its weights, found among those of the same kind or created (D-016). A found
-	 * one reads the same representations, which {@code equalsDto} compares, so it is the software system's.
-	 */
+	/** Saves the chosen candidates, each with the Similarity of its weights, found among the software system's of the same kind or created (D-016). */
 	public void createDecompositions(String recommendationId, List<String> decompositionNames) throws Exception {
 		Recommendation recommendation = getRecommendationById(recommendationId);
-		recommendation.createDecompositions(similarityRepository.findByKindName(recommendation.getKindName()), decompositionNames);
+		recommendation.createDecompositions(
+				similarityService.getSimilaritiesOfKind(recommendation.getSoftwareSystem().getId(), recommendation.getKindName()), decompositionNames);
 	}
 
 	public List<Recommendation> getRecommendations(String softwareSystemId) {

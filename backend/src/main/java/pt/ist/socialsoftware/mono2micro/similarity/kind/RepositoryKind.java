@@ -6,6 +6,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInfor
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepositoryInformation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.RepositoryWeights;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation;
@@ -39,8 +40,13 @@ public class RepositoryKind extends SimilarityKind {
 	}
 
 	@Override
-	public List<String> weightsTypes() {
-		return Collections.singletonList(RepositoryWeights.REPOSITORY_WEIGHTS);
+	public List<Weights> defaultWeights() {
+		return Collections.singletonList(new RepositoryWeights(50, 50));
+	}
+
+	@Override
+	public List<SimilaritySetting> settings() {
+		return Arrays.asList(SimilaritySetting.TRACES_MAX_LIMIT, SimilaritySetting.TRACE_TYPE);
 	}
 
 	@Override

@@ -17,7 +17,8 @@ import FormControl from "react-bootstrap/FormControl";
 import {AddCircleOutline, CheckCircle} from "@mui/icons-material";
 import MUIButton from "@mui/material/Button";
 import Card from "react-bootstrap/Card";
-import {similarityForms} from "../similarity/forms/similarityForms";
+import {SimilarityForm} from "../similarity/forms/SimilarityForm";
+import {creationFailure, UPLOADING} from "../similarity/forms/similarityCreationStatus";
 
 function renderBreadCrumbs(softwareSystemName) {
     return (
@@ -54,6 +55,7 @@ export function SoftwareSystemPage() {
     const [offeredKinds, setOfferedKinds] = useState([]);
     const [profiledRepresentationTypes, setProfiledRepresentationTypes] = useState([]);
     const [selectedKind, setSelectedKind] = useState(undefined);
+    const [similarityStatus, setSimilarityStatus] = useState("");
 
     //Executed on mount
     useEffect(() => {
@@ -79,8 +81,7 @@ export function SoftwareSystemPage() {
         service.getProfiledRepresentationTypes(softwareSystemId).then(response => setProfiledRepresentationTypes(response));
         loadSimilarities();
         // Only the kinds the backend offers for this software system's representations (D-013).
-        service.getAvailableSimilarityKinds(softwareSystemId).then(features =>
-            setOfferedKinds(features.filter(feature => feature.available).map(feature => feature.name)));
+        service.getOfferedSimilarityKinds(softwareSystemId).then(setOfferedKinds);
     }
 
     function loadSimilarities() {
@@ -100,9 +101,24 @@ export function SoftwareSystemPage() {
         });
     }
 
-    // The kinds the software system offers, and the form of the chosen one: one lookup from the kind's name.
+    // The one place a Similarity is created: the chosen kind's form only collects its settings into the request.
+    function handleCreateSimilarity(request) {
+        setSimilarityStatus(UPLOADING);
+        new APIService().createSimilarity(softwareSystemId, request)
+            .then(() => {
+                setSimilarityStatus("");
+                loadSimilarities();
+            })
+            .catch(error => setSimilarityStatus(creationFailure(error)));
+    }
+
+    function handleSelectKind(kind) {
+        setSelectedKind(kind);
+        setSimilarityStatus("");
+    }
+
+    // The kinds the software system offers, and the form of the chosen one, which renders whatever the backend's kind declares.
     function renderSimilarities() {
-        const SimilarityForm = selectedKind !== undefined ? similarityForms[selectedKind] : undefined;
         return (
             <>
                 <h4 className="mt-4" style={{color: "#666666"}}>
@@ -121,19 +137,20 @@ export function SoftwareSystemPage() {
                             <Row>
                                 {offeredKinds.map(kind =>
                                     <Col key={kind} sm="auto">
-                                        <Form.Check onClick={() => setSelectedKind(kind)} name="similarityKind" label={kind} type="radio" id={"kind-" + kind}/>
+                                        <Form.Check onClick={() => handleSelectKind(kind)} name="similarityKind" label={kind} type="radio" id={"kind-" + kind}/>
                                     </Col>
                                 )}
                             </Row>
                         </Col>
                     </Form.Group>
                 }
-                {SimilarityForm !== undefined &&
+                {selectedKind !== undefined &&
                     <SimilarityForm
                         key={selectedKind}
                         softwareSystemId={softwareSystemId}
                         kindName={selectedKind}
-                        onCreated={() => loadSimilarities()}
+                        status={similarityStatus}
+                        onSubmit={handleCreateSimilarity}
                     />
                 }
                 <div className={"d-flex flex-wrap mw-100 mt-3"} style={{gap: '1rem 1rem'}}>

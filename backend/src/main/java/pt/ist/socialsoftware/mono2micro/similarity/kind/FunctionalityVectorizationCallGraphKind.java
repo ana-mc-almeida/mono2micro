@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.FunctionalityVectorizationCallGraphWeights;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
@@ -38,8 +39,13 @@ public class FunctionalityVectorizationCallGraphKind extends SimilarityKind {
 	}
 
 	@Override
-	public List<String> weightsTypes() {
-		return Collections.singletonList(FunctionalityVectorizationCallGraphWeights.FUNCTIONALITY_VECTORIZATION_CALLGRAPH_WEIGHTS);
+	public List<Weights> defaultWeights() {
+		return Collections.singletonList(new FunctionalityVectorizationCallGraphWeights(25, 25, 25, 25));
+	}
+
+	@Override
+	public List<SimilaritySetting> settings() {
+		return Collections.singletonList(SimilaritySetting.MAX_DEPTH);
 	}
 
 	@Override

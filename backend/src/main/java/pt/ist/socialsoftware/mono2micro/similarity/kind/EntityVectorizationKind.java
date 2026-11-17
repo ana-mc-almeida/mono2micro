@@ -7,6 +7,7 @@ import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +38,7 @@ public class EntityVectorizationKind extends SimilarityKind {
 	}
 
 	@Override
-	public List<String> weightsTypes() {
+	public List<Weights> defaultWeights() {
 		return Collections.emptyList();
 	}
 }
