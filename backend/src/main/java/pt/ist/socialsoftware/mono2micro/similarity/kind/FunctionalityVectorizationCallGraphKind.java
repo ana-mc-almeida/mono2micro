@@ -44,6 +44,11 @@ public class FunctionalityVectorizationCallGraphKind extends SimilarityKind {
 	}
 
 	@Override
+	public List<SimilaritySetting> settings() {
+		return Collections.singletonList(SimilaritySetting.MAX_DEPTH);
+	}
+
+	@Override
 	public boolean requiresClusterTypeConversion() {
 		return true;
 	}

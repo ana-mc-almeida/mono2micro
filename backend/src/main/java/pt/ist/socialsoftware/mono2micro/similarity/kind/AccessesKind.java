@@ -7,6 +7,7 @@ import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInfor
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.AccessesWeights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,6 +31,11 @@ public class AccessesKind extends SimilarityKind {
 	@Override
 	public List<Weights> defaultWeights() {
 		return Collections.singletonList(new AccessesWeights(25, 25, 25, 25));
+	}
+
+	@Override
+	public List<SimilaritySetting> settings() {
+		return Arrays.asList(SimilaritySetting.TRACES_MAX_LIMIT, SimilaritySetting.TRACE_TYPE);
 	}
 
 	@Override

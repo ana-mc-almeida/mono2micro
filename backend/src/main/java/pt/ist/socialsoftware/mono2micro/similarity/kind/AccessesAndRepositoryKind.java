@@ -49,6 +49,11 @@ public class AccessesAndRepositoryKind extends SimilarityKind {
 	}
 
 	@Override
+	public List<SimilaritySetting> settings() {
+		return Arrays.asList(SimilaritySetting.TRACES_MAX_LIMIT, SimilaritySetting.TRACE_TYPE);
+	}
+
+	@Override
 	public String scopedRepresentationType() {
 		return AccessesRepresentation.ACCESSES;
 	}

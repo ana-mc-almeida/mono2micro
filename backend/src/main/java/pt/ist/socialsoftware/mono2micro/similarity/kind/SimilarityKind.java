@@ -5,6 +5,7 @@ import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,11 @@ public abstract class SimilarityKind implements VariableFeature {
 	 */
 	public List<String> weightsTypes() {
 		return defaultWeights().stream().map(Weights::getType).collect(Collectors.toList());
+	}
+
+	/** The settings a request for this kind takes besides its linkage type, its profile and its weights, in the order its form shows them. */
+	public List<SimilaritySetting> settings() {
+		return Collections.emptyList();
 	}
 
 	/**

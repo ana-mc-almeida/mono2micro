@@ -95,6 +95,26 @@ class SimilarityKindTest {
 						Arrays.asList("FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS[50.0, 50.0]")));
 	}
 
+	/** The settings each kind's form showed before one form rendered every kind, besides the linkage type, the profile and the weights. */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("settingsPerKind")
+	void eachKindTakesTheSettingsItsFormShowed(String kind, List<SimilaritySetting> settings) {
+		assertThat(SimilarityKind.getByName(kind).settings()).containsExactlyElementsOf(settings);
+	}
+
+	static Stream<Arguments> settingsPerKind() {
+		List<SimilaritySetting> traces = Arrays.asList(SimilaritySetting.TRACES_MAX_LIMIT, SimilaritySetting.TRACE_TYPE);
+		return Stream.of(
+				Arguments.of(AccessesKind.ACCESSES, traces),
+				Arguments.of(RepositoryKind.REPOSITORY, traces),
+				Arguments.of(AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY, traces),
+				Arguments.of(StructureKind.STRUCTURE, Arrays.asList(SimilaritySetting.TRACE_TYPE)),
+				Arguments.of(ClassVectorizationKind.CLASS_VECTORIZATION, Collections.emptyList()),
+				Arguments.of(EntityVectorizationKind.ENTITY_VECTORIZATION, Collections.emptyList()),
+				Arguments.of(FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH, Arrays.asList(SimilaritySetting.MAX_DEPTH)),
+				Arguments.of(FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES, Collections.emptyList()));
+	}
+
 	/** Each call returns new objects, since a form edits the weights it is given. */
 	@Test
 	void theDefaultWeightsAreNotShared() {

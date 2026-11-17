@@ -22,6 +22,7 @@ import Recommendation from "../models/recommendation/Recommendation";
 import Representation from "../models/representation/Representation";
 import {availableNames, DerivationRecord} from "../models/feature/DerivationRecord";
 import {WeightsFactory} from "../models/weights/WeightsFactory";
+import {SimilarityKindDescription} from "../models/similarity/SimilarityKindDescription";
 
 export class APIService {
     axios: AxiosInstance;
@@ -230,10 +231,10 @@ export class APIService {
         return this.axios.post("/softwareSystems/" + softwareSystemId + "/similarities/create", similarity);
     }
 
-    // What a Similarity kind's form starts from: its default weights, which the backend's kind declares (D-029).
-    getSimilarityKindDefaultWeights(kindName: string) {
+    // What the Similarity form needs to render a kind, which the backend's kind declares (D-029).
+    getSimilarityKind(kindName: string): Promise<SimilarityKindDescription> {
         return this.axios.get("/similarityKinds/" + encodeURIComponent(kindName)).then(
-            response => WeightsFactory.getWeightsList(response.data.defaultWeights));
+            response => ({...response.data, defaultWeights: WeightsFactory.getWeightsList(response.data.defaultWeights)}));
     }
 
     // The names of the Similarity kinds the software system offers, from their derivation record (D-013).

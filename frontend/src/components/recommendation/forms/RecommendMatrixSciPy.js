@@ -75,12 +75,16 @@ export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCr
     const [loading, setLoading] = useState(false);
     const [isSelected, setIsSelected] = useState("");
     const [weightsList, setWeightsList] = useState([]);
+    // A kind may have no weights, so an empty list does not tell whether they have arrived.
+    const [weightsLoaded, setWeightsLoaded] = useState(false);
     const [recommendation, setRecommendation] = useState(undefined);
     const [decompositionInfo, setDecompositionInfo] = useState([]);
 
-    // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        new APIService().getSimilarityKindDefaultWeights(kind).then(setWeightsList);
+        new APIService().getSimilarityKind(kind).then(description => {
+            setWeightsList(description.defaultWeights);
+            setWeightsLoaded(true);
+        });
     }, [])
 
     function handleChangeLinkageType(event) {
@@ -258,7 +262,7 @@ export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCr
                     <Col sm={{offset: 2}}>
                         <Button
                             type="submit"
-                            disabled={isUploaded === "Gathering recommendations..." || loading}
+                            disabled={!weightsLoaded || isUploaded === "Gathering recommendations..." || loading}
                         >
                             Recommend Decompositions
                         </Button>

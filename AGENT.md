@@ -379,7 +379,7 @@ A service that needs a software system's representation of some kind calls
 | **SoftwareSystem** | `<pkg>/softwareSystem/` | Top-level container `{id, name}`; REST under `/softwareSystems`. Not `System`, because of `java.lang.System` |
 | **Representation** | `<pkg>/representation/` | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ in `Representation`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
 | **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves. Holds `kindName` and the `representations` its kind reads, and is unique on them, its profile, settings and weights (D-010, D-016). Made on the software system: `GET /softwareSystems/{id}/similarities/available` is the kinds' derivation record, `POST …/similarities/create` refuses a kind the system does not offer with 422 |
-| **Similarity kind** | `<pkg>/similarity/kind/` | 8 kinds, each a `VariableFeature` of `SimilarityKindFamily` named by its `@JsonTypeName`. A kind declares what it requires, the `SimilarityScipy` type that computes it (`similarityType()`), its `informationBlocks()`, its `defaultWeights()` (whose types a request must send), and where they apply `scopedRepresentationType()` (the representation a profile of it selects) and `requiresClusterTypeConversion()`. `SimilarityKind.getByName` finds one |
+| **Similarity kind** | `<pkg>/similarity/kind/` | 8 kinds, each a `VariableFeature` of `SimilarityKindFamily` named by its `@JsonTypeName`. A kind declares what it requires, the `SimilarityScipy` type that computes it (`similarityType()`), its `informationBlocks()`, its `defaultWeights()` (whose types a request must send), its `settings()` (what its form shows besides the linkage type, the profile and the weights), and where they apply `scopedRepresentationType()` (the representation a profile of it selects) and `requiresClusterTypeConversion()`. `SimilarityKind.getByName` finds one |
 | **Profile** | `<pkg>/refactoring/domainKnowledge/expertKnowledge/` | _Expert knowledge_ (D-017): `{id, name, units, representation, retired}`, a named selection of a representation's units that scopes a Similarity or recommendation. **Immutable**: a move saves new versions of the profiles it changes; discarding one (by a move or a delete) retires it while a Similarity or recommendation uses it, and deletes it otherwise. Unassigned is computed, never stored. `Similarity.profile` and `Recommendation.profile` are nullable, and null means every unit; consumers go through `Profile.unitsOf`. A representation lists its units with `Representation.readUnits` (null: no profile can scope it). Endpoints in `ProfileController`. `Profile` is the one feature of `ExpertKnowledgeFamily` (member type `ExpertKnowledge`): it requires any kind that declares a `scopedRepresentationType()`, so the selector (`GET /softwareSystems/{id}/profiles/available?kindName=`, then `GET …/profiles?kindName=` for the list) and the Profiles button (`GET …/profiles/representationTypes`) follow the kinds, and a profile on a kind that takes none is a 422. The repositories query `existsByProfile_Id`: the underscore walks the reference, since a plain `ProfileId` clashes with the `getProfileId()` getter |
 | **Weights** | `<pkg>/similarity/domain/similarityMatrix/weights/` | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100` |
 | **Clustering** | `<pkg>/clusteringAlgorithm/` | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions |
@@ -459,34 +459,33 @@ if a profile can select its units → case in
 ### New Similarity kind
 
 A kind computed by an existing `SimilarityScipy` type (another weighting of the Accesses
-family, say) needs three places:
+family, say) needs one place, two with new weight dimensions:
 
 1. `<pkg>/similarity/kind/XxxKind.java` — subclass `SimilarityKind`, its name as
    `@JsonTypeName`, `requirements()` for what it needs beyond the IDToEntity and Accesses
    representations its family shares, `similarityType()`, `informationBlocks()` and
-   `defaultWeights()`, which also fix the weights types a request must send; `scopedRepresentationType()` if a profile can scope it, and
+   `defaultWeights()`, which also fix the weights types a request must send; `settings()` for the `SimilaritySetting`s its request takes, `scopedRepresentationType()` if a profile can scope it, and
    `requiresClusterTypeConversion()` if its recommendation's clusters need it.
-   `SimilarityKindFamily` finds it, SciPy accepts it, and `Profile` offers itself for it, all
-   with no edit
-2. Frontend: its name in `models/similarity/SimilarityKinds.ts` and its form in
-   `components/similarity/forms/similarityForms.js`; the form loads the kind's default weights
-   from `GET /similarityKinds/{name}`
-3. If new weight dimensions: `.../weights/XxxWeights.java` — `@JsonTypeName`; the scan makes
+   `SimilarityKindFamily` finds it, SciPy accepts it, `Profile` offers itself for it, and the
+   frontend's one `SimilarityForm` renders it from `GET /similarityKinds/{name}`, all with no edit
+2. If new weight dimensions: `.../weights/XxxWeights.java` — `@JsonTypeName`; the scan makes
    it a JSON subtype and `WeightsFactory` builds it by name; and its frontend twin under
    `models/weights/`
 
 A kind with a new computation also needs its type string in these registries:
 
-4. `<pkg>/similarity/domain/SimilarityScipyXxx.java` — subclass `SimilarityScipy`
-5. `<pkg>/similarity/domain/SimilarityFactory.java` — case
-6. `<pkg>/similarity/domain/SimilarityScipyFactory.java` — case (a recommendation's candidates)
-7. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` — `@JsonTypeName`; the self-registration
+3. `<pkg>/similarity/domain/SimilarityScipyXxx.java` — subclass `SimilarityScipy`
+4. `<pkg>/similarity/domain/SimilarityFactory.java` — case
+5. `<pkg>/similarity/domain/SimilarityScipyFactory.java` — case (a recommendation's candidates)
+6. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` — `@JsonTypeName`; the self-registration
    scan makes it a JSON subtype of `SimilarityDto` (`JsonSubtypeConfiguration`). Override
    `describeCandidate` if a recommendation's candidates should be saveable (Gap 9, D-027)
-8. Frontend: `models/similarity/` + `SimilarityFactory.ts`, and a form under
-   `components/similarity/forms/`. The form only collects its kind's settings and calls
-   `onSubmit(request)`, showing the `status` it is passed; `SoftwareSystemPage` creates the
-   Similarity and turns a refusal into that status (`similarityCreationStatus.js`)
+7. Frontend: `models/similarity/` + `SimilarityFactory.ts` (the Similarity's card). If its
+   request takes a setting no kind took before: a `SimilaritySetting` constant, in the backend
+   enum and its twin in `models/similarity/SimilarityKindDescription.ts`, and the setting's field
+   in `components/similarity/forms/SimilarityForm.js`. The form only collects the settings and
+   calls `onSubmit(request)`, showing the `status` it is passed; `SoftwareSystemPage` creates
+   the Similarity and turns a refusal into that status (`similarityCreationStatus.js`)
 
 Miss one and the variant fails at runtime rather than compile time. This fan-out is a
 known finding, not an accident of your change — see

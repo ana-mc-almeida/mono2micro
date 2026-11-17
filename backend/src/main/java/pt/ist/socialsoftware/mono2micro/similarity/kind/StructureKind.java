@@ -48,6 +48,11 @@ public class StructureKind extends SimilarityKind {
 	}
 
 	@Override
+	public List<SimilaritySetting> settings() {
+		return Collections.singletonList(SimilaritySetting.TRACE_TYPE);
+	}
+
+	@Override
 	public String scopedRepresentationType() {
 		return StructureRepresentation.STRUCTURE;
 	}

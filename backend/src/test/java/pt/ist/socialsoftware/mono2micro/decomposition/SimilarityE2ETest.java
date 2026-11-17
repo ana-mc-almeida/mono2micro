@@ -136,6 +136,22 @@ class SimilarityE2ETest {
 		assertThat(pipeline.requestSimilarityKind("Accesses and Structure")).isEqualTo(HttpStatus.NOT_FOUND);
 	}
 
+	/** One form renders every kind from what the backend says the kind's request takes (D-029, ticket 23 item 8). */
+	@Test
+	@DisplayName("A Similarity kind's request type and settings come from the backend")
+	void aKindsSettingsComeFromTheBackend() {
+		HttpDecompositionPipeline pipeline = pipeline(CASE);
+
+		JsonNode structure = pipeline.getSimilarityKind("Structure");
+		JsonNode callGraph = pipeline.getSimilarityKind("Functionality Vectorization Call Graph");
+
+		assertThat(structure.path("similarityType").asText()).isEqualTo("SIMILARITY_SCIPY_STRUCTURE");
+		assertThat(structure.path("settings")).extracting(JsonNode::asText).containsExactly("TRACE_TYPE");
+		assertThat(callGraph.path("similarityType").asText()).isEqualTo("SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH");
+		assertThat(callGraph.path("settings")).extracting(JsonNode::asText).containsExactly("MAX_DEPTH");
+		assertThat(pipeline.getSimilarityKind("Class Vectorization").path("settings")).isEmpty();
+	}
+
 	/** An equal request is found again only among the software system's own Similarities (D-029, ticket 23 item 7). */
 	@Test
 	@DisplayName("The same request on two software systems gives each its own Similarity, which a repeat reuses")

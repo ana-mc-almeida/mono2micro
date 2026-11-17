@@ -17,7 +17,7 @@ import FormControl from "react-bootstrap/FormControl";
 import {AddCircleOutline, CheckCircle} from "@mui/icons-material";
 import MUIButton from "@mui/material/Button";
 import Card from "react-bootstrap/Card";
-import {similarityForms} from "../similarity/forms/similarityForms";
+import {SimilarityForm} from "../similarity/forms/SimilarityForm";
 import {creationFailure, UPLOADING} from "../similarity/forms/similarityCreationStatus";
 
 function renderBreadCrumbs(softwareSystemName) {
@@ -117,9 +117,8 @@ export function SoftwareSystemPage() {
         setSimilarityStatus("");
     }
 
-    // The kinds the software system offers, and the form of the chosen one: one lookup from the kind's name.
+    // The kinds the software system offers, and the form of the chosen one, which renders whatever the backend's kind declares.
     function renderSimilarities() {
-        const SimilarityForm = selectedKind !== undefined ? similarityForms[selectedKind] : undefined;
         return (
             <>
                 <h4 className="mt-4" style={{color: "#666666"}}>
@@ -145,7 +144,7 @@ export function SoftwareSystemPage() {
                         </Col>
                     </Form.Group>
                 }
-                {SimilarityForm !== undefined &&
+                {selectedKind !== undefined &&
                     <SimilarityForm
                         key={selectedKind}
                         softwareSystemId={softwareSystemId}
