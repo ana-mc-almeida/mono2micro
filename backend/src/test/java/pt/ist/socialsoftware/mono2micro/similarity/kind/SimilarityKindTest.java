@@ -71,7 +71,7 @@ class SimilarityKindTest {
 						Arrays.asList("FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS")));
 	}
 
-	/** The default weights each kind's form starts from, as the frontend's {@code WeightsFactory.ts} held them before the backend sent them. */
+	/** The default weights each kind's form starts from: the values upstream's form starts from (upstream {@code WeightsFactory.ts}). */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("defaultWeightsPerKind")
 	void eachKindStartsFromItsDefaultWeights(String kind, List<String> defaultWeights) {
@@ -95,10 +95,10 @@ class SimilarityKindTest {
 						Arrays.asList("FUNCTIONALITY_VECTORIZATION_ACCESSES_WEIGHTS[50.0, 50.0]")));
 	}
 
-	/** The settings each kind's form showed before one form rendered every kind, besides the linkage type, the profile and the weights. */
+	/** The settings each kind's form shows besides the linkage type, the profile and the weights: the ones upstream's form for the kind shows. */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("settingsPerKind")
-	void eachKindTakesTheSettingsItsFormShowed(String kind, List<SimilaritySetting> settings) {
+	void eachKindTakesTheSettingsUpstreamsFormShows(String kind, List<SimilaritySetting> settings) {
 		assertThat(SimilarityKind.getByName(kind).settings()).containsExactlyElementsOf(settings);
 	}
 
