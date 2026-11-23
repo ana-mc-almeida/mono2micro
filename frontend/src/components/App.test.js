@@ -14,7 +14,7 @@ describe('the app', () => {
         const links = screen.getAllByRole('link').map(l => [l.textContent, l.getAttribute('href')]);
         expect(links).toEqual([
             ['Mono2Micro', '/'],
-            ['Codebases', '/codebases'],
+            ['Software Systems', '/softwareSystems'],
             ['Comparison Tool', '/comparisonTool'],
         ]);
         expect(backend.sent()).toEqual([]);
