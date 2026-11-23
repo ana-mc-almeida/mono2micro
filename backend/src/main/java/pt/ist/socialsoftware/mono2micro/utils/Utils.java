@@ -2,9 +2,9 @@ package pt.ist.socialsoftware.mono2micro.utils;
 
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
@@ -233,7 +233,7 @@ public class Utils {
 	}
 
 	public static Map<String, List<Functionality>> getClustersFunctionalities(
-			Decomposition decomposition
+			ClusterRepresentation decomposition
 	) {
 		Map<String, List<Functionality>> clustersFunctionalities = new HashMap<>();
 		Map<Short, String> entityIDToClusterName = decomposition.getEntityIDToClusterName();

@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.dto.SoftwareSystemDto;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDto;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
@@ -79,13 +79,13 @@ public class SoftwareSystemController {
 	}
 
 	@GetMapping(value = "/softwareSystems/{softwareSystemId}/getSoftwareSystemDecompositions")
-	public ResponseEntity<List<DecompositionDto>> getSoftwareSystemDecompositions(
+	public ResponseEntity<List<ClusterRepresentationDto>> getSoftwareSystemDecompositions(
 			@PathVariable String softwareSystemId
 	) {
 		logger.debug("getSoftwareSystemDecompositions");
 
 		try {
-			List<DecompositionDto> decompositionDtos = DecompositionDtoFactory.getDecompositionDtos(
+			List<ClusterRepresentationDto> decompositionDtos = ClusterRepresentationDtoFactory.getDecompositionDtos(
 					softwareSystemService.getDecompositions(softwareSystemId));
 			return new ResponseEntity<>(decompositionDtos, HttpStatus.OK);
 

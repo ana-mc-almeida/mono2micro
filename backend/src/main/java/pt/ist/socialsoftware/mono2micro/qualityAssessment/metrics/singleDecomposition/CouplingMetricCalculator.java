@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,7 +18,7 @@ public class CouplingMetricCalculator extends DecompositionMetricCalculator {
 	}
 
 	@Override
-	public Double calculateMetric(Decomposition decomposition) {
+	public Double calculateMetric(ClusterRepresentation decomposition) {
 		int graphClustersAmount = decomposition.getClusters().size();
 		double coupling = 0;
 

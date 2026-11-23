@@ -2,7 +2,7 @@ package pt.ist.socialsoftware.mono2micro.operation.unit;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.history.domain.History;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.InMemoryHistory;
@@ -39,7 +39,7 @@ class OperationHistoryBookkeepingTest {
 	@Test
 	@DisplayName("stamps an incrementing depth on each executed operation")
 	void stampsIncrementingDepths() {
-		PartitionsDecomposition decomposition = threeClusters();
+		PartitionsClusterRepresentation decomposition = threeClusters();
 
 		RenameOperation first = new RenameOperation("C1", "A");
 		RenameOperation second = new RenameOperation("C2", "B");
@@ -61,7 +61,7 @@ class OperationHistoryBookkeepingTest {
 	@Test
 	@DisplayName("resolves the current operation and one at a given depth, 1-based")
 	void resolvesOperationsByDepth() {
-		PartitionsDecomposition decomposition = threeClusters();
+		PartitionsClusterRepresentation decomposition = threeClusters();
 
 		RenameOperation first = new RenameOperation("C1", "A");
 		RenameOperation second = new RenameOperation("C2", "B");
@@ -85,7 +85,7 @@ class OperationHistoryBookkeepingTest {
 	@Test
 	@DisplayName("drops the operations a new one overrides")
 	void dropsOverriddenOperations() {
-		PartitionsDecomposition decomposition = threeClusters();
+		PartitionsClusterRepresentation decomposition = threeClusters();
 
 		RenameOperation first = new RenameOperation("C1", "A");
 		RenameOperation second = new RenameOperation("C2", "B");
@@ -115,7 +115,7 @@ class OperationHistoryBookkeepingTest {
 	@Test
 	@DisplayName("redo re-applies the operation without touching history")
 	void redoDoesNotRestampOrAppend() {
-		PartitionsDecomposition decomposition = threeClusters();
+		PartitionsClusterRepresentation decomposition = threeClusters();
 
 		RenameOperation operation = new RenameOperation("C1", "A");
 		operation.execute(decomposition);
@@ -141,7 +141,7 @@ class OperationHistoryBookkeepingTest {
 	@Test
 	@DisplayName("execute requires a history; executeOperation does not")
 	void executeRequiresHistory() {
-		PartitionsDecomposition decomposition = DecompositionFixture.with()
+		PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 				.cluster("C1", 1)
 				.noHistory()
 				.build();
@@ -156,7 +156,7 @@ class OperationHistoryBookkeepingTest {
 		assertThat(decomposition.getClusters()).containsOnlyKeys("B");
 	}
 
-	private static PartitionsDecomposition threeClusters() {
+	private static PartitionsClusterRepresentation threeClusters() {
 		return DecompositionFixture.with()
 				.cluster("C1", 1)
 				.cluster("C2", 2)

@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.operation.unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
 import pt.ist.socialsoftware.mono2micro.operation.merge.MergeOperation;
@@ -51,7 +51,7 @@ class OperationDtoTest {
 		request.setClusterName("C1");
 		request.setNewClusterName("Renamed");
 
-		PartitionsDecomposition decomposition = DecompositionFixture.with().cluster("C1", 1).build();
+		PartitionsClusterRepresentation decomposition = DecompositionFixture.with().cluster("C1", 1).build();
 		request.executeOperation(decomposition);
 		assertThat(decomposition.getClusters()).containsOnlyKeys("Renamed");
 	}
@@ -64,7 +64,7 @@ class OperationDtoTest {
 		request.setNewCluster("C2");
 		request.setEntities("1");
 
-		PartitionsDecomposition decomposition = DecompositionFixture.with().cluster("C1", 1, 2).build();
+		PartitionsClusterRepresentation decomposition = DecompositionFixture.with().cluster("C1", 1, 2).build();
 		request.executeOperation(decomposition);
 		assertThat(decomposition.getCluster("C2").getElementsIDs()).containsExactly((short) 1);
 	}
@@ -77,7 +77,7 @@ class OperationDtoTest {
 		request.setToCluster("C2");
 		request.setEntities("1");
 
-		PartitionsDecomposition decomposition = DecompositionFixture.with()
+		PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 				.cluster("C1", 1)
 				.cluster("C2", 2)
 				.build();
@@ -93,7 +93,7 @@ class OperationDtoTest {
 		request.setNewCluster("NC");
 		request.setEntities(Collections.singletonMap("C1", Arrays.asList((short) 1)));
 
-		PartitionsDecomposition decomposition = DecompositionFixture.with().cluster("C1", 1, 2).build();
+		PartitionsClusterRepresentation decomposition = DecompositionFixture.with().cluster("C1", 1, 2).build();
 		request.executeOperation(decomposition);
 		assertThat(decomposition.getCluster("NC").getElementsIDs()).containsExactly((short) 1);
 	}
@@ -120,7 +120,7 @@ class OperationDtoTest {
 	@Test
 	@DisplayName("merge captures the pre-merge membership on execute, once")
 	void mergeCapturesStateOnExecute() {
-		PartitionsDecomposition decomposition = DecompositionFixture.with()
+		PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 				.cluster("C1", 1, 2)
 				.cluster("C2", 3)
 				.build();

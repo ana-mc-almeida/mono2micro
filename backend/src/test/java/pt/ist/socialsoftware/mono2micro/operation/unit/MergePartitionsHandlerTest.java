@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
 import pt.ist.socialsoftware.mono2micro.operation.merge.MergeOperation;
@@ -59,7 +59,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("combines both clusters under a new name")
 		void mergesIntoNewName() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.cluster("Bystander", 9)
@@ -76,7 +76,7 @@ class MergePartitionsHandlerTest {
 		@CsvSource({ "C1", "C2" })
 		@DisplayName("may keep either input's name")
 		void mergesIntoAnInputName(String newName) {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.build();
@@ -97,7 +97,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("discards the metrics of both inputs")
 		void discardsInputMetrics() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.build();
@@ -117,7 +117,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("redirects a third party's dependencies onto the merged name")
 		void redirectsThirdPartyDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 3)
 					.cluster("C3", 5)
@@ -136,7 +136,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves a third party's unrelated dependencies alone")
 		void leavesUnrelatedDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 3)
 					.cluster("C3", 5)
@@ -170,7 +170,7 @@ class MergePartitionsHandlerTest {
 				+ "dependencies. See ../implementation/docs/gap-analysis.md")
 		@DisplayName("carries the inputs' outgoing dependencies onto the merged cluster")
 		void mergePreservesOutgoingDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 3)
 					.cluster("C4", 9)
@@ -187,7 +187,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("in fact drops the inputs' outgoing dependencies")
 		void mergeDropsOutgoingDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 3)
 					.cluster("C4", 9)
@@ -209,7 +209,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("drops a dependency between the two merged clusters")
 		void dropsDependencyBetweenMergedClusters() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 3)
 					.dependency("C1", "C2", 3)
@@ -228,7 +228,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("rejects a merged name belonging to a third cluster, changing nothing")
 		void rejectsExistingThirdClusterName() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.cluster("C3", 3)
@@ -249,7 +249,7 @@ class MergePartitionsHandlerTest {
 		@CsvSource({ "Absent,C2", "C1,Absent" })
 		@DisplayName("fails with Error when either cluster does not exist")
 		void failsOnUnknownCluster(String cluster1, String cluster2) {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.build();
@@ -274,7 +274,7 @@ class MergePartitionsHandlerTest {
 		@CsvSource({ "M", "C1", "C2" })
 		@DisplayName("restores both original clusters")
 		void undoRestoresBothClusters(String newName) {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.cluster("C3", 5)
@@ -301,7 +301,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("fails when the merge was applied without execute")
 		void undoWithoutExecuteFails() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.build();
@@ -324,7 +324,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("round-trips again after a redo, reusing the state captured first time")
 		void redoThenUndoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.cluster("C3", 5)
@@ -360,7 +360,7 @@ class MergePartitionsHandlerTest {
 		@Test
 		@DisplayName("does nothing when no representation information is attached")
 		void noRepresentationInformation() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.build();
@@ -377,7 +377,7 @@ class MergePartitionsHandlerTest {
 		@DisplayName("reports every entity in the merged cluster")
 		void reportsWholeMergedCluster() {
 			RecordingRepresentationInformation recorder = new RecordingRepresentationInformation();
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.representationInformation(recorder)
@@ -391,7 +391,7 @@ class MergePartitionsHandlerTest {
 	}
 
 	private static Map<String, Set<Short>> dependenciesOf(
-			PartitionsDecomposition decomposition, String clusterName) {
+			PartitionsClusterRepresentation decomposition, String clusterName) {
 		return ((Partition) decomposition.getCluster(clusterName)).getCouplingDependencies();
 	}
 

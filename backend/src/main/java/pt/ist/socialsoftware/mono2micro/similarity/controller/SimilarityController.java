@@ -7,18 +7,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDto;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.AlgorithmOperation;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
-import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDtoFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityKindDto;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/mono2micro")
@@ -28,6 +30,9 @@ public class SimilarityController {
 
 	@Autowired
 	SimilarityService similarityService;
+
+	@Autowired
+	EditingChainService editingChainService;
 
 	/** Every Similarity kind, offered or withheld, with what each failed: the derivation record (D-013). */
 	@GetMapping(value = "/softwareSystems/{softwareSystemId}/similarities/available")
@@ -67,7 +72,7 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDtos(similarityService.getSimilarities(softwareSystemId)),
+					similarityService.getSimilarities(softwareSystemId).stream().map(Similarity::toDto).collect(Collectors.toList()),
 					HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -88,7 +93,7 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDto(similarityService.createSimilarity(softwareSystemId, similarityDto)),
+					similarityService.createSimilarity(softwareSystemId, similarityDto).toDto(),
 					HttpStatus.CREATED);
 		} catch (UnavailableFeatureException e) {
 			logger.debug(e.getMessage());
@@ -107,7 +112,7 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDto(similarityService.getSimilarityById(similarityId)),
+					similarityService.getSimilarityById(similarityId).toDto(),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {
@@ -116,18 +121,59 @@ public class SimilarityController {
 		}
 	}
 
-	@GetMapping(value = "/similarity/{similarityId}/decompositions")
-	public ResponseEntity<List<DecompositionDto>> getDecompositions(
+	/** The cluster representations measured with the Similarity: those its operations produced and those imported with it (D-015). */
+	@GetMapping(value = "/similarities/{similarityId}/clusterRepresentations")
+	public ResponseEntity<List<ClusterRepresentationDto>> getDecompositions(
 			@PathVariable String similarityId
 	) {
 		logger.debug("getDecompositions");
 
 		try {
 			return new ResponseEntity<>(
-					DecompositionDtoFactory.getDecompositionDtos(similarityService.getDecompositions(similarityId)),
+					ClusterRepresentationDtoFactory.getDecompositionDtos(similarityService.getDecompositions(similarityId)),
 					HttpStatus.OK
 			);
 
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/** Every algorithm operation, offered or withheld for the Similarity, with what each failed: the derivation record (D-013). */
+	@GetMapping(value = "/similarities/{similarityId}/operations/available")
+	public ResponseEntity<DerivationRecord> getAvailableOperations(
+			@PathVariable String similarityId
+	) {
+		logger.debug("getAvailableOperations");
+
+		try {
+			return new ResponseEntity<>(editingChainService.getAvailableAlgorithmOperations(similarityId), HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Runs an algorithm operation on the Similarity and returns its output. The body's {@code type} picks the operation, found by self-registration,
+	 * so a new algorithm needs no endpoint of its own. An operation the Similarity does not offer is rejected with 422 before anything is computed
+	 * (D-003, D-013).
+	 */
+	@PostMapping(value = "/similarities/{similarityId}/operations")
+	public ResponseEntity<ClusterRepresentationDto> runOperation(
+			@PathVariable String similarityId,
+			@RequestBody AlgorithmOperation operation
+	) {
+		logger.debug("runOperation");
+
+		try {
+			return new ResponseEntity<>(
+					ClusterRepresentationDtoFactory.getDecompositionDto(editingChainService.runAlgorithmOperation(similarityId, operation)),
+					HttpStatus.CREATED);
+		} catch (UnavailableFeatureException e) {
+			logger.debug(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

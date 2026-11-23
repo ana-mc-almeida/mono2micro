@@ -2,9 +2,9 @@ package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecompo
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityType;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.LocalTransactionTypes;
@@ -33,7 +33,7 @@ public class FunctionalityRedesignComplexityMetricCalculator extends Functionali
 	}
 
 	@Override
-	public Integer calculateMetric(Decomposition decomposition, AccessesInformation accessesInformation, Functionality functionality,
+	public Integer calculateMetric(ClusterRepresentation decomposition, AccessesInformation accessesInformation, Functionality functionality,
 			FunctionalityRedesign functionalityRedesign)
 			throws IOException {
 		int value = 0;

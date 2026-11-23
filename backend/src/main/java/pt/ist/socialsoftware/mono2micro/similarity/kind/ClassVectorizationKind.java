@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
@@ -45,5 +45,11 @@ public class ClassVectorizationKind extends SimilarityKind {
 	@Override
 	public boolean requiresClusterTypeConversion() {
 		return true;
+	}
+
+	/** Known defect, inherited from upstream (Gap 9, D-027): its candidates' Similarity was never described, so none can be saved. */
+	@Override
+	public boolean savesRecommendationCandidates() {
+		return false;
 	}
 }

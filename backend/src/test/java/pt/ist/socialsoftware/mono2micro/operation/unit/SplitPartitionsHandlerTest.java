@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
@@ -50,7 +50,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("moves the listed entities into the new cluster")
 		void movesListedEntities() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2, 3)
 					.build();
 			Element entity1 = decomposition.getCluster("C1").getElementByID((short) 1);
@@ -73,7 +73,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("silently skips entity IDs absent from the origin cluster")
 		void silentlySkipsAbsentEntities() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("Other", 9)
 					.build();
@@ -93,7 +93,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves the origin cluster in place when every entity moves out")
 		void leavesEmptyOriginCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.build();
 
@@ -106,7 +106,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("splitting off nothing still creates an empty cluster")
 		void splitOffNothingCreatesEmptyCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -124,7 +124,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("retargets a third party's dependency on the moved entities")
 		void retargetsThirdPartyDependency() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 3)
 					.cluster("C3", 5)
 					.dependency("C3", "C1", 1, 3)
@@ -142,7 +142,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("drops the origin key when every entity it named moves out")
 		void dropsOriginKeyWhenFullyMoved() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C3", 5)
 					.dependency("C3", "C1", 1)
@@ -166,7 +166,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves the origin's outgoing dependencies behind, even for moved entities")
 		void newClusterReceivesNoOutgoingDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C4", 7)
 					.dependency("C1", "C4", 7)
@@ -190,7 +190,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("rejects a new cluster name that already exists, changing nothing")
 		void rejectsExistingNewClusterName() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.dependency("C2", "C1", 1)
@@ -209,7 +209,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("fails with Error when the origin cluster does not exist")
 		void failsOnUnknownOriginCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -220,7 +220,7 @@ class SplitPartitionsHandlerTest {
 
 		/**
 		 * {@code Short.parseShort} in {@code SplitPartitionsHandler.split} is unguarded, so a malformed entity list
-		 * escapes as {@code NumberFormatException}. {@code DecompositionController} catches
+		 * escapes as {@code NumberFormatException}. {@code ClusterRepresentationController} catches
 		 * {@code Exception}, so this one does reach the client as a 400 — unlike the
 		 * {@code Error} thrown for an unknown cluster name.
 		 */
@@ -228,7 +228,7 @@ class SplitPartitionsHandlerTest {
 		@ValueSource(strings = { "abc", "1,abc", "", "1,,2", "99999" })
 		@DisplayName("fails on a malformed entity list")
 		void rejectsMalformedEntityIds(String entities) {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -244,7 +244,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("restores the original clusters and dependencies")
 		void undoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2, 3)
 					.cluster("C3", 5)
 					.dependency("C3", "C1", 1, 3)
@@ -269,7 +269,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("restores the original after every entity was split off")
 		void undoAfterFullSplitRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.build();
 			DecompositionSnapshot before = DecompositionSnapshot.of(decomposition);
@@ -285,7 +285,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("round-trips again after a redo")
 		void redoThenUndoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2, 3)
 					.cluster("C3", 5)
 					.dependency("C3", "C1", 1)
@@ -316,7 +316,7 @@ class SplitPartitionsHandlerTest {
 		@Test
 		@DisplayName("does nothing when no representation information is attached")
 		void noRepresentationInformation() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.build();
 
@@ -332,7 +332,7 @@ class SplitPartitionsHandlerTest {
 		@DisplayName("reports the new cluster's entities, not the requested ones")
 		void reportsNewClusterMembership() {
 			RecordingRepresentationInformation recorder = new RecordingRepresentationInformation();
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.representationInformation(recorder)
 					.build();
@@ -345,7 +345,7 @@ class SplitPartitionsHandlerTest {
 	}
 
 	private static Map<String, Set<Short>> dependenciesOf(
-			PartitionsDecomposition decomposition, String clusterName) {
+			PartitionsClusterRepresentation decomposition, String clusterName) {
 		return ((Partition) decomposition.getCluster(clusterName)).getCouplingDependencies();
 	}
 }

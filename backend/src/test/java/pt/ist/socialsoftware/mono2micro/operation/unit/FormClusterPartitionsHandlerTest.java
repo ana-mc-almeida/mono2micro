@@ -3,8 +3,8 @@ package pt.ist.socialsoftware.mono2micro.operation.unit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
 import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
@@ -49,7 +49,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("gathers entities from several clusters")
 		void gathersFromSeveralClusters() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3, 4)
 					.build();
@@ -67,7 +67,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("removes a source cluster it empties")
 		void removesEmptiedSourceCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.build();
@@ -85,7 +85,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("ignores the map keys and finds entities by scanning")
 		void ignoresMapKeys() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.build();
 
@@ -98,7 +98,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("creates an empty cluster when given no entities")
 		void emptyEntityMapCreatesEmptyCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -111,7 +111,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("throws when no cluster holds a requested entity")
 		void throwsOnUnknownEntity() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -134,7 +134,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("is allowed with a superset of the existing entities")
 		void allowsSupersetReForm() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("NC", 1, 2)
 					.cluster("C2", 3)
 					.build();
@@ -150,7 +150,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("is rejected with only a subset, changing nothing")
 		void rejectsSubsetReForm() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("NC", 1, 2)
 					.cluster("C2", 3)
 					.dependency("C2", "NC", 1)
@@ -174,7 +174,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("retargets a third party's dependencies onto the new cluster")
 		void retargetsThirdPartyDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 3)
 					.cluster("C3", 5)
@@ -193,7 +193,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves dependencies on entities that stayed put")
 		void leavesDependenciesOnRemainingEntities() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C3", 5)
 					.dependency("C3", "C1", 1, 2)
@@ -216,7 +216,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("survives emptying a source cluster mid-iteration")
 		void survivesSourceRemovalDuringIteration() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.cluster("C3", 5)
@@ -240,7 +240,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("restores the original when the source cluster survived")
 		void undoRestoresWhenSourceSurvived() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C3", 5)
 					.dependency("C3", "C1", 1)
@@ -260,7 +260,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("restores the original when the source cluster was removed")
 		void undoRestoresWhenSourceWasRemoved() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C3", 5)
 					.dependency("C3", "C1", 1)
@@ -282,7 +282,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("restores the original across both undo paths at once")
 		void undoRestoresAcrossBothPaths() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2, 3)
 					.build();
@@ -304,14 +304,14 @@ class FormClusterPartitionsHandlerTest {
 		 * into <em>C2</em>. The entity ends up in a cluster it was never in, and no error is
 		 * raised at any point.
 		 *
-		 * <p>Reachable through {@code DecompositionController} with a hand-crafted request body,
+		 * <p>Reachable through {@code ClusterRepresentationController} with a hand-crafted request body,
 		 * so this documents corruption rather than endorsing it, and stays enabled so a change
 		 * in behaviour shows up. Recorded in the gap analysis.
 		 */
 		@Test
 		@DisplayName("misplaces entities when the map key names the wrong source")
 		void undoWithAWrongKeyMisplacesEntities() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 9)
 					.build();
@@ -332,7 +332,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("removes the empty cluster when undoing a form with no entities")
 		void undoOfEmptyFormRemovesTheCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -346,7 +346,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("round-trips again after a redo")
 		void redoThenUndoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.cluster("C3", 5)
@@ -378,7 +378,7 @@ class FormClusterPartitionsHandlerTest {
 		@Test
 		@DisplayName("does nothing when no representation information is attached")
 		void noRepresentationInformation() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.build();
 
@@ -393,7 +393,7 @@ class FormClusterPartitionsHandlerTest {
 		@DisplayName("reports every entity named in the map")
 		void reportsEveryMappedEntity() {
 			RecordingRepresentationInformation recorder = new RecordingRepresentationInformation();
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.representationInformation(recorder)
@@ -438,7 +438,7 @@ class FormClusterPartitionsHandlerTest {
 	}
 
 	private static Map<String, Set<Short>> dependenciesOf(
-			PartitionsDecomposition decomposition, String clusterName) {
+			PartitionsClusterRepresentation decomposition, String clusterName) {
 		return ((Partition) decomposition.getCluster(clusterName)).getCouplingDependencies();
 	}
 

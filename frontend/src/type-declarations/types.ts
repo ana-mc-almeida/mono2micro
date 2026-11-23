@@ -1,4 +1,4 @@
-import Decomposition from "../models/decompositions/Decomposition";
+import ClusterRepresentation from "../models/clusterRepresentations/ClusterRepresentation";
 
 export interface Edges {
     edges: Edge[];
@@ -89,8 +89,8 @@ export interface DomainEntity extends Elem {
 }
 
 export interface ComparisonToolDto {
-    decomposition1?: Decomposition;
-    decomposition2?: Decomposition;
+    decomposition1?: ClusterRepresentation;
+    decomposition2?: ClusterRepresentation;
 }
 
 export interface DefaultComparisonToolDto extends ComparisonToolDto {

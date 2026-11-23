@@ -2,8 +2,8 @@ package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
@@ -11,7 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Its subclasses are JSON subtypes by their {@code @JsonTypeName}, found by the self-registration scan (D-019 point 8). */
+/**
+ * A request for a Similarity, and the description of one. Its subclasses are JSON subtypes by their {@code @JsonTypeName}, found by the
+ * self-registration scan (D-019 point 8), and each creates the Similarity of its type, so a new type registers itself: no factory lists the types.
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public abstract class SimilarityDto {
 	String id;
@@ -27,6 +30,22 @@ public abstract class SimilarityDto {
 	/** Null for no profile: the Similarity is built on every unit (D-017). */
 	String profileId;
 	String profileName;
+
+	protected SimilarityDto() {}
+
+	/** Describes what every Similarity holds: its id, software system, kind, representations, name, type and profile. */
+	protected SimilarityDto(Similarity similarity) {
+		this.id = similarity.getId();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
+		this.kindName = similarity.getKindName();
+		this.representationIds = similarity.getRepresentationIds();
+		this.name = similarity.getName();
+		this.type = similarity.getType();
+		copyProfile(similarity.getProfile());
+	}
+
+	/** A new Similarity of this request's type, reading {@code representations}, which are those its kind requires. Not yet computed or saved. */
+	public abstract Similarity newSimilarity(List<Representation> representations);
 
 	public String getName() {
 		return name;
@@ -67,29 +86,6 @@ public abstract class SimilarityDto {
 
 	protected static List<String> typesOf(List<Weights> weightsList) {
 		return weightsList == null ? Collections.emptyList() : weightsList.stream().map(Weights::getType).collect(Collectors.toList());
-	}
-
-	/** Copies where {@code similarity} comes from: its kind and representations. */
-	protected void copySource(Similarity similarity) {
-		this.kindName = similarity.getKindName();
-		this.representationIds = similarity.getRepresentationIds();
-	}
-
-	/**
-	 * Fills this request with the Similarity a recommendation's candidate with {@code weightsList} is saved with.
-	 *
-	 * @throws UnsupportedOperationException
-	 * for a type whose candidates cannot be saved: a known defect inherited from upstream (Gap 9, D-027), fixed in Phase 2
-	 */
-	public void describeCandidate(RecommendMatrixSciPy recommendation, List<Weights> weightsList) {
-		throw new UnsupportedOperationException("A " + recommendation.getKindName() + " recommendation's candidates cannot be saved (Gap 9, D-027).");
-	}
-
-	/** Copies where a recommendation's candidate comes from: the recommendation's kind and representations. */
-	protected void copyCandidateSource(RecommendMatrixSciPy recommendation) {
-		this.softwareSystemId = recommendation.getSoftwareSystem().getId();
-		this.kindName = recommendation.getKindName();
-		this.representationIds = recommendation.getRepresentationIds();
 	}
 
 	/** What a generated name starts with: the kind. */

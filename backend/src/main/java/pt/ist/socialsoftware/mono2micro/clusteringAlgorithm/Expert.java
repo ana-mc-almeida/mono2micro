@@ -3,8 +3,8 @@ package pt.ist.socialsoftware.mono2micro.clusteringAlgorithm;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.springframework.web.multipart.MultipartFile;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
@@ -24,9 +24,9 @@ public class Expert {
 		return EXPERT;
 	}
 
-	public Decomposition generateClusters(Similarity similarity, String expertName, Optional<MultipartFile> expertFile, Set<String> decompositionNames)
+	public ClusterRepresentation generateClusters(Similarity similarity, String expertName, Optional<MultipartFile> expertFile, Set<String> decompositionNames)
 			throws Exception {
-		Decomposition decomposition = new PartitionsDecomposition(similarity);
+		PartitionsClusterRepresentation decomposition = new PartitionsClusterRepresentation(similarity);
 		decomposition.setExpert(true);
 
 		Map<Short, String> idToEntity;
@@ -41,7 +41,7 @@ public class Expert {
 
 		InputStream is = new BufferedInputStream(expertFile.get().getInputStream());
 		JSONObject clustersJSON = new JSONObject(IOUtils.toString(is, StandardCharsets.UTF_8)).getJSONObject("clusters");
-		SciPyClustering.addClustersAndEntities(decomposition, clustersJSON, idToEntity);
+		decomposition.addClusters(clustersJSON, idToEntity);
 		is.close();
 
 		return decomposition;

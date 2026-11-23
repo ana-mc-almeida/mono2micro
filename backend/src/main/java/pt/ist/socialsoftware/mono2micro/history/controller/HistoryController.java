@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.repository.ClusterRepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.history.service.HistoryService;
 
 import java.util.Map;
@@ -18,7 +18,7 @@ public class HistoryController {
 	HistoryService historyService;
 
 	@Autowired
-	DecompositionRepository decompositionRepository;
+	ClusterRepresentationRepository decompositionRepository;
 
 	private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
 

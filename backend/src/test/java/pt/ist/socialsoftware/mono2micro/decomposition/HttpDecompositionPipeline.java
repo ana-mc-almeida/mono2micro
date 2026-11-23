@@ -160,26 +160,32 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		rest.delete(base + "/representation/{id}/delete", representationId);
 	}
 
+	/** Deletes one cluster representation, as the frontend's delete button does. */
+	void deleteDecomposition(String decompositionId) {
+		rest.delete(base + "/decomposition/{id}/delete", decompositionId);
+	}
+
+	/** Runs the SciPy operation on the Similarity, cut into 3 clusters, and returns its output's id. */
 	@Override
 	public String createDecomposition(String similarityId) {
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.put("type", "SciPy Clustering");
-		body.put("similarityId", similarityId);
 		body.put("cutType", "N");
 		body.put("cutValue", 3);
 
-		ResponseEntity<String> response = rest.exchange(
-				base + "/similarity/createDecomposition",
+		ResponseEntity<JsonNode> response = runOperation(similarityId, body);
+		require(response, HttpStatus.CREATED, "run SciPy on " + similarityId);
+		return response.getBody().path("id").asText();
+	}
+
+	/** Runs the algorithm operation {@code body} describes on the Similarity, and returns the response as it is. */
+	ResponseEntity<JsonNode> runOperation(String similarityId, Map<String, Object> body) {
+		return rest.exchange(
+				base + "/similarities/{id}/operations",
 				HttpMethod.POST,
 				new HttpEntity<>(body, jsonHeaders()),
-				String.class);
-
-		// 200, not 201: DecompositionController returns OK here while every other create
-		// endpoint in the pipeline returns CREATED.
-		require(response, HttpStatus.OK, "create decomposition for " + similarityId);
-
-		JsonNode decompositions = getJson("/similarity/{id}/decompositions", similarityId);
-		return newestId(decompositions, "decomposition", similarityId);
+				JsonNode.class,
+				similarityId);
 	}
 
 	@Override
@@ -341,8 +347,50 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				similarityId);
 	}
 
+	/** The algorithm operations' derivation record for the Similarity: each operation, whether it is offered, and what it failed. */
+	JsonNode availableOperations(String similarityId) {
+		return getJson("/similarities/{id}/operations/available", similarityId).path("features");
+	}
+
+	/** Requests a recommendation, or finds the equal one, and returns it as the backend describes it, completion flag included. */
+	JsonNode requestRecommendation(Map<String, Object> request) {
+		ResponseEntity<JsonNode> response = rest.exchange(
+				base + "/recommendation/createRecommendation",
+				HttpMethod.PUT,
+				new HttpEntity<>(request, jsonHeaders()),
+				JsonNode.class);
+		require(response, HttpStatus.CREATED, "request a recommendation");
+		return response.getBody();
+	}
+
+	JsonNode getRecommendationResult(String recommendationId) {
+		return getJson("/recommendation/{id}/getRecommendationResult", recommendationId);
+	}
+
+	/** Saves the named candidates of the recommendation, as the frontend's Create button does (APIService.createRecommendationDecompositions). */
+	void saveRecommendationCandidates(String recommendationId, List<String> names) {
+		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
+		names.forEach(name -> form.add("decompositionNames", name));
+		// As the frontend does: Spring splits a lone value on its commas, and a candidate's name has some
+		form.add("decompositionNames", "");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		ResponseEntity<String> response = rest.exchange(
+				base + "/recommendation/{id}/createDecompositions",
+				HttpMethod.POST,
+				new HttpEntity<>(form, headers),
+				String.class,
+				recommendationId);
+		require(response, HttpStatus.OK, "save candidates " + names + " of " + recommendationId);
+	}
+
+	void deleteSimilarity(String similarityId) {
+		rest.delete(base + "/similarity/{id}/delete", similarityId);
+	}
+
 	JsonNode getDecompositions(String similarityId) {
-		return getJson("/similarity/{id}/decompositions", similarityId);
+		return getJson("/similarities/{id}/clusterRepresentations", similarityId);
 	}
 
 	// Export to Context Mapper.
@@ -468,19 +516,6 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		ResponseEntity<JsonNode> response = rest.getForEntity(base + path, JsonNode.class, uriVariables);
 		require(response, HttpStatus.OK, "GET " + path);
 		return response.getBody();
-	}
-
-	private String newestId(JsonNode array, String what, String parent) {
-		if (array == null || !array.isArray() || array.size() == 0)
-			throw new AssertionError("No " + what + " was created for " + parent
-					+ ". The request returned success, but nothing exists.");
-
-		// The query has no order. ObjectIds sort by creation, so the greatest is the newest.
-		String newest = "";
-		for (JsonNode element : array)
-			if (element.path("id").asText().compareTo(newest) > 0)
-				newest = element.path("id").asText();
-		return newest;
 	}
 
 	private void require(ResponseEntity<?> response, HttpStatus expected, String what) {

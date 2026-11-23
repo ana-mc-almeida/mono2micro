@@ -1,17 +1,23 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
-import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.JsonSubtypeConfiguration;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendMatrixSciPyDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.*;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
@@ -20,9 +26,9 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weigh
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.WeightsFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
-import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -31,9 +37,18 @@ import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationsType.RECOMMEND_MATRIX_SCIPY;
 import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation.ID_TO_ENTITY;
+import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
 
 @Document("recommendation")
 public class RecommendMatrixSciPy extends Recommendation {
+	private static final int MIN_CLUSTERS = 3, CLUSTER_STEP = 1;
+	/**
+	 * Reads a candidate's request as the controller reads the frontend's: with the self-registered subtypes, ignoring the settings a type lacks.
+	 * Its own mapper, because a domain object cannot be handed Spring's.
+	 */
+	private static final ObjectMapper JSON = new ObjectMapper()
+			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+			.registerModule(JsonSubtypeConfiguration.subtypesModule());
 
 	private int tracesMaxLimit;
 	private Constants.TraceType traceType;
@@ -150,16 +165,18 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 	@Override
 	public void generateRecommendation(RecommendationRepository recommendationRepository) {
-		SciPyClustering clusteringAlgorithm = new SciPyClustering();
-		clusteringAlgorithm.prepareAutowire();
+		// Reads the scripts' address on the request's thread: the fork below has seen it unset
+		System.out.println("Preparing to contact " + SCRIPTS_ADDRESS);
 		// Executes the request in a fork to avoid blocking the user
 		ForkJoinPool.commonPool().submit(() -> {
 			try {
 				GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-				SimilarityScipy similarityScipy = SimilarityScipyFactory.getSimilarityScipy(this);
-				setSimilarityMatricesNames(
-						similarityScipy.generateMultipleMatrices(gridFsService, this, fillElements(gridFsService), getTotalNumberOfWeights()));
-				clusteringAlgorithm.generateMultipleDecompositions(this);
+				// One Similarity of this recommendation's own settings computes every candidate's matrix, named after this recommendation
+				SimilarityScipy matrices = (SimilarityScipy) candidateRequest(getWeightsList()).newSimilarity(getRepresentations());
+				matrices.setId(getId());
+				matrices.setProfile(getProfile());
+				setSimilarityMatricesNames(matrices.generateMultipleMatrices(gridFsService, this, fillElements(gridFsService), getTotalNumberOfWeights()));
+				generateCandidates(gridFsService);
 
 				recommendationRepository.save(this);
 				System.out.println("recommendation ended");
@@ -169,17 +186,97 @@ public class RecommendMatrixSciPy extends Recommendation {
 		});
 	}
 
-	public void getDecompositionPropertiesForRecommendation(Decomposition decomposition) throws Exception {
-		SimilarityScipy similarity = SimilarityScipyFactory.getSimilarityScipy(this);
-		decomposition.setSimilarity(similarity);
-		decomposition.setup();
-		decomposition.calculateMetrics();
+	/**
+	 * Cuts every matrix into 3 up to the maximum number of clusters, through {@link SciPyOperation}, and writes each candidate's weights, size and
+	 * metrics to the result file. A candidate is measured with an unsaved Similarity of its own weights, whose id is its matrix's name, and neither
+	 * is kept: saving a candidate is {@link #createDecompositions}.
+	 */
+	private void generateCandidates(GridFsService gridFsService) throws Exception {
+		JSONArray recommendationJSON = new JSONArray();
+
+		List<String> similarityMatricesNames = new ArrayList<>(getSimilarityMatricesNames());
+
+		Map<Short, String> idToEntity = getIDToEntityName(gridFsService); // read once: every candidate shares it
+		int maxClusters = getMaxClusters(idToEntity.size());
+		// Upstream's loop for the kinds that require cluster-type conversion tested its stop after each cut, so it also cut at one above the maximum
+		// FIXME (Phase 2): whether that extra candidate is intended is open (../implementation/docs/open-questions.md, "A recommendation's candidate
+		// loops and comma-joined candidates")
+		int lastNumberOfClusters = requiresClusterTypeConversion() ? maxClusters + 1 : maxClusters;
+		int numberOfTotalSteps = similarityMatricesNames.size() * (1 + lastNumberOfClusters - MIN_CLUSTERS) / CLUSTER_STEP;
+		System.out.println("Number of decompositions to be made: " + numberOfTotalSteps);
+
+		similarityMatricesNames.parallelStream().forEach(similarityMatrixName -> {
+			for (int numberOfClusters = MIN_CLUSTERS; numberOfClusters <= lastNumberOfClusters; numberOfClusters += CLUSTER_STEP) {
+				try {
+					addRecommendationToJSON(recommendationJSON, measureCandidate(similarityMatrixName, numberOfClusters, idToEntity));
+
+					System.out.println("Decomposition " + recommendationJSON.length() + "/" + numberOfTotalSteps);
+
+					// Every 20 candidates, updates the recommendation results file
+					if (recommendationJSON.length() % 20 == 0)
+						setRecommendationResult(gridFsService, recommendationJSON);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		setRecommendationResult(gridFsService, recommendationJSON);
+		setCompleted(true);
 	}
 
+	/** Cuts the matrix into {@code numberOfClusters} and describes the candidate: its name, weights, number of clusters, size and metrics. */
+	private JSONObject measureCandidate(String similarityMatrixName, int numberOfClusters, Map<Short, String> idToEntity) throws Exception {
+		String[] weights = (similarityMatrixName + "," + numberOfClusters).split(",");
+		SimilarityScipy similarity = (SimilarityScipy) candidateRequest(weightsOf(weights)).newSimilarity(getRepresentations());
+		similarity.setId(similarityMatrixName);
+		similarity.setProfile(getProfile());
+		similarity.useIDToEntityName(idToEntity);
+
+		ClusterRepresentation candidate = new SciPyOperation("N", numberOfClusters).apply(similarity);
+		candidate.setName(similarityMatrixName + "," + numberOfClusters);
+		candidate.setup();
+		candidate.calculateMetrics();
+
+		JSONObject decompositionJSON = new JSONObject();
+		decompositionJSON.put("name", candidate.getName());
+		int i = 1;
+		for (String weightName : getWeightsNames())
+			decompositionJSON.put(weightName, weights[i++]);
+		decompositionJSON.put("numberOfClusters", weights[i]);
+		decompositionJSON.put("maxClusterSize", candidate.maxClusterSize());
+		for (Map.Entry<String, Object> metric : candidate.getMetrics().entrySet())
+			decompositionJSON.put(metric.getKey(), metric.getValue());
+		return decompositionJSON;
+	}
+
+	// This function was created to be sure that no writes are made at the same time
+	private synchronized void setRecommendationResult(GridFsService gridFsService, JSONArray recommendationResult) {
+		gridFsService.replaceFile(new ByteArrayInputStream(recommendationResult.toString().getBytes()), getRecommendationResultName());
+	}
+
+	private synchronized void addRecommendationToJSON(JSONArray arrayJSON, JSONObject decompositionJSON) {
+		arrayJSON.put(decompositionJSON);
+	}
+
+	private static int getMaxClusters(int totalNumberOfEntities) {
+		if (totalNumberOfEntities >= 20)
+			return 10;
+		else if (totalNumberOfEntities >= 10)
+			return 5;
+		else if (totalNumberOfEntities >= 4)
+			return 3;
+		else throw new RuntimeException("Number of entities is too small (less than 4)");
+	}
+
+	/**
+	 * Saves the chosen candidates, each as a {@link SciPyOperation} on the Similarity of its weights and the operation's output (D-016). The
+	 * Similarity is the equal one among {@code similarities}, or a new one that reuses the candidate's matrix.
+	 */
 	@Override
-	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames) throws Exception {
+	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames, EditingChainService editingChainService)
+			throws Exception {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		DecompositionService decompositionService = ContextManager.get().getBean(DecompositionService.class);
 
 		for (String name : decompositionNames) {
 			String[] properties = name.split(",");
@@ -189,25 +286,14 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 			System.out.println("Creating decomposition with name: " + name);
 
-			List<Weights> localWeightsList = WeightsFactory.getWeightsList(getAllWeightsTypes());
-
-			int i = 1;
-			for (Weights weights : localWeightsList) {
-				float[] w = new float[weights.getNumberOfWeights()];
-				for (int j = 0; j < w.length; j++)
-					w[j] = Float.parseFloat(properties[i++]);
-
-				weights.setWeightsFromArray(w);
-			}
-
-			SimilarityDto similarityInformation = getSimilarityInformationDto(localWeightsList);
+			SimilarityDto similarityInformation = getSimilarityInformationDto(weightsOf(properties));
 
 			// Find or create the candidate's Similarity
 			SimilarityScipy similarity = (SimilarityScipy) similarities.stream()
 					.filter(possibleSimilarity -> possibleSimilarity.equalsDto(similarityInformation)).findFirst().orElse(null);
 
 			if (similarity == null) {
-				similarity = SimilarityFactory.createSimilarity(getRepresentations(), similarityInformation);
+				similarity = (SimilarityScipy) similarityInformation.newSimilarity(getRepresentations());
 				similarity.setProfile(getProfile());
 
 				InputStream inputStream = gridFsService.getFile(name.substring(0, name.lastIndexOf(","))); // Gets the previously produced similarity matrix
@@ -218,18 +304,57 @@ public class RecommendMatrixSciPy extends Recommendation {
 				similarities.add(similarity); // a later candidate with the same weights reuses it
 			}
 
-			decompositionService.createDecomposition(similarity,
-					new SciPyRequestDto(similarity.getId(), "N", Float.parseFloat(properties[properties.length - 1])));
+			editingChainService.run(new SciPyOperation("N", Float.parseFloat(properties[properties.length - 1])), similarity);
 		}
 	}
 
+	/** The weights a candidate's name gives after its matrix's prefix, in this recommendation's weights order. */
+	private List<Weights> weightsOf(String[] properties) {
+		List<Weights> localWeightsList = WeightsFactory.getWeightsList(getAllWeightsTypes());
+		int i = 1;
+		for (Weights weights : localWeightsList) {
+			float[] w = new float[weights.getNumberOfWeights()];
+			for (int j = 0; j < w.length; j++)
+				w[j] = Float.parseFloat(properties[i++]);
+			weights.setWeightsFromArray(w);
+		}
+		return localWeightsList;
+	}
+
 	/**
-	 * The request for the Similarity a candidate with {@code localWeightsList} is saved with: one of the type that computes the kind, built by
-	 * the self-registration scan, so a new kind computed by an existing type needs no edit here.
+	 * The request for the Similarity a saved candidate with {@code localWeightsList} is found or created with.
+	 *
+	 * @throws UnsupportedOperationException
+	 * for a kind whose candidates cannot be saved: a known defect inherited from upstream (Gap 9, D-027), fixed in Phase 2
 	 */
 	public SimilarityDto getSimilarityInformationDto(List<Weights> localWeightsList) {
-		SimilarityDto candidate = SelfRegistration.newMember(SimilarityDto.class, SimilarityKind.getByName(getKindName()).similarityType());
-		candidate.describeCandidate(this, localWeightsList);
-		return candidate;
+		if (!SimilarityKind.getByName(getKindName()).savesRecommendationCandidates())
+			throw new UnsupportedOperationException("A " + getKindName() + " recommendation's candidates cannot be saved (Gap 9, D-027).");
+		return candidateRequest(localWeightsList);
+	}
+
+	/**
+	 * The request for a Similarity of this recommendation's kind, representations, profile and settings, weighed by {@code weightsList}. It is the
+	 * JSON the frontend would send, read through the self-registered request types, so the type that computes the kind picks the request's class
+	 * and this recommendation names none.
+	 */
+	SimilarityDto candidateRequest(List<Weights> weightsList) {
+		ObjectNode request = JSON.createObjectNode();
+		request.put("type", SimilarityKind.getByName(getKindName()).similarityType());
+		request.put("kindName", getKindName());
+		request.put("profileId", getProfileId());
+		request.put("linkageType", linkageType);
+		request.put("traceType", traceType == null ? null : traceType.name());
+		request.put("tracesMaxLimit", tracesMaxLimit);
+		request.set("weightsList", JSON.valueToTree(weightsList));
+		try {
+			SimilarityDto candidate = JSON.treeToValue(request, SimilarityDto.class);
+			candidate.setSoftwareSystemId(getSoftwareSystem().getId());
+			candidate.setRepresentationIds(getRepresentationIds());
+			candidate.setProfileName(Profile.nameOf(getProfile())); // the generated name shows the profile
+			return candidate;
+		} catch (JsonProcessingException e) {
+			throw new IllegalStateException("A " + getKindName() + " recommendation cannot describe its candidates' Similarity.", e);
+		}
 	}
 }

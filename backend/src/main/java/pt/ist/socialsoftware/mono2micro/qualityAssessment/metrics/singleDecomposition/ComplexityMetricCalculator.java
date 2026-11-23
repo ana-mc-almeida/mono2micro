@@ -1,9 +1,9 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 import pt.ist.socialsoftware.mono2micro.utils.Utils;
 
@@ -22,12 +22,12 @@ public class ComplexityMetricCalculator extends DecompositionMetricCalculator {
 	}
 
 	@Override
-	public Double calculateMetric(Decomposition decomposition) {
+	public Double calculateMetric(ClusterRepresentation decomposition) {
 		Map<String, List<Functionality>> clustersFunctionalities = Utils.getClustersFunctionalities(decomposition);
 		return calculateMetric(decomposition, clustersFunctionalities);
 	}
 
-	public static Double calculateMetric(Decomposition decomposition, Map<String, List<Functionality>> clustersFunctionalities) {
+	public static Double calculateMetric(ClusterRepresentation decomposition, Map<String, List<Functionality>> clustersFunctionalities) {
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		double complexity;
 

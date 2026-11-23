@@ -3,8 +3,8 @@ package pt.ist.socialsoftware.mono2micro.utils.export;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 
 import java.util.Collection;
@@ -16,7 +16,7 @@ public class ContextMapperContractBuilder extends DecompositionContractBuilder {
 
 	Map<Short, String> idToEntityMap;
 
-	public ContextMapperContractBuilder(Decomposition decomposition) {
+	public ContextMapperContractBuilder(ClusterRepresentation decomposition) {
 		super(decomposition);
 		this.idToEntityMap = new HashMap<>();
 	}

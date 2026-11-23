@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
@@ -35,8 +34,9 @@ public class SimilarityScipyEntityVectorization extends SimilarityScipy {
 		this.name = this.getName() + " " + getType() + "()";
 	}
 
-	public SimilarityScipyEntityVectorization(RecommendMatrixSciPy recommendation) {
-		super(recommendation);
+	@Override
+	public SimilarityDto toDto() {
+		return new SimilarityScipyEntityVectorizationDto(this);
 	}
 
 	@Override

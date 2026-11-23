@@ -16,6 +16,11 @@ public class JsonSubtypeConfiguration {
 
 	@Bean
 	public Module selfRegisteredSubtypes() {
+		return subtypesModule();
+	}
+
+	/** The module of every self-registered subtype, for an {@code ObjectMapper} built outside Spring that reads requests as the controllers do. */
+	public static Module subtypesModule() {
 		SimpleModule module = new SimpleModule("selfRegisteredSubtypes");
 		module.registerSubtypes(SelfRegistration.namedTypes().toArray(new Class<?>[0]));
 		return module;

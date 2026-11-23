@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.history.domain;
 
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 
@@ -18,7 +18,7 @@ public class PositionHistory extends History {
 
 	public PositionHistory() {}
 
-	public PositionHistory(Decomposition decomposition) {
+	public PositionHistory(ClusterRepresentation decomposition) {
 		this.historyOperationList = new ArrayList<>();
 		this.currentHistoryOperationDepth = 0L;
 		this.depthGraphPositions = new HashMap<>();

@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.operation.merge;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.operation.Operation;
 
 import java.util.stream.Collectors;
@@ -32,12 +32,12 @@ public class MergeOperation extends Operation {
 	}
 
 	@Override
-	public void execute(Decomposition decomposition) {
+	public void execute(ClusterRepresentation decomposition) {
 		storeState(decomposition); // needed so that when doing undo, the original entities are restored
 		super.execute(decomposition);
 	}
 
-	protected void storeState(Decomposition decomposition) {
+	protected void storeState(ClusterRepresentation decomposition) {
 		if (cluster1Entities == null) { // First time doing the operation sets up the original cluster entities
 			Cluster cluster1 = decomposition.getCluster(this.cluster1Name);
 			Cluster cluster2 = decomposition.getCluster(this.cluster2Name);

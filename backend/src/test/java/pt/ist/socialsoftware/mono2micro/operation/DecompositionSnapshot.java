@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.operation;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 
 import java.util.Map;
@@ -12,7 +12,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
- * The shape of a {@link Decomposition}, reduced to two comparable maps.
+ * The shape of a {@link ClusterRepresentation}, reduced to two comparable maps.
  *
  * <p>Exists because {@code Cluster} declares no {@code equals}, so comparing two
  * {@code Map<String, Cluster>} values compares references and passes even when the contents
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * <p><b>Deliberately not compared.</b> {@code Cluster.metrics}, because {@code merge} builds a
  * fresh {@code Partition} and so drops the metrics of both inputs — real lossiness, but a
  * separate finding, and including it here would make every merge round-trip fail for a reason
- * unrelated to the cluster arithmetic being tested. Also {@code Decomposition.outdated}, which
+ * unrelated to the cluster arithmetic being tested. Also {@code ClusterRepresentation.outdated}, which
  * only {@code AccessesInformation} sets and which no operation restores on undo.
  */
 public final class DecompositionSnapshot {
@@ -45,7 +45,7 @@ public final class DecompositionSnapshot {
 		this.dependencies = dependencies;
 	}
 
-	public static DecompositionSnapshot of(Decomposition decomposition) {
+	public static DecompositionSnapshot of(ClusterRepresentation decomposition) {
 		Map<String, Set<Short>> clusters = new TreeMap<>();
 		Map<String, Map<String, Set<Short>>> dependencies = new TreeMap<>();
 

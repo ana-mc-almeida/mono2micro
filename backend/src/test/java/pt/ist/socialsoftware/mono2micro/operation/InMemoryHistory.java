@@ -41,7 +41,7 @@ public class InMemoryHistory extends History {
 	/**
 	 * Initializes both fields, which {@code History} leaves null.
 	 *
-	 * <p>Neither has an inline initializer and only {@code PositionHistory(Decomposition)} sets
+	 * <p>Neither has an inline initializer and only {@code PositionHistory(ClusterRepresentation)} sets
 	 * them, so a bare subclass would NPE twice over: in {@code addOperation} on the null list,
 	 * and in {@code incrementCurrentHistoryDepth}, where {@code ++} unboxes a null {@code Long}.
 	 */

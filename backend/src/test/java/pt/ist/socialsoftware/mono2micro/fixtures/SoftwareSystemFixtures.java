@@ -169,7 +169,7 @@ public class SoftwareSystemFixtures {
 
 	/**
 	 * Makes a mocked repository answer {@code findBySoftwareSystemId} for each fixture, and
-	 * {@code findBySoftwareSystemIdAndType} by the same filter the real default method applies.
+	 * {@code findBySoftwareSystemIdAndType} and {@code findUploadedBySoftwareSystemId} by the same filters the real default methods apply.
 	 * Mockito 2.23 cannot call a real default method of an interface mock, hence the explicit
 	 * answer. Returns the repository.
 	 */
@@ -181,6 +181,8 @@ public class SoftwareSystemFixtures {
 				representationRepository.findBySoftwareSystemId(invocation.getArgument(0)),
 				invocation.getArgument(1)))
 				.when(representationRepository).findBySoftwareSystemIdAndType(anyString(), anyString());
+		doAnswer(invocation -> RepresentationRepository.uploaded(representationRepository.findBySoftwareSystemId(invocation.getArgument(0))))
+				.when(representationRepository).findUploadedBySoftwareSystemId(anyString());
 		return representationRepository;
 	}
 

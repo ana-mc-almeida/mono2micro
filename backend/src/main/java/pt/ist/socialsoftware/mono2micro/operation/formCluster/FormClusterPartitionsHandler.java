@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.operation.formCluster;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandler;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandlers;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * Gathers entities from several partitions into a new one, dropping the partitions it empties; undo sends each back, splitting a dropped
  * partition out again.
  */
-public class FormClusterPartitionsHandler implements ManualOperationHandler<FormClusterOperation, PartitionsDecomposition> {
+public class FormClusterPartitionsHandler implements ManualOperationHandler<FormClusterOperation, PartitionsClusterRepresentation> {
 
 	@Override
 	public Class<FormClusterOperation> operation() {
@@ -27,12 +27,12 @@ public class FormClusterPartitionsHandler implements ManualOperationHandler<Form
 	}
 
 	@Override
-	public Class<PartitionsDecomposition> clusterKind() {
-		return PartitionsDecomposition.class;
+	public Class<PartitionsClusterRepresentation> clusterKind() {
+		return PartitionsClusterRepresentation.class;
 	}
 
 	@Override
-	public void apply(FormClusterOperation operation, PartitionsDecomposition decomposition) {
+	public void apply(FormClusterOperation operation, PartitionsClusterRepresentation decomposition) {
 		formCluster(operation, decomposition);
 		decomposition.getRepresentationInformations().forEach(representationInformation -> representationInformation.removeFunctionalitiesWithEntityIDs(
 				decomposition,
@@ -42,7 +42,7 @@ public class FormClusterPartitionsHandler implements ManualOperationHandler<Form
 	}
 
 	@Override
-	public void undo(FormClusterOperation operation, PartitionsDecomposition decomposition) {
+	public void undo(FormClusterOperation operation, PartitionsClusterRepresentation decomposition) {
 		operation.getEntities().forEach((clusterName, entitiesID) -> {
 			Cluster toCluster = decomposition.getClusters().get(clusterName);
 			String entities = entitiesID.stream().map(Object::toString).collect(Collectors.joining(","));
@@ -55,7 +55,7 @@ public class FormClusterPartitionsHandler implements ManualOperationHandler<Form
 		decomposition.removeCluster(operation.getNewCluster());
 	}
 
-	private void formCluster(FormClusterOperation operation, PartitionsDecomposition decomposition) {
+	private void formCluster(FormClusterOperation operation, PartitionsClusterRepresentation decomposition) {
 		String newCluster = operation.getNewCluster();
 		List<Short> entitiesIDs = operation.getEntities().values().stream().flatMap(Collection::stream).collect(Collectors.toList());
 

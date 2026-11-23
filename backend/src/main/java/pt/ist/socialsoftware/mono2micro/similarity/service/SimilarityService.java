@@ -3,9 +3,9 @@ package pt.ist.socialsoftware.mono2micro.similarity.service;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
-import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.repository.ClusterRepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.feature.AvailabilityCheck;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
@@ -18,7 +18,6 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 
@@ -37,10 +36,10 @@ public class SimilarityService {
 	RepresentationRepository representationRepository;
 
 	@Autowired
-	DecompositionRepository decompositionRepository;
+	ClusterRepresentationRepository decompositionRepository;
 
 	@Autowired
-	DecompositionService decompositionService;
+	ClusterRepresentationService decompositionService;
 
 	@Autowired
 	ProfileService profileService;
@@ -111,7 +110,7 @@ public class SimilarityService {
 		for (Similarity existing : getSimilaritiesOfKind(softwareSystemId, similarityDto.getKindName()))
 			if (existing.equalsDto(similarityDto))
 				return existing;
-		Similarity similarity = SimilarityFactory.createSimilarity(representations, similarityDto);
+		Similarity similarity = similarityDto.newSimilarity(representations);
 		similarity.setProfile(profile);
 
 		similarity.generate();
@@ -131,14 +130,14 @@ public class SimilarityService {
 	}
 
 	public void deleteSimilarity(Similarity similarity) {
-		for (Decomposition decomposition : decompositionRepository.findBySimilarityId(similarity.getId()))
+		for (ClusterRepresentation decomposition : decompositionRepository.findBySimilarityId(similarity.getId()))
 			decompositionService.deleteDecomposition(decomposition);
 
 		similarity.removeProperties();
 		similarityRepository.deleteById(similarity.getId());
 	}
 
-	public List<Decomposition> getDecompositions(String similarityId) {
+	public List<ClusterRepresentation> getDecompositions(String similarityId) {
 		return decompositionRepository.findBySimilarityId(similarityId);
 	}
 

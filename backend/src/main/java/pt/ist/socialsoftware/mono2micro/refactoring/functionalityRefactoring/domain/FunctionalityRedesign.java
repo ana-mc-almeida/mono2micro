@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain;
 
 import org.json.JSONArray;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityType;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
@@ -67,8 +67,12 @@ public class FunctionalityRedesign {
 		this.redesign = redesign;
 	}
 
-	public void calculateMetrics(GridFsService gridFsService, Decomposition decomposition, AccessesInformation accessesInformation, Functionality functionality)
-			throws Exception {
+	public void calculateMetrics(
+			GridFsService gridFsService,
+			ClusterRepresentation decomposition,
+			AccessesInformation accessesInformation,
+			Functionality functionality
+	) throws Exception {
 		FunctionalityRedesignMetricCalculator[] metricObjects;
 		if (functionality.getType() == FunctionalityType.SAGA)
 			metricObjects = new FunctionalityRedesignMetricCalculator[] { new FunctionalityRedesignComplexityMetricCalculator(gridFsService),

@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.severalDecompositions;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.severalDecompositions.mojo.src.main.java.MoJo;
 
 import java.io.File;
@@ -36,7 +36,7 @@ public class MoJoFM extends Analysis {
 		return MOJO;
 	}
 
-	public MoJoFM(Decomposition decomposition1, Decomposition decomposition2) throws IOException {
+	public MoJoFM(ClusterRepresentation decomposition1, ClusterRepresentation decomposition2) throws IOException {
 		analyse(decomposition1, decomposition2);
 	}
 
@@ -157,7 +157,7 @@ public class MoJoFM extends Analysis {
 	}
 
 	@Override
-	public void analyse(Decomposition decomposition1, Decomposition decomposition2) throws IOException {
+	public void analyse(ClusterRepresentation decomposition1, ClusterRepresentation decomposition2) throws IOException {
 		Map<String, Set<Short>> decomposition1ClusterEntities = new HashMap<>();
 		for (Cluster cluster : decomposition1.getClusters().values()) {
 			decomposition1ClusterEntities.put(cluster.getName(), cluster.getElementsIDs());

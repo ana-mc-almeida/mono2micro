@@ -8,8 +8,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.AlgorithmOperation;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures;
 import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.Fixture;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
@@ -30,7 +31,6 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -39,9 +39,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.when;
 import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.ACCESSES_BASED_NAME;
 import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.CODE_EMBEDDINGS_BASED_NAME;
 import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.EMPTY_NAME;
@@ -230,22 +229,20 @@ public class AvailabilityCharacterizationTest {
 	// Similarity kinds the SciPy algorithm accepts
 
 	@Test
-	public void theSciPyAlgorithmAcceptsAllEightKinds() {
-		Clustering sciPy = sciPy();
+	public void theSciPyAlgorithmAcceptsASimilarityOfEachOfTheEightKinds() {
+		AlgorithmOperation sciPy = SelfRegistration.prototypes(AlgorithmOperation.class).get(SciPyOperation.SCIPY);
 		AvailabilityContext noSystem = FeatureFamilies.scanned().contextFor(Collections.emptyList());
 
-		assertThat(SelfRegistration.prototypes(SimilarityKind.class).entrySet().stream()
-				.filter(kind -> !AvailabilityCheck.derive(Collections.singletonList(sciPy), noSystem.withInput(kind.getValue())).availableNames().isEmpty())
-				.map(Map.Entry::getKey)).containsExactlyInAnyOrderElementsOf(ALL_KINDS);
+		assertThat(SelfRegistration.prototypes(SimilarityKind.class).keySet().stream()
+				.filter(kindName -> !AvailabilityCheck.derive(Collections.singletonList(sciPy), noSystem.withInput(similarityOf(kindName))).availableNames()
+						.isEmpty()))
+				.containsExactlyInAnyOrderElementsOf(ALL_KINDS);
 	}
 
-	/**
-	 * {@code SciPyClustering}'s constructor fetches a bean from {@code ContextManager}, which
-	 * boots a Spring context. A mock calling real methods is built without running the
-	 * constructor, so the answer can be read without Spring.
-	 */
-	private static Clustering sciPy() {
-		return mock(SciPyClustering.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
+	private static Similarity similarityOf(String kindName) {
+		Similarity similarity = mock(Similarity.class);
+		when(similarity.getKindName()).thenReturn(kindName);
+		return similarity;
 	}
 
 	private List<String> offeredKinds(String softwareSystemId) {

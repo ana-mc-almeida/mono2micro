@@ -1,7 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
@@ -14,30 +15,28 @@ import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy
 public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends SimilarityDto {
 	private String linkageType;
 
-	private int depth;
+	/**
+	 * 2 when the request names none, as upstream: a recommendation has no depth, so its candidates' Similarities keep the domain class's
+	 * default. The form always sends one.
+	 */
+	// FIXME (Phase 2): a call-graph recommendation always runs with depth 2, which the architect can neither see nor choose; whether that is a bug
+	// is open (../implementation/docs/open-questions.md, "A call-graph recommendation's depth")
+	private int depth = 2;
 
 	private List<Weights> weightsList;
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto() { this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH; }
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(SimilarityScipyFunctionalityVectorizationByCallGraph similarity) {
-		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getSoftwareSystem().getId();
-		copySource(similarity);
-		this.name = similarity.getName();
-		this.type = similarity.getType();
+		super(similarity);
 		this.linkageType = similarity.getLinkageType();
 		this.weightsList = similarity.getWeightsList();
 		this.depth = similarity.getDepth();
 	}
 
-	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		copyCandidateSource(recommend);
-		this.name = recommend.getName();
-		this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
-		this.linkageType = recommend.getLinkageType();
-		this.weightsList = weightsList;
-		// this.depth = depth;
+	@Override
+	public Similarity newSimilarity(List<Representation> representations) {
+		return new SimilarityScipyFunctionalityVectorizationByCallGraph(getKindName(), representations, getName(), this);
 	}
 
 	public String getName() {
