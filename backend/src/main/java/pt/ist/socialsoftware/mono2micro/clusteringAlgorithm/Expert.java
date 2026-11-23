@@ -41,7 +41,7 @@ public class Expert {
 
 		InputStream is = new BufferedInputStream(expertFile.get().getInputStream());
 		JSONObject clustersJSON = new JSONObject(IOUtils.toString(is, StandardCharsets.UTF_8)).getJSONObject("clusters");
-		SciPyClustering.addClustersAndEntities(decomposition, clustersJSON, idToEntity);
+		decomposition.addClusters(clustersJSON, idToEntity);
 		is.close();
 
 		return decomposition;

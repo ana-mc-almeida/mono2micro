@@ -2,15 +2,12 @@ package pt.ist.socialsoftware.mono2micro.clusteringAlgorithm;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.*;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
-import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
@@ -57,7 +54,7 @@ public class SciPyClustering extends Clustering {
 		JSONObject clustersJSON = invokePythonCut(decomposition, similarity.getId(), similarity.getLinkageType(), dto.getCutType(), dto.getCutValue());
 
 		Map<Short, String> idToEntity = similarity.getIDToEntityName();
-		addClustersAndEntities(decomposition, clustersJSON, idToEntity);
+		decomposition.addClusters(clustersJSON, idToEntity);
 
 		return decomposition;
 	}
@@ -94,36 +91,6 @@ public class SciPyClustering extends Clustering {
 		} else return similarity.getName() + " " + cutType + cutValueString;
 	}
 
-	public static void addClustersAndEntities(
-			ClusterRepresentation decomposition,
-			JSONObject clustersJSON,
-			Map<Short, String> idToEntity
-	) throws JSONException {
-		Iterator<String> clusters = clustersJSON.sortedKeys();
-		ArrayList<String> clusterNames = new ArrayList<>();
-
-		while (clusters.hasNext())
-			clusterNames.add(clusters.next());
-
-		Collections.sort(clusterNames);
-
-		for (String name : clusterNames) {
-			JSONArray entities = clustersJSON.getJSONArray(name);
-			Partition cluster;
-			if (decomposition.isExpert())
-				cluster = new Partition(name);
-			else cluster = new Partition("Cluster" + name);
-
-			for (int i = 0; i < entities.length(); i++) {
-				short entityID = (short) entities.getInt(i);
-
-				cluster.addElement(new DomainEntity(entityID, idToEntity.get(entityID)));
-			}
-
-			decomposition.addCluster(cluster);
-		}
-	}
-
 	// This prevents bug where, during the generateMultipleDecompositions, SCRIPTS_ADDRESS is not loaded
 	public void prepareAutowire() {
 		System.out.println("Preparing to contact " + SCRIPTS_ADDRESS);
@@ -152,7 +119,7 @@ public class SciPyClustering extends Clustering {
 
 						JSONObject clustersJSON = invokePythonCut(decomposition, similarityMatrixName, recommendation.getLinkageType(), "N", numberOfClusters);
 
-						addClustersAndEntities(decomposition, clustersJSON, idToEntity);
+						decomposition.addClusters(clustersJSON, idToEntity);
 
 						// Create this function on Recommendation Super class
 						recommendation.getDecompositionPropertiesForRecommendation(decomposition);
@@ -196,7 +163,7 @@ public class SciPyClustering extends Clustering {
 
 						JSONObject clustersJSON = invokePythonCut(decomposition, similarityMatrixName, recommendation.getLinkageType(), "N", numberOfClusters);
 
-						addClustersAndEntities(decomposition, clustersJSON, idToEntity);
+						decomposition.addClusters(clustersJSON, idToEntity);
 
 						// Create this function on Recommendation Super class
 						recommendation.getDecompositionPropertiesForRecommendation(decomposition);

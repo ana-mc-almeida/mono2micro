@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
@@ -10,7 +11,8 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 
 import java.util.*;
 
-@Document("decomposition")
+@JsonTypeName(PartitionsClusterRepresentation.PARTITIONS_CLUSTER_REPRESENTATION)
+@Document("representation")
 public class PartitionsClusterRepresentation extends ClusterRepresentation {
 	public static final String PARTITIONS_CLUSTER_REPRESENTATION = "Partitions Cluster Representation";
 
@@ -24,7 +26,7 @@ public class PartitionsClusterRepresentation extends ClusterRepresentation {
 	public PartitionsClusterRepresentation(PartitionsClusterRepresentation decomposition, String snapshotName) throws Exception {
 		this.type = PARTITIONS_CLUSTER_REPRESENTATION;
 		this.name = snapshotName;
-		this.similarity = decomposition.getSimilarity();
+		setSimilarity(decomposition.getSimilarity());
 		this.metrics = decomposition.getMetrics();
 		this.outdated = decomposition.isOutdated();
 		this.expert = decomposition.isExpert();

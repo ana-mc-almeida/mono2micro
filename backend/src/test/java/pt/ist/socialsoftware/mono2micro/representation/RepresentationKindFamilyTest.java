@@ -9,6 +9,7 @@ import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorR
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
@@ -26,6 +27,7 @@ public class RepresentationKindFamilyTest {
 
 	private final FeatureFamilies families = FeatureFamilies.scanned();
 
+	/** A cluster representation is one kind of representation too (D-010). */
 	@Test
 	public void everyRepresentationKindIsAFeatureOfTheFamily() {
 		assertThat(families.familyWithMemberType(Representation.class)).hasValueSatisfying(family -> assertThat(family.features())
@@ -37,7 +39,8 @@ public class RepresentationKindFamilyTest {
 						AuthorRepresentation.AUTHOR,
 						CommitRepresentation.COMMIT,
 						CodeEmbeddingsRepresentation.CODE_EMBEDDINGS,
-						StructureRepresentation.STRUCTURE));
+						StructureRepresentation.STRUCTURE,
+						PartitionsClusterRepresentation.PARTITIONS_CLUSTER_REPRESENTATION));
 	}
 
 	@Test

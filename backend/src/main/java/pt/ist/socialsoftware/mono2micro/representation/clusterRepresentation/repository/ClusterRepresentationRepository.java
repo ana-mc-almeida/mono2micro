@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/** The cluster representations, which are stored with the other representations (D-010). */
 public interface ClusterRepresentationRepository extends MongoRepository<ClusterRepresentation, String> {
 	List<ClusterRepresentation> findBySimilarityId(String similarityId);
 
-	/** The names a similarity's decompositions already use, for picking a new one. */
+	/** The names a Similarity's cluster representations already use, for picking a new one. */
 	default Set<String> findNamesBySimilarityId(String similarityId) {
 		return findBySimilarityId(similarityId).stream()
 				.map(ClusterRepresentation::getName)
@@ -18,6 +19,6 @@ public interface ClusterRepresentationRepository extends MongoRepository<Cluster
 	}
 
 	default ClusterRepresentation getById(String id) {
-		return findById(id).orElseThrow(() -> new RuntimeException("No decomposition " + id + " found."));
+		return findById(id).orElseThrow(() -> new RuntimeException("No cluster representation " + id + " found."));
 	}
 }

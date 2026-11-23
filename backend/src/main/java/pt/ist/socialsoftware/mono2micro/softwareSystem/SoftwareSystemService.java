@@ -41,7 +41,7 @@ public class SoftwareSystemService {
 	RecommendationService recommendationService;
 
 	@Autowired
-	ClusterRepresentationRepository decompositionRepository;
+	ClusterRepresentationRepository clusterRepresentationRepository;
 
 	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
 		if (softwareSystemRepository.existsByName(softwareSystemName))
@@ -74,14 +74,15 @@ public class SoftwareSystemService {
 		return RepresentationDtoFactory.getFactory().getRepresentationDtos(getRepresentations(softwareSystemId));
 	}
 
+	/** The representations the software system uploaded; its cluster representations are listed by Similarity. */
 	public List<Representation> getRepresentations(String softwareSystemId) {
-		return representationRepository.findBySoftwareSystemId(softwareSystemId);
+		return representationRepository.findUploadedBySoftwareSystemId(softwareSystemId);
 	}
 
 	/** The decompositions of the software system: those of its Similarities. */
 	public List<ClusterRepresentation> getDecompositions(String softwareSystemId) {
 		return similarityService.getSimilarities(softwareSystemId).stream()
-				.flatMap(similarity -> decompositionRepository.findBySimilarityId(similarity.getId()).stream())
+				.flatMap(similarity -> clusterRepresentationRepository.findBySimilarityId(similarity.getId()).stream())
 				.collect(Collectors.toList());
 	}
 
@@ -97,7 +98,7 @@ public class SoftwareSystemService {
 	}
 
 	private Set<String> representationKinds(String softwareSystemId) {
-		return representationRepository.findBySoftwareSystemId(softwareSystemId).stream()
+		return representationRepository.findUploadedBySoftwareSystemId(softwareSystemId).stream()
 				.map(Representation::getType)
 				.collect(Collectors.toSet());
 	}

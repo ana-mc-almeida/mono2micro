@@ -1,26 +1,35 @@
 package pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain;
 
-import org.bson.types.ObjectId;
-import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
-import org.springframework.data.annotation.Id;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.DBRef;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.history.domain.History;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 
 import java.util.*;
 
-public abstract class ClusterRepresentation {
-	@Id
-	String id = new ObjectId().toHexString();
-	String name;
+/**
+ * A representation made of clusters, such as a candidate microservices decomposition (D-010). It is one kind of {@link Representation}, stored with
+ * the others, and is either imported (an expert's) or produced by a clustering algorithm.
+ *
+ * <p>It is measured with a Similarity of its own software system, which it keeps for good (D-015): its metrics, functionalities and edge weights
+ * read their settings through it.
+ */
+@Document("representation")
+public abstract class ClusterRepresentation extends Representation {
 	String type;
 	boolean expert;
 	boolean outdated; // Used to avoid long waiting times during interaction
 	Map<String, Object> metrics = new HashMap<>(); // Map<MetricCalculator type, MetricCalculator value>
 	Map<String, Cluster> clusters = new HashMap<>();
+	/** Eager: the information blocks downcast it, and a lazy reference to an abstract type cannot be downcast (D-024). */
 	@DBRef
 	Similarity similarity;
 	@DBRef
@@ -30,8 +39,32 @@ public abstract class ClusterRepresentation {
 
 	public ClusterRepresentation() {}
 
+	/** A cluster representation of {@code similarity}'s software system, measured with it. */
 	public ClusterRepresentation(Similarity similarity) {
-		this.similarity = similarity;
+		setSimilarity(similarity);
+	}
+
+	/** A cluster representation is imported or produced, never read from an uploaded representation file. */
+	@Override
+	public String init(SoftwareSystem softwareSystem, byte[] representationFile) {
+		throw new UnsupportedOperationException("A cluster representation is not read from a representation file.");
+	}
+
+	/**
+	 * Fails unless it is measured with a Similarity of its own software system (D-015). Checked whenever it is saved.
+	 *
+	 * @throws IllegalStateException
+	 *                               if it has no Similarity or no software system, or its Similarity belongs to another software system
+	 */
+	public void requireSimilarityOfItsSoftwareSystem() {
+		if (similarity == null)
+			throw new IllegalStateException("Cluster representation " + id + " is measured with no Similarity.");
+		if (softwareSystem == null)
+			throw new IllegalStateException("Cluster representation " + id + " belongs to no software system.");
+		String similaritySoftwareSystemId = similarity.getSoftwareSystem().getId();
+		if (!softwareSystem.getId().equals(similaritySoftwareSystemId))
+			throw new IllegalStateException("Cluster representation " + id + " belongs to software system " + softwareSystem.getId()
+					+ ", but its Similarity " + similarity.getId() + " to " + similaritySoftwareSystemId + ".");
 	}
 
 	public abstract void setup() throws Exception;
@@ -44,22 +77,7 @@ public abstract class ClusterRepresentation {
 
 	public abstract ClusterRepresentation snapshotDecomposition(String decompositionName) throws Exception;
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
+	@Override
 	public String getType() {
 		return type;
 	}
@@ -112,17 +130,14 @@ public abstract class ClusterRepresentation {
 		return this.representationInformations.stream().filter(r -> r.getType().equals(type)).findFirst().orElse(null);
 	}
 
-	/** The software system it belongs to: its Similarity's. */
-	public SoftwareSystem getSoftwareSystem() {
-		return similarity.getSoftwareSystem();
-	}
-
 	public Similarity getSimilarity() {
 		return similarity;
 	}
 
+	/** Sets the Similarity it is measured with, and so its software system, which is the Similarity's. */
 	public void setSimilarity(Similarity similarity) {
 		this.similarity = similarity;
+		this.softwareSystem = similarity.getSoftwareSystem();
 	}
 
 	public History getHistory() {
@@ -175,6 +190,28 @@ public abstract class ClusterRepresentation {
 		}
 
 		return max;
+	}
+
+	/**
+	 * Adds a cluster for each entry of {@code clustersJSON}, which maps a cluster's name to its entities' ids, in name order. An imported
+	 * representation keeps the names it was given; otherwise each name is prefixed with "Cluster".
+	 */
+	public void addClusters(JSONObject clustersJSON, Map<Short, String> idToEntity) throws JSONException {
+		Iterator<String> names = clustersJSON.sortedKeys();
+		List<String> clusterNames = new ArrayList<>();
+		while (names.hasNext())
+			clusterNames.add(names.next());
+		Collections.sort(clusterNames);
+
+		for (String name : clusterNames) {
+			JSONArray entities = clustersJSON.getJSONArray(name);
+			Partition cluster = new Partition(isExpert() ? name : "Cluster" + name);
+			for (int i = 0; i < entities.length(); i++) {
+				short entityID = (short) entities.getInt(i);
+				cluster.addElement(new DomainEntity(entityID, idToEntity.get(entityID)));
+			}
+			addCluster(cluster);
+		}
 	}
 
 	public Map<Short, String> getEntityIDToClusterName() {
