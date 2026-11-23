@@ -17,7 +17,7 @@ import java.util.*;
 
 /**
  * A representation made of clusters, such as a candidate microservices decomposition (D-010). It is one kind of {@link Representation}, stored with
- * the others, and is either imported (an expert's) or produced by a clustering algorithm.
+ * the others, and was either collected (imported) or produced by an operation. It does not know which: only the operation links the two (D-016).
  *
  * <p>It is measured with a Similarity of its own software system, which it keeps for good (D-015): its metrics, functionalities and edge weights
  * read their settings through it.

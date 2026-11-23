@@ -54,7 +54,7 @@ no special access to its parent. So:
 | `characterization/ManualEditing` | helper | issues edits, undo and redo through the services the controllers call |
 | `characterization/InMemoryFunctionalityService` | helper | fake `FunctionalityService`; keeps redesigns in memory instead of GridFS |
 | `characterization/StubContextManager` | helper | fills `ContextManager`'s cache with a stub serving only that fake |
-| `DecompositionFixture` | helper | builder DSL — makes a `PartitionsDecomposition` as data |
+| `DecompositionFixture` | helper | builder DSL — makes a `PartitionsClusterRepresentation` as data |
 | `DecompositionSnapshot` | helper | reduces a decomposition to comparable maps, for round-trips |
 | `InMemoryHistory` | helper | fake `History`; keeps `ContextManager` out of reach |
 <!-- prettier-ignore-end -->
