@@ -5,18 +5,18 @@ import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import {useParams} from "react-router-dom";
 import {SciPyDecompositionForm} from "./forms/SciPyDecompositionForm";
 import {toast, ToastContainer} from "react-toastify";
-import {SIMILARITY_SCIPY_ACCESSES_REPOSITORY} from "../../models/similarity/SimilarityScipyAccessesAndRepository";
-import {SIMILARITY_SCIPY_ENTITY_VECTORIZATION} from "../../models/similarity/SimilarityScipyEntityVectorization";
-import {SIMILARITY_SCIPY_CLASS_VECTORIZATION} from "../../models/similarity/SimilarityScipyClassVectorization";
-import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH} from "../../models/similarity/SimilarityScipyFunctionalityVectorizationByCallGraph";
-import {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES} from "../../models/similarity/SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses";
-import {SIMILARITY_SCIPY_STRUCTURE} from "../../models/similarity/SimilarityScipyStructure";
+
+/** The form of each algorithm operation, by the operation's name. A new operation needs its form here and nothing else. */
+const operationForms = {
+    "SciPy Clustering": SciPyDecompositionForm,
+};
 
 export const Decompositions = () => {
     let { softwareSystemId, similarityId } = useParams();
     const [softwareSystemName, setSoftwareSystemName] = useState("");
     const [similarity, setSimilarity] = useState({});
     const [decompositions, setDecompositions] = useState([]);
+    const [operations, setOperations] = useState([]);
 
     //Executed on mount
     useEffect(() => {
@@ -26,6 +26,7 @@ export const Decompositions = () => {
             setSimilarity(response);
             loadDecompositions();
         });
+        service.getAvailableOperationNames(similarityId).then(setOperations);
     }, []);
 
     function loadDecompositions() {
@@ -120,31 +121,10 @@ export const Decompositions = () => {
                 Decomposition Creation Method
             </h4>
 
-            {similarity.type === SIMILARITY_SCIPY_ACCESSES_REPOSITORY &&
-                <SciPyDecompositionForm loadDecompositions={loadDecompositions}/>
-            }
-
-            {similarity.type === SIMILARITY_SCIPY_ENTITY_VECTORIZATION &&
-                <SciPyDecompositionForm loadDecompositions={loadDecompositions}/>
-            }
-
-            {similarity.type === SIMILARITY_SCIPY_CLASS_VECTORIZATION &&
-                <SciPyDecompositionForm loadDecompositions={loadDecompositions}/>
-            }
-
-            {similarity.type === SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH &&
-                <SciPyDecompositionForm loadDecompositions={loadDecompositions}/>
-            }
-
-            {similarity.type === SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES &&
-                <SciPyDecompositionForm loadDecompositions={loadDecompositions}/>
-            }
-
-            {similarity.type === SIMILARITY_SCIPY_STRUCTURE &&
-                <SciPyDecompositionForm loadDecompositions={loadDecompositions}/>
-            }
-
-
+            {operations.filter(name => operationForms[name]).map(name => {
+                const OperationForm = operationForms[name];
+                return <OperationForm key={name} loadDecompositions={loadDecompositions}/>;
+            })}
 
             {decompositions.length !== 0 &&
                 <h4 style={{color: "#666666", marginTop: "16px"}}>

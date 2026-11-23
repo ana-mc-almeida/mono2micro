@@ -4,7 +4,6 @@ import org.bson.types.ObjectId;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
@@ -101,8 +100,6 @@ public abstract class Similarity {
 	public String getProfileId() {
 		return Profile.idOf(profile);
 	}
-
-	public abstract Clustering getClustering();
 
 	public abstract Map<Short, String> getIDToEntityName() throws Exception;
 

@@ -265,8 +265,15 @@ export class APIService {
         return this.axios.get<null>("/decomposition/" + decompositionId + "/snapshotDecomposition");
     }
 
-    createDecomposition(decompositionDto: any) {
-        return this.axios.post("/similarity/createDecomposition", decompositionDto);
+    /** The names of the algorithm operations the Similarity offers, from its derivation record (D-013). */
+    getAvailableOperationNames(similarityId: string) {
+        return this.axios.get<DerivationRecord>("/similarities/" + similarityId + "/operations/available").then(
+            response => availableNames(response.data));
+    }
+
+    /** Runs an algorithm operation on the Similarity; the request's type names the operation. */
+    runOperation(similarityId: string, operation: {type: string}) {
+        return this.axios.post<ClusterRepresentation>("/similarities/" + similarityId + "/operations", operation);
     }
 
     createExpertDecomposition(
@@ -292,7 +299,7 @@ export class APIService {
         similarityId: string
     ) {
         return this.axios.get<ClusterRepresentation[]>(
-            "/similarity/" + similarityId + "/decompositions",
+            "/similarities/" + similarityId + "/clusterRepresentations",
         ).then(responseList => {
             if (responseList.data.length == 0)
                 return responseList.data;

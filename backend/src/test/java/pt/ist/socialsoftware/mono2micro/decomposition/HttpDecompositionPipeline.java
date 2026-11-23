@@ -160,26 +160,27 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		rest.delete(base + "/representation/{id}/delete", representationId);
 	}
 
+	/** Runs the SciPy operation on the Similarity, cut into 3 clusters, and returns its output's id. */
 	@Override
 	public String createDecomposition(String similarityId) {
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.put("type", "SciPy Clustering");
-		body.put("similarityId", similarityId);
 		body.put("cutType", "N");
 		body.put("cutValue", 3);
 
-		ResponseEntity<String> response = rest.exchange(
-				base + "/similarity/createDecomposition",
+		ResponseEntity<JsonNode> response = runOperation(similarityId, body);
+		require(response, HttpStatus.CREATED, "run SciPy on " + similarityId);
+		return response.getBody().path("id").asText();
+	}
+
+	/** Runs the algorithm operation {@code body} describes on the Similarity, and returns the response as it is. */
+	ResponseEntity<JsonNode> runOperation(String similarityId, Map<String, Object> body) {
+		return rest.exchange(
+				base + "/similarities/{id}/operations",
 				HttpMethod.POST,
 				new HttpEntity<>(body, jsonHeaders()),
-				String.class);
-
-		// 200, not 201: the old create endpoint returns OK here while every other create
-		// endpoint in the pipeline returns CREATED.
-		require(response, HttpStatus.OK, "create decomposition for " + similarityId);
-
-		JsonNode decompositions = getJson("/similarity/{id}/decompositions", similarityId);
-		return newestId(decompositions, "decomposition", similarityId);
+				JsonNode.class,
+				similarityId);
 	}
 
 	@Override
@@ -351,7 +352,7 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 	}
 
 	JsonNode getDecompositions(String similarityId) {
-		return getJson("/similarity/{id}/decompositions", similarityId);
+		return getJson("/similarities/{id}/clusterRepresentations", similarityId);
 	}
 
 	// Export to Context Mapper.
@@ -477,19 +478,6 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		ResponseEntity<JsonNode> response = rest.getForEntity(base + path, JsonNode.class, uriVariables);
 		require(response, HttpStatus.OK, "GET " + path);
 		return response.getBody();
-	}
-
-	private String newestId(JsonNode array, String what, String parent) {
-		if (array == null || !array.isArray() || array.size() == 0)
-			throw new AssertionError("No " + what + " was created for " + parent
-					+ ". The request returned success, but nothing exists.");
-
-		// The query has no order. ObjectIds sort by creation, so the greatest is the newest.
-		String newest = "";
-		for (JsonNode element : array)
-			if (element.path("id").asText().compareTo(newest) > 0)
-				newest = element.path("id").asText();
-		return newest;
 	}
 
 	private void require(ResponseEntity<?> response, HttpStatus expected, String what) {

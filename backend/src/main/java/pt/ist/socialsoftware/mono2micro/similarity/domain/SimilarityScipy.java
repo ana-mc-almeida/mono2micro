@@ -7,8 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
@@ -51,11 +49,6 @@ public abstract class SimilarityScipy extends Similarity {
 		this(recommendation.getKindName(), recommendation.getRepresentations(), recommendation.getName(), recommendation.getLinkageType(),
 				recommendation.getWeightsList());
 		this.id = recommendation.getId();
-	}
-
-	@Override
-	public Clustering getClustering() {
-		return new SciPyClustering();
 	}
 
 	@Override

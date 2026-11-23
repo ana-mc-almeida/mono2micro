@@ -14,18 +14,14 @@ import java.util.*;
 
 import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
 
-public class SciPyClustering extends Clustering {
+public class SciPyClustering {
+	// FIXME: this will be removed later in ticket 10 e1
 	public static final String SCIPY = "SciPy Clustering";
 	static final int MIN_CLUSTERS = 3, CLUSTER_STEP = 1;
 
 	/** Looked up on use rather than in the constructor, so the registration scan can build a prototype without Spring. */
 	private GridFsService gridFsService() {
 		return ContextManager.get().getBean(GridFsService.class);
-	}
-
-	@Override
-	public String getType() {
-		return SCIPY;
 	}
 
 	private JSONObject invokePythonCut(ClusterRepresentation decomposition, String similarityMatrixName, String linkageType, String cutType, float cutValue) {

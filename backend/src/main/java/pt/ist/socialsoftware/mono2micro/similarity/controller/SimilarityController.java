@@ -9,12 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDtoFactory;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.AlgorithmOperation;
 import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
-import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDtoFactory;
@@ -35,27 +33,6 @@ public class SimilarityController {
 
 	@Autowired
 	EditingChainService editingChainService;
-
-	/**
-	 * Runs SciPy on the request's Similarity through the editing chain, which checks it is offered and saves the output and the operation. The
-	 * frontend's create endpoint, kept until the operations' own endpoint replaces it.
-	 */
-	@PostMapping(value = "/similarity/createDecomposition")
-	public ResponseEntity<HttpStatus> createDecomposition(
-			@RequestBody DecompositionRequest decompositionRequest
-	) {
-		logger.debug("createDecomposition");
-
-		try {
-			SciPyRequestDto request = (SciPyRequestDto) decompositionRequest;
-			editingChainService.runAlgorithmOperation(request.getSimilarityId(), new SciPyOperation(request.getCutType(), request.getCutValue()));
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
 
 	/** Every Similarity kind, offered or withheld, with what each failed: the derivation record (D-013). */
 	@GetMapping(value = "/softwareSystems/{softwareSystemId}/similarities/available")
@@ -144,7 +121,8 @@ public class SimilarityController {
 		}
 	}
 
-	@GetMapping(value = "/similarity/{similarityId}/decompositions")
+	/** The cluster representations measured with the Similarity: those its operations produced and those imported with it (D-015). */
+	@GetMapping(value = "/similarities/{similarityId}/clusterRepresentations")
 	public ResponseEntity<List<ClusterRepresentationDto>> getDecompositions(
 			@PathVariable String similarityId
 	) {
@@ -171,6 +149,31 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(editingChainService.getAvailableAlgorithmOperations(similarityId), HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Runs an algorithm operation on the Similarity and returns its output. The body's {@code type} picks the operation, found by self-registration,
+	 * so a new algorithm needs no endpoint of its own. An operation the Similarity does not offer is rejected with 422 before anything is computed
+	 * (D-003, D-013).
+	 */
+	@PostMapping(value = "/similarities/{similarityId}/operations")
+	public ResponseEntity<ClusterRepresentationDto> runOperation(
+			@PathVariable String similarityId,
+			@RequestBody AlgorithmOperation operation
+	) {
+		logger.debug("runOperation");
+
+		try {
+			return new ResponseEntity<>(
+					ClusterRepresentationDtoFactory.getDecompositionDto(editingChainService.runAlgorithmOperation(similarityId, operation)),
+					HttpStatus.CREATED);
+		} catch (UnavailableFeatureException e) {
+			logger.debug(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
