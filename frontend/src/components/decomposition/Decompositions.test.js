@@ -3,12 +3,17 @@ import { fakeBackend, reply } from '../../testing/fakeBackend';
 import { renderAt } from '../../testing/renderAt';
 import { cardOf } from '../../testing/screenReaders';
 
+// Ticket 07: everything is addressed by id. Ticket 09: a Similarity belongs to
+// the software system, with no strategy between them. Ticket 10: decompositions
+// are cluster representations, made by an algorithm operation the Similarity
+// offers (D-013), through its own endpoint.
+const SOFTWARE_SYSTEM = { id: 'sys1', name: 'ldod', representations: [] };
+
 const SIMILARITY = {
+    id: 'sim1',
+    softwareSystemId: 'sys1',
     type: 'SIMILARITY_SCIPY_ACCESSES_REPOSITORY',
     name: 'sim1',
-    codebaseName: 'ldod',
-    strategyName: 's1',
-    profile: 'Generic',
     linkageType: 'average',
     tracesMaxLimit: 0,
     traceType: 'ALL',
@@ -17,13 +22,15 @@ const SIMILARITY = {
     ],
 };
 
+const OPERATIONS = { features: [{ name: 'SciPy Clustering', available: true, failedRequirements: [] }] };
+
 function decomposition(name, overrides = {}) {
     return {
+        id: name,
         name,
-        codebaseName: 'ldod',
-        strategyName: 's1',
-        similarityName: 'sim1',
-        type: 'Partitions Decomposition',
+        softwareSystemId: 'sys1',
+        similarityId: 'sim1',
+        type: 'Partitions Cluster Representation',
         metrics: { Complexity: 12.5, Cohesion: 0.75, Coupling: 0.25 },
         clusters: {
             C0: { name: 'C0', elements: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }, { id: 3, name: 'C' }], metrics: {} },
@@ -37,9 +44,16 @@ function decomposition(name, overrides = {}) {
     };
 }
 
-const OPENING = ['GET /similarity/sim1/getSimilarity', 'GET /similarity/sim1/decompositions'];
-const RELOAD = 'GET /similarity/sim1/decompositions';
-const URL_PATH = '/codebases/ldod/s1/sim1/decomposition';
+const LOAD_DECOMPOSITIONS = 'GET /similarities/sim1/clusterRepresentations';
+const OPENING = [
+    'GET /softwareSystems/sys1',
+    'GET /similarity/sim1/getSimilarity',
+    'GET /similarities/sim1/operations/available',
+    LOAD_DECOMPOSITIONS,
+];
+const RUN = 'POST /similarities/sim1/operations';
+const URL_PATH = '/softwareSystems/sys1/similarities/sim1/decomposition';
+const PAGES = '/softwareSystems/sys1/similarities/sim1/d1';
 
 function buttonsOf(card) {
     return within(card).getAllByRole(/button|link/).map(b => b.textContent.trim());
@@ -49,9 +63,11 @@ describe('the decomposition screen', () => {
     let backend;
     beforeEach(() => {
         backend = fakeBackend({
+            'GET /softwareSystems/sys1': SOFTWARE_SYSTEM,
             'GET /similarity/sim1/getSimilarity': SIMILARITY,
-            'GET /similarity/sim1/decompositions': [decomposition('d1')],
-            'POST /similarity/createDecomposition': reply(200),
+            'GET /similarities/sim1/operations/available': OPERATIONS,
+            [LOAD_DECOMPOSITIONS]: [decomposition('d1')],
+            [RUN]: reply(201),
             'POST /similarity/sim1/createExpertDecomposition': reply(200),
             'DELETE /decomposition/d1/delete': reply(200),
             'GET /decomposition/d1/update': decomposition('d1'),
@@ -62,19 +78,22 @@ describe('the decomposition screen', () => {
     async function open() {
         const view = renderAt(URL_PATH);
         await screen.findByText('d1');
+        await screen.findByRole('button', { name: 'Generate Decomposition' });
         return view;
     }
 
-    it('loads the similarity, then its decompositions, on opening', async () => {
+    // Ticket 09: no strategy crumb, and the Similarity's crumb is the current
+    // page, not a link to a Similarity page of the strategy.
+    it('loads the software system, the similarity and its operations, then its decompositions, on opening', async () => {
         await open();
 
         expect(backend.sent()).toEqual(OPENING);
         expect(backend.unhandled).toEqual([]);
         const crumbs = screen.getByRole('navigation', { name: 'breadcrumb' });
         expect(within(crumbs).getAllByRole('listitem').map(i => i.textContent.trim()))
-            .toEqual(['Home', 'Codebases', 'ldod', 's1', 'sim1']);
+            .toEqual(['Home', 'Software Systems', 'ldod', 'sim1']);
         expect(within(crumbs).getAllByRole('link').map(a => a.getAttribute('href')))
-            .toEqual(['/', '/codebases', '/codebases/ldod', '/codebases/ldod/s1/similarity']);
+            .toEqual(['/', '/softwareSystems', '/softwareSystems/sys1']);
         expect(screen.getByRole('heading', { name: 'Decomposition Creation Method' })).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Decompositions' })).toBeInTheDocument();
     });
@@ -82,29 +101,26 @@ describe('the decomposition screen', () => {
     it('offers the two creation methods, and shows neither form until one is chosen', async () => {
         await open();
 
-        expect(screen.getByRole('button', { name: 'Generate Decomposition' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Add Expert Decomposition' })).toBeInTheDocument();
+        expect(screen.getAllByRole('button', { name: /Decomposition$/ }).map(b => b.textContent))
+            .toEqual(['Generate Decomposition', 'Add Expert Decomposition']);
         expect(screen.queryByLabelText('Height')).toBeNull();
         expect(screen.queryByLabelText('Expert Name')).toBeNull();
     });
 
-    it.each([
-        'SIMILARITY_SCIPY_ACCESSES_REPOSITORY',
-        'SIMILARITY_SCIPY_ENTITY_VECTORIZATION',
-        'SIMILARITY_SCIPY_CLASS_VECTORIZATION',
-        'SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH',
-        'SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES',
-        'SIMILARITY_SCIPY_STRUCTURE',
-    ])('offers the SciPy creation methods for a %s similarity', async type => {
-        backend.on('GET /similarity/sim1/getSimilarity', { ...SIMILARITY, type, weightsList: [] });
-        await open();
+    // Ticket 10: the creation methods follow the operations the Similarity
+    // offers, not its type (upstream offered them for every type).
+    it('offers no creation method when the Similarity does not offer SciPy Clustering', async () => {
+        backend.on('GET /similarities/sim1/operations/available',
+            { features: [{ name: 'SciPy Clustering', available: false, failedRequirements: ['some requirement'] }] });
+        renderAt(URL_PATH);
 
-        expect(screen.getAllByRole('button', { name: /Decomposition$/ }).map(b => b.textContent))
-            .toEqual(['Generate Decomposition', 'Add Expert Decomposition']);
+        await screen.findByText('d1');
+        await waitFor(() => expect(backend.sent()).toEqual(OPENING));
+        expect(screen.queryByRole('button', { name: /Decomposition$/ })).toBeNull();
     });
 
     it('shows no Decompositions heading when the similarity has none', async () => {
-        backend.on('GET /similarity/sim1/decompositions', []);
+        backend.on(LOAD_DECOMPOSITIONS, []);
         renderAt(URL_PATH);
 
         await screen.findByRole('button', { name: 'Generate Decomposition' });
@@ -118,9 +134,10 @@ describe('the decomposition screen', () => {
 
             await user.click(screen.getByRole('button', { name: 'Generate Decomposition' }));
 
-            // Oddity: the image URL doubles the slash after /mono2micro, and
-            // carries a timestamp to defeat the cache.
-            expect(screen.getByRole('img', { name: 'Strategy' }).getAttribute('src'))
+            // U11: the image URL doubles the slash after /mono2micro, and
+            // carries a timestamp to defeat the cache. Ticket 09 renamed its
+            // alt text from "Strategy" to "Dendrogram".
+            expect(screen.getByRole('img', { name: 'Dendrogram' }).getAttribute('src'))
                 .toMatch(/^http:\/\/localhost:8080\/mono2micro\/\/similarity\/sim1\/image\?\d+$/);
             const form = screen.getByRole('button', { name: 'Generate' }).closest('form');
             expect(within(form).getAllByRole('spinbutton').map(f => [f.labels[0].textContent.trim(), f.placeholder, f.value]))
@@ -142,6 +159,8 @@ describe('the decomposition screen', () => {
             expect(generate).toBeEnabled();
         });
 
+        // Ticket 10: the cut runs as the SciPy Clustering operation on the
+        // Similarity's own endpoint; the body names no similarity.
         it('cuts by height, then reloads the decompositions and closes the form', async () => {
             const { user } = await open();
             await user.click(screen.getByRole('button', { name: 'Generate Decomposition' }));
@@ -149,10 +168,8 @@ describe('the decomposition screen', () => {
             await user.type(screen.getByLabelText('Height'), '1.5');
             await user.click(screen.getByRole('button', { name: 'Generate' }));
 
-            await waitFor(() => expect(backend.sent()).toEqual([...OPENING, 'POST /similarity/createDecomposition', RELOAD]));
-            expect(backend.bodyOf('POST /similarity/createDecomposition')).toEqual({
-                type: 'SciPy Clustering', similarityName: 'sim1', cutType: 'H', cutValue: 1.5,
-            });
+            await waitFor(() => expect(backend.sent()).toEqual([...OPENING, RUN, LOAD_DECOMPOSITIONS]));
+            expect(backend.bodyOf(RUN)).toEqual({ type: 'SciPy Clustering', cutType: 'H', cutValue: 1.5 });
             await waitFor(() => expect(screen.queryByLabelText('Height')).toBeNull());
         });
 
@@ -163,31 +180,32 @@ describe('the decomposition screen', () => {
             await user.type(screen.getByLabelText('Number of Clusters'), '4');
             await user.click(screen.getByRole('button', { name: 'Generate' }));
 
-            await waitFor(() => expect(backend.sent()).toContain(RELOAD + ''));
-            expect(backend.bodyOf('POST /similarity/createDecomposition')).toEqual({
-                type: 'SciPy Clustering', similarityName: 'sim1', cutType: 'N', cutValue: 4,
-            });
+            await waitFor(() => expect(backend.sent()).toEqual([...OPENING, RUN, LOAD_DECOMPOSITIONS]));
+            expect(backend.bodyOf(RUN)).toEqual({ type: 'SciPy Clustering', cutType: 'N', cutValue: 4 });
         });
 
         it.each([
-            ['the name is taken', 401],
-            ['the cut fails', 400],
-        ])('says the creation failed when %s, and does not reload', async (_, status) => {
-            backend.on('POST /similarity/createDecomposition', reply(status));
+            ['the name is taken', 401, 'Failed to create decomposition.'],
+            ['the cut fails', 400, 'Failed to create decomposition.'],
+            // Ticket 10: an operation the Similarity does not offer is refused with 422.
+            ['the Similarity does not offer the operation', 422, 'This Similarity does not offer the SciPy algorithm.'],
+        ])('says the creation failed when %s, and does not reload', async (_, status, message) => {
+            backend.on(RUN, reply(status));
             const { user } = await open();
             await user.click(screen.getByRole('button', { name: 'Generate Decomposition' }));
 
             await user.type(screen.getByLabelText('Height'), '1.5');
             await user.click(screen.getByRole('button', { name: 'Generate' }));
 
-            expect(await screen.findByText('Failed to create decomposition.')).toBeInTheDocument();
-            expect(backend.sent()).toEqual([...OPENING, 'POST /similarity/createDecomposition']);
+            expect(await screen.findByText(message)).toBeInTheDocument();
+            expect(backend.sent()).toEqual([...OPENING, RUN]);
             expect(screen.getByLabelText('Height')).toHaveValue(1.5);
         });
 
-        it('treats any success other than 200 as a failure', async () => {
-            // Oddity: SciPyDecompositionForm.js:59 accepts only status 200.
-            backend.on('POST /similarity/createDecomposition', reply(201));
+        // U23, moved by ticket 10: only 201 Created counts as success now
+        // (upstream: only 200), as the operation endpoint answers.
+        it('treats any success other than 201 as a failure', async () => {
+            backend.on(RUN, reply(200));
             const { user } = await open();
             await user.click(screen.getByRole('button', { name: 'Generate Decomposition' }));
 
@@ -222,8 +240,8 @@ describe('the decomposition screen', () => {
 
             expect(create).toBeDisabled();
             await user.type(screen.getByLabelText('Expert Name'), 'exp1');
-            // Oddity: the file is labelled Optional (and the backend takes it as
-            // Optional), but SciPyDecompositionForm.js:199 requires it.
+            // U24: the file is labelled Optional (and the backend takes it as
+            // optional), but the button requires it.
             expect(create).toBeDisabled();
             await user.upload(screen.getByLabelText('Expert File (Optional)'), expertFile());
             expect(create).toBeEnabled();
@@ -238,7 +256,7 @@ describe('the decomposition screen', () => {
             await user.click(screen.getByRole('button', { name: 'Create Expert' }));
 
             await waitFor(() => expect(backend.sent()).toEqual(
-                [...OPENING, 'POST /similarity/sim1/createExpertDecomposition', RELOAD]));
+                [...OPENING, 'POST /similarity/sim1/createExpertDecomposition', LOAD_DECOMPOSITIONS]));
             expect(backend.bodyOf('POST /similarity/sim1/createExpertDecomposition'))
                 .toEqual({ expertName: 'exp1', expertFile: 'File(expert.json)' });
             await waitFor(() => expect(screen.queryByLabelText('Expert Name')).toBeNull());
@@ -277,11 +295,12 @@ describe('the decomposition screen', () => {
     });
 
     describe('the decomposition cards', () => {
+        // Ticket 10 renamed the type to "Partitions Cluster Representation".
         it('summarise the clusters and list the metrics', async () => {
             await open();
 
             expect(cardOf('d1')).toHaveTextContent(
-                'd1Type: Partitions Decomposition Number of Clusters: 3 Number of Entities: 5 ' +
+                'd1Type: Partitions Cluster Representation Number of Clusters: 3 Number of Entities: 5 ' +
                 'Singleton Clusters: 2 Maximum Cluster Size: 3 Complexity: 12.5 Cohesion: 0.75 Coupling: 0.25');
         });
 
@@ -291,13 +310,13 @@ describe('the decomposition screen', () => {
             const card = cardOf('d1');
             expect(buttonsOf(card)).toEqual(['View Accesses', 'Refactorization Tool', 'Delete']);
             expect(within(card).getByText('View Accesses').closest('a'))
-                .toHaveAttribute('href', '/codebases/ldod/s1/sim1/d1/accessesViews');
+                .toHaveAttribute('href', `${PAGES}/accessesViews`);
             expect(within(card).getByText('Refactorization Tool').closest('a'))
-                .toHaveAttribute('href', '/codebases/ldod/s1/sim1/d1/functionalityRefactor');
+                .toHaveAttribute('href', `${PAGES}/functionalityRefactor`);
         });
 
         it('link to the repository view for a repository-based decomposition', async () => {
-            backend.on('GET /similarity/sim1/decompositions', [
+            backend.on(LOAD_DECOMPOSITIONS, [
                 decomposition('d1', { representationInformations: [{ type: 'Accesses Based' }, { type: 'Repository Based' }] }),
             ]);
             await open();
@@ -305,11 +324,11 @@ describe('the decomposition screen', () => {
             const card = cardOf('d1');
             expect(buttonsOf(card)).toEqual(['View Accesses', 'View Repository', 'Refactorization Tool', 'Delete']);
             expect(within(card).getByText('View Repository').closest('a'))
-                .toHaveAttribute('href', '/codebases/ldod/s1/sim1/d1/repositoryView');
+                .toHaveAttribute('href', `${PAGES}/repositoryView`);
         });
 
         it('link to the structure view and offer a CML export for a structure-based decomposition', async () => {
-            backend.on('GET /similarity/sim1/decompositions', [
+            backend.on(LOAD_DECOMPOSITIONS, [
                 decomposition('d1', { representationInformations: [{ type: 'Structure Based' }] }),
             ]);
             await open();
@@ -317,39 +336,39 @@ describe('the decomposition screen', () => {
             const card = cardOf('d1');
             expect(buttonsOf(card)).toEqual(['View Structure', 'Export to CML', 'Delete']);
             expect(within(card).getByText('View Structure').closest('a'))
-                .toHaveAttribute('href', '/codebases/ldod/s1/sim1/d1/structureView');
+                .toHaveAttribute('href', `${PAGES}/structureView`);
         });
 
         it('offer Update Metrics first when the decomposition is outdated', async () => {
-            backend.on('GET /similarity/sim1/decompositions', [decomposition('d1', { outdated: true })]);
+            backend.on(LOAD_DECOMPOSITIONS, [decomposition('d1', { outdated: true })]);
             await open();
 
             expect(buttonsOf(cardOf('d1'))).toEqual(['Update Metrics', 'View Accesses', 'Refactorization Tool', 'Delete']);
         });
 
-        it('update the metrics by name, then reload the decompositions', async () => {
-            backend.on('GET /similarity/sim1/decompositions', [decomposition('d1', { outdated: true })]);
+        it('update the metrics by id, then reload the decompositions', async () => {
+            backend.on(LOAD_DECOMPOSITIONS, [decomposition('d1', { outdated: true })]);
             const { user } = await open();
 
             await user.click(within(cardOf('d1')).getByRole('button', { name: 'Update Metrics' }));
 
-            await waitFor(() => expect(backend.sent()).toEqual([...OPENING, 'GET /decomposition/d1/update', RELOAD]));
+            await waitFor(() => expect(backend.sent()).toEqual([...OPENING, 'GET /decomposition/d1/update', LOAD_DECOMPOSITIONS]));
             expect(await screen.findByText('Success updating decomposition!')).toBeInTheDocument();
         });
 
-        it('delete a decomposition by name, then reload the decompositions', async () => {
+        it('delete a decomposition by id, then reload the decompositions', async () => {
             const { user } = await open();
 
             await user.click(within(cardOf('d1')).getByRole('button', { name: 'Delete' }));
 
-            await waitFor(() => expect(backend.sent()).toEqual([...OPENING, 'DELETE /decomposition/d1/delete', RELOAD]));
+            await waitFor(() => expect(backend.sent()).toEqual([...OPENING, 'DELETE /decomposition/d1/delete', LOAD_DECOMPOSITIONS]));
             expect(await screen.findByText('Decomposition deleted.')).toBeInTheDocument();
         });
 
         describe('exporting to CML', () => {
             let clicked;
             beforeEach(() => {
-                backend.on('GET /similarity/sim1/decompositions', [
+                backend.on(LOAD_DECOMPOSITIONS, [
                     decomposition('d1', { representationInformations: [{ type: 'Structure Based' }] }),
                 ]);
                 clicked = [];
