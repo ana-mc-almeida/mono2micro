@@ -1,81 +1,91 @@
 import { screen, within, waitFor } from '@testing-library/react';
-import { fakeBackend, reply } from '../../testing/fakeBackend';
+import { fakeBackend, held, reply } from '../../testing/fakeBackend';
 import { renderAt } from '../../testing/renderAt';
 
-// AccessesRepresentationDto: name, type, codebaseName, and profiles (a map of
-// profile name to the functionalities in it).
-const REPRESENTATION = {
-    name: 'ldod & Accesses',
-    type: 'Accesses',
-    codebaseName: 'ldod',
-    profiles: {
-        Generic: ['FenixController.login', 'FenixController.logout', 'ReaderController.read'],
-        Admin: ['AdminController.removeUser'],
-        Empty: [],
-    },
+// Ticket 07: the screen is addressed by the software system's and the
+// representation's ids. Ticket 08: profiles are records of their own ({id,
+// name, units}), loaded apart from the representation, with a computed
+// Unassigned list; the screen says "units", not "functionalities".
+const SOFTWARE_SYSTEM = { id: 'sys1', name: 'ldod', representations: [] };
+const REPRESENTATION = { id: 'rep1', name: 'ldod & Accesses', type: 'Accesses', softwareSystemId: 'sys1' };
+const PROFILES = {
+    profiles: [
+        { id: 'p1', name: 'Users', units: ['FenixController.login', 'FenixController.logout', 'ReaderController.read'] },
+        { id: 'p2', name: 'Admin', units: ['AdminController.removeUser'] },
+        { id: 'p3', name: 'Empty', units: [] },
+    ],
+    unassigned: ['ReaderController.search'],
 };
 
-const REP = '/representation/ldod%20&%20Accesses';
-const LOAD = `GET ${REP}/getRepresentation`;
+const LOAD_SYSTEM = 'GET /softwareSystems/sys1';
+const LOAD_REPRESENTATION = 'GET /representation/rep1/getRepresentation';
+const LOAD_PROFILES = 'GET /representation/rep1/getProfiles';
+const OPENING = [LOAD_SYSTEM, LOAD_REPRESENTATION, LOAD_PROFILES];
 
 async function openPage() {
-    const view = renderAt('/codebase/ldod/ldod & Accesses/profiles');
+    const view = renderAt('/softwareSystems/sys1/rep1/profiles');
     await screen.findByRole('checkbox', { name: 'FenixController.login' });
     return view;
 }
 
 function profileNames() {
-    return screen.getAllByText(/^(Generic|Admin|Empty)$/, { selector: 'div' }).map(d => d.firstChild.textContent);
+    return screen.getAllByText(/^(Users|Admin|Empty|Unassigned)$/, { selector: 'div' }).map(d => d.firstChild.textContent);
 }
 
-describe('the functionality profiles screen', () => {
+describe('the profiles screen', () => {
     let backend;
     beforeEach(() => {
-        // Route keys are URL-encoded paths, as the fake reads them.
         backend = fakeBackend({
-            [LOAD]: REPRESENTATION,
-            [`POST ${REP}/addAccessesProfile`]: reply(200),
-            [`POST ${REP}/moveAccessesFunctionalities`]: reply(200),
-            [`DELETE ${REP}/deleteAccessesProfile`]: null,
+            [LOAD_SYSTEM]: SOFTWARE_SYSTEM,
+            [LOAD_REPRESENTATION]: REPRESENTATION,
+            [LOAD_PROFILES]: PROFILES,
+            'POST /representation/rep1/addProfile': reply(201),
+            'POST /representation/rep1/moveUnits': reply(200),
+            'DELETE /profile/p3/delete': null,
         });
     });
 
-    it('loads the representation by its name on opening', async () => {
+    it('loads the software system, the representation and its profiles by id on opening', async () => {
         await openPage();
 
-        expect(backend.sent()).toEqual([LOAD]);
+        expect(backend.sent()).toEqual(OPENING);
         expect(backend.unhandled).toEqual([]);
     });
 
-    it('shows breadcrumbs down to Profiles, with the representation crumb linking back to the codebase', async () => {
+    it('shows breadcrumbs down to Profiles, with the representation crumb linking back to the software system', async () => {
         await openPage();
 
         const crumbs = screen.getByRole('navigation', { name: 'breadcrumb' });
-        expect(within(crumbs).getAllByRole('listitem').map(i => i.textContent))
-            .toEqual(['Home', 'Codebases', 'ldod', 'ldod & Accesses', 'Profiles']);
+        await waitFor(() => expect(within(crumbs).getAllByRole('listitem').map(i => i.textContent))
+            .toEqual(['Home', 'Software Systems', 'ldod', 'ldod & Accesses', 'Profiles']));
         expect(within(crumbs).getByText('Home')).toHaveAttribute('href', '/');
-        expect(within(crumbs).getByText('Codebases')).toHaveAttribute('href', '/codebases');
-        expect(within(crumbs).getByText('ldod')).toHaveAttribute('href', '/codebases/ldod');
-        // Oddity: the representation crumb points at the codebase page too.
-        expect(within(crumbs).getByText('ldod & Accesses')).toHaveAttribute('href', '/codebases/ldod');
+        expect(within(crumbs).getByText('Software Systems')).toHaveAttribute('href', '/softwareSystems');
+        expect(within(crumbs).getByText('ldod')).toHaveAttribute('href', '/softwareSystems/sys1');
+        // U15: the representation crumb points at the software system page too.
+        expect(within(crumbs).getByText('ldod & Accesses')).toHaveAttribute('href', '/softwareSystems/sys1');
         expect(within(crumbs).getByText('Profiles')).not.toHaveAttribute('href');
     });
 
-    // Oddity (Profiles.js `{Object.keys(representation).length && …}`): until the
-    // representation arrives, the falsy 0 is rendered as a stray "0".
-    it('shows a stray "0" under Functionality Profiles while the representation loads', async () => {
-        backend.on(LOAD, () => new Promise(() => {}));
-        renderAt('/codebase/ldod/ldod & Accesses/profiles');
+    // U16 is resolved by ticket 08: the list waits for the profiles, not the
+    // representation, so nothing (no stray "0") shows while they load.
+    it('shows nothing under Profiles while the profiles load', async () => {
+        const profiles = held(PROFILES);
+        backend.on(LOAD_PROFILES, profiles.route);
+        renderAt('/softwareSystems/sys1/rep1/profiles');
 
-        const heading = await screen.findByRole('heading', { name: 'Functionality Profiles' });
-        expect(heading.parentElement.lastChild.textContent).toBe('0');
+        const heading = await screen.findByRole('heading', { name: 'Profiles' });
+        await waitFor(() => expect(backend.sent()).toEqual(OPENING));
+        expect(heading.nextSibling).toBeNull();
         expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+
+        profiles.release();
+        expect(await screen.findByRole('checkbox', { name: 'FenixController.login' })).toBeInTheDocument();
     });
 
     it('has one field, the profile name (at most 30 characters), and disables Create Profile until it is filled', async () => {
         const { user } = await openPage();
 
-        expect(screen.getByRole('heading', { name: 'Create Functionality Profile' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Create Profile' })).toBeInTheDocument();
         expect(screen.getAllByRole('textbox').map(f => f.placeholder)).toEqual(['Profile Name']);
         const field = screen.getByLabelText('Profile Name');
         expect(field).toHaveAttribute('maxLength', '30');
@@ -86,66 +96,73 @@ describe('the functionality profiles screen', () => {
         expect(create).toBeEnabled();
     });
 
-    it('creates a profile by name as a query parameter, then reloads the representation', async () => {
+    it('creates a profile by name as a query parameter, then reloads the profiles', async () => {
         const { user } = await openPage();
 
         await user.type(screen.getByLabelText('Profile Name'), 'Reader Only');
         await user.click(screen.getByRole('button', { name: 'Create Profile' }));
 
         expect(await screen.findByText('Upload completed successfully.')).toBeInTheDocument();
-        expect(backend.sent()).toEqual([LOAD, `POST ${REP}/addAccessesProfile?profile=Reader+Only`, LOAD]);
-        expect(backend.bodyOf(`POST ${REP}/addAccessesProfile?profile=Reader+Only`)).toBeUndefined();
+        expect(backend.sent()).toEqual([...OPENING, 'POST /representation/rep1/addProfile?profile=Reader+Only', LOAD_PROFILES]);
+        expect(backend.bodyOf('POST /representation/rep1/addProfile?profile=Reader+Only')).toBeUndefined();
         // The name stays in the field after creating.
         expect(screen.getByLabelText('Profile Name')).toHaveValue('Reader Only');
     });
 
-    // The backend answers 200; any other success status reads as a failure.
-    it('says "Upload failed." on a 201 reply, without reloading', async () => {
-        backend.on(`POST ${REP}/addAccessesProfile`, reply(201));
+    // Ticket 08's endpoint answers 201 Created; any other success status reads as a failure.
+    it('says "Upload failed." on a 200 reply, without reloading', async () => {
+        backend.on('POST /representation/rep1/addProfile', reply(200));
         const { user } = await openPage();
 
         await user.type(screen.getByLabelText('Profile Name'), 'Reader');
         await user.click(screen.getByRole('button', { name: 'Create Profile' }));
 
         expect(await screen.findByText('Upload failed.')).toBeInTheDocument();
-        expect(backend.sent()).toEqual([LOAD, `POST ${REP}/addAccessesProfile?profile=Reader`]);
+        expect(backend.sent()).toEqual([...OPENING, 'POST /representation/rep1/addProfile?profile=Reader']);
     });
 
     it('says when the profile name is taken', async () => {
-        backend.on(`POST ${REP}/addAccessesProfile`, reply(401));
+        backend.on('POST /representation/rep1/addProfile', reply(401));
         const { user } = await openPage();
 
-        await user.type(screen.getByLabelText('Profile Name'), 'Generic');
+        await user.type(screen.getByLabelText('Profile Name'), 'Users');
         await user.click(screen.getByRole('button', { name: 'Create Profile' }));
 
         expect(await screen.findByText('Upload failed. Profile name already exists.')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Create Profile' })).toBeEnabled();
     });
 
-    it('lists each profile with a checkbox per functionality, and a delete button only on empty profiles', async () => {
+    // Ticket 08: every profile can be deleted (one in use is retired), and the
+    // units no profile selects are listed, read-only, under Unassigned.
+    it('lists each profile with a checkbox per unit and a delete button, then Unassigned with its units', async () => {
         await openPage();
 
-        expect(profileNames()).toEqual(['Generic', 'Admin', 'Empty']);
+        expect(profileNames()).toEqual(['Users', 'Admin', 'Empty', 'Unassigned']);
         expect(screen.getAllByRole('checkbox').map(c => c.labels[0].textContent)).toEqual([
             'FenixController.login', 'FenixController.logout', 'ReaderController.read', 'AdminController.removeUser',
+            'ReaderController.search',
         ]);
         screen.getAllByRole('checkbox').forEach(c => expect(c).not.toBeChecked());
-        expect(screen.getAllByRole('button', { name: '-' })).toHaveLength(1);
-        expect(screen.getByText('Empty', { selector: 'div' })).toContainElement(screen.getByRole('button', { name: '-' }));
+        expect(screen.getAllByRole('button', { name: '-' })).toHaveLength(3);
+        ['Users', 'Admin', 'Empty'].forEach(name => expect(within(screen.getByText(name, { selector: 'div' }))
+            .getByRole('button', { name: '-' })).toBeInTheDocument());
+        expect(within(screen.getByText('Unassigned', { selector: 'div' })).queryByRole('button')).not.toBeInTheDocument();
+        expect(screen.getByText('The units no profile selects. This list is computed and cannot be edited or chosen for a Similarity.'))
+            .toBeInTheDocument();
     });
 
-    it('shows a toolbar to move functionalities, with Submit disabled until functionalities and a target profile are chosen', async () => {
+    it('shows a toolbar to move units, with Submit disabled until units and a target are chosen', async () => {
         const { user } = await openPage();
 
-        // "Move selected functionalities to" is a plain button that does nothing.
+        // "Move selected units to" is a plain button that does nothing.
         expect(screen.getAllByRole('button').map(b => b.textContent).slice(1, 4))
-            .toEqual(['Move selected functionalities to', 'Functionality Profile', 'Submit']);
+            .toEqual(['Move selected units to', 'Profile', 'Submit']);
         const submit = screen.getByRole('button', { name: 'Submit' });
         expect(submit).toBeDisabled();
 
-        await user.click(screen.getByRole('button', { name: 'Functionality Profile' }));
-        const options = await screen.findAllByRole('button', { name: /^(Generic|Admin|Empty)$/ });
-        expect(options.map(o => o.textContent)).toEqual(['Generic', 'Admin', 'Empty']);
+        await user.click(screen.getByRole('button', { name: 'Profile' }));
+        const options = await screen.findAllByRole('button', { name: /^(Users|Admin|Empty|Unassigned)$/ });
+        expect(options.map(o => o.textContent)).toEqual(['Users', 'Admin', 'Empty', 'Unassigned']);
         await user.click(screen.getByRole('button', { name: 'Admin' }));
         expect(screen.getByRole('button', { name: 'Admin', expanded: false })).toBeInTheDocument();
         expect(submit).toBeDisabled();
@@ -156,34 +173,50 @@ describe('the functionality profiles screen', () => {
         await user.click(screen.getByRole('checkbox', { name: 'FenixController.login' }));
         expect(submit).toBeDisabled();
 
-        await user.click(screen.getByRole('button', { name: 'Move selected functionalities to' }));
-        expect(backend.sent()).toEqual([LOAD]);
+        await user.click(screen.getByRole('button', { name: 'Move selected units to' }));
+        expect(backend.sent()).toEqual(OPENING);
     });
 
-    it('moves the selected functionalities to the target profile, then clears the selection and reloads', async () => {
+    // Ticket 08: a move saves new versions of the profiles it changes, so the
+    // target is cleared too (its id is gone), where upstream kept it chosen.
+    it('moves the selected units to the target profile by id, then clears the selection and the target and reloads', async () => {
         const { user } = await openPage();
 
         await user.click(screen.getByRole('checkbox', { name: 'ReaderController.read' }));
         await user.click(screen.getByRole('checkbox', { name: 'FenixController.login' }));
-        await user.click(screen.getByRole('button', { name: 'Functionality Profile' }));
+        await user.click(screen.getByRole('button', { name: 'Profile' }));
         await user.click(await screen.findByRole('button', { name: 'Admin' }));
         await user.click(screen.getByRole('button', { name: 'Submit' }));
 
         await waitFor(() => expect(backend.sent()).toEqual(
-            [LOAD, `POST ${REP}/moveAccessesFunctionalities?targetProfile=Admin`, LOAD]));
-        expect(backend.bodyOf(`POST ${REP}/moveAccessesFunctionalities?targetProfile=Admin`))
+            [...OPENING, 'POST /representation/rep1/moveUnits?targetProfileId=p2', LOAD_PROFILES]));
+        expect(backend.bodyOf('POST /representation/rep1/moveUnits?targetProfileId=p2'))
             .toEqual(['ReaderController.read', 'FenixController.login']);
         await waitFor(() => screen.getAllByRole('checkbox').forEach(c => expect(c).not.toBeChecked()));
-        // The target profile stays chosen.
-        expect(screen.getByRole('button', { name: 'Admin', expanded: false })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Profile', expanded: false })).toBeInTheDocument();
     });
 
-    it('deletes an empty profile by name as a query parameter, then reloads', async () => {
+    // Ticket 08: Unassigned is a move target; the request then names no target.
+    it('moves the selected units to Unassigned without a target id', async () => {
         const { user } = await openPage();
 
-        await user.click(screen.getByRole('button', { name: '-' }));
+        await user.click(screen.getByRole('checkbox', { name: 'AdminController.removeUser' }));
+        await user.click(screen.getByRole('button', { name: 'Profile' }));
+        await user.click(await screen.findByRole('button', { name: 'Unassigned' }));
+        expect(screen.getByRole('button', { name: 'Unassigned', expanded: false })).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Submit' }));
 
         await waitFor(() => expect(backend.sent()).toEqual(
-            [LOAD, `DELETE ${REP}/deleteAccessesProfile?profile=Empty`, LOAD]));
+            [...OPENING, 'POST /representation/rep1/moveUnits', LOAD_PROFILES]));
+        expect(backend.bodyOf('POST /representation/rep1/moveUnits')).toEqual(['AdminController.removeUser']);
+    });
+
+    it('deletes a profile by id, then reloads the profiles', async () => {
+        const { user } = await openPage();
+
+        await user.click(within(screen.getByText('Empty', { selector: 'div' })).getByRole('button', { name: '-' }));
+
+        await waitFor(() => expect(backend.sent()).toEqual(
+            [...OPENING, 'DELETE /profile/p3/delete', LOAD_PROFILES]));
     });
 });
