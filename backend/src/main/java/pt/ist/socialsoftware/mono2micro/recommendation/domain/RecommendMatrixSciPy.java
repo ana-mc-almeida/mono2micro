@@ -207,7 +207,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 					.filter(possibleSimilarity -> possibleSimilarity.equalsDto(similarityInformation)).findFirst().orElse(null);
 
 			if (similarity == null) {
-				similarity = SimilarityFactory.createSimilarity(getRepresentations(), similarityInformation);
+				similarity = (SimilarityScipy) similarityInformation.newSimilarity(getRepresentations());
 				similarity.setProfile(getProfile());
 
 				InputStream inputStream = gridFsService.getFile(name.substring(0, name.lastIndexOf(","))); // Gets the previously produced similarity matrix

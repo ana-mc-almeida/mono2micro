@@ -1,5 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph;
@@ -21,14 +23,15 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends Sim
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto() { this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH; }
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(SimilarityScipyFunctionalityVectorizationByCallGraph similarity) {
-		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getSoftwareSystem().getId();
-		copySource(similarity);
-		this.name = similarity.getName();
-		this.type = similarity.getType();
+		super(similarity);
 		this.linkageType = similarity.getLinkageType();
 		this.weightsList = similarity.getWeightsList();
 		this.depth = similarity.getDepth();
+	}
+
+	@Override
+	public Similarity newSimilarity(List<Representation> representations) {
+		return new SimilarityScipyFunctionalityVectorizationByCallGraph(getKindName(), representations, getName(), this);
 	}
 
 	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {

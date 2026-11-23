@@ -172,7 +172,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 		}
 		default:
 			throw new AssertionError("No DTO mapping for similarity type " + similarityCase.similarityType()
-					+ ". Add one here and in SimilarityFactory.");
+					+ ". Add one here.");
 		}
 	}
 

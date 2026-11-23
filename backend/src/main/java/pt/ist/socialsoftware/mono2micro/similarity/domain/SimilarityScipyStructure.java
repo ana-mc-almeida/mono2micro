@@ -44,6 +44,11 @@ public class SimilarityScipyStructure extends SimilarityScipy {
 	}
 
 	@Override
+	public SimilarityDto toDto() {
+		return new SimilarityScipyStructureDto(this);
+	}
+
+	@Override
 	public String getType() {
 		return SIMILARITY_SCIPY_STRUCTURE;
 	}

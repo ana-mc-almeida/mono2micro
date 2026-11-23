@@ -101,6 +101,9 @@ public abstract class Similarity {
 		return Profile.idOf(profile);
 	}
 
+	/** The description of this Similarity, by the request type of its own type. */
+	public abstract SimilarityDto toDto();
+
 	public abstract Map<Short, String> getIDToEntityName() throws Exception;
 
 	public abstract void generate() throws Exception;

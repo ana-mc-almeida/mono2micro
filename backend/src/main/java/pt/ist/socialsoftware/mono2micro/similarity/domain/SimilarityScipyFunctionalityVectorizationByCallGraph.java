@@ -46,6 +46,11 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 		super(recommendation);
 	}
 
+	@Override
+	public SimilarityDto toDto() {
+		return new SimilarityScipyFunctionalityVectorizationByCallGraphDto(this);
+	}
+
 	public int getDepth() {
 		return depth;
 	}

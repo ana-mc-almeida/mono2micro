@@ -1,5 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure;
@@ -20,16 +22,15 @@ public class SimilarityScipyStructureDto extends SimilarityDto {
 	public SimilarityScipyStructureDto() { this.type = SIMILARITY_SCIPY_STRUCTURE; }
 
 	public SimilarityScipyStructureDto(SimilarityScipyStructure similarity) {
-		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getSoftwareSystem().getId();
-		copySource(similarity);
-		this.name = similarity.getName();
-		this.type = similarity.getType();
+		super(similarity);
 		this.weightsList = similarity.getWeightsList();
-		copyProfile(similarity.getProfile());
 		this.linkageType = similarity.getLinkageType();
 		this.traceType = similarity.getTraceType();
+	}
 
+	@Override
+	public Similarity newSimilarity(List<Representation> representations) {
+		return new SimilarityScipyStructure(getKindName(), representations, getName(), this);
 	}
 
 	@Override

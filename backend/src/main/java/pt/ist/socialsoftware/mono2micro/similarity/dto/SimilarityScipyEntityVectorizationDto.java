@@ -1,5 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyEntityVectorization;
@@ -15,12 +17,13 @@ public class SimilarityScipyEntityVectorizationDto extends SimilarityDto {
 	public SimilarityScipyEntityVectorizationDto() { this.type = SIMILARITY_SCIPY_ENTITY_VECTORIZATION; }
 
 	public SimilarityScipyEntityVectorizationDto(SimilarityScipyEntityVectorization similarity) {
-		this.id = similarity.getId();
-		this.softwareSystemId = similarity.getSoftwareSystem().getId();
-		copySource(similarity);
-		this.name = similarity.getName();
-		this.type = similarity.getType();
+		super(similarity);
 		this.linkageType = similarity.getLinkageType();
+	}
+
+	@Override
+	public Similarity newSimilarity(List<Representation> representations) {
+		return new SimilarityScipyEntityVectorization(getKindName(), representations, getName(), this);
 	}
 
 	public SimilarityScipyEntityVectorizationDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {

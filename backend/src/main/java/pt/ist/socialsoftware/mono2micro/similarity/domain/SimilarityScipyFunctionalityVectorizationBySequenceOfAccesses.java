@@ -49,6 +49,11 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	}
 
 	@Override
+	public SimilarityDto toDto() {
+		return new SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(this);
+	}
+
+	@Override
 	public String getType() {
 		return SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
 	}

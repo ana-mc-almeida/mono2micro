@@ -15,12 +15,12 @@ import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.Algorith
 import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
-import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDtoFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityKindDto;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/mono2micro")
@@ -72,7 +72,7 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDtos(similarityService.getSimilarities(softwareSystemId)),
+					similarityService.getSimilarities(softwareSystemId).stream().map(Similarity::toDto).collect(Collectors.toList()),
 					HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -93,7 +93,7 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDto(similarityService.createSimilarity(softwareSystemId, similarityDto)),
+					similarityService.createSimilarity(softwareSystemId, similarityDto).toDto(),
 					HttpStatus.CREATED);
 		} catch (UnavailableFeatureException e) {
 			logger.debug(e.getMessage());
@@ -112,7 +112,7 @@ public class SimilarityController {
 
 		try {
 			return new ResponseEntity<>(
-					SimilarityDtoFactory.getSimilarityDto(similarityService.getSimilarityById(similarityId)),
+					similarityService.getSimilarityById(similarityId).toDto(),
 					HttpStatus.OK
 			);
 		} catch (Exception e) {

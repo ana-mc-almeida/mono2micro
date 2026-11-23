@@ -39,6 +39,11 @@ public class SimilarityScipyClassVectorization extends SimilarityScipy {
 	}
 
 	@Override
+	public SimilarityDto toDto() {
+		return new SimilarityScipyClassVectorizationDto(this);
+	}
+
+	@Override
 	public String getType() {
 		return SIMILARITY_SCIPY_CLASS_VECTORIZATION;
 	}

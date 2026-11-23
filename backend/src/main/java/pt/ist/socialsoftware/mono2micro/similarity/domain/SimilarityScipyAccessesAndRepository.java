@@ -48,6 +48,11 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 	}
 
 	@Override
+	public SimilarityDto toDto() {
+		return new SimilarityScipyAccessesAndRepositoryDto(this);
+	}
+
+	@Override
 	public String getType() {
 		return SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
 	}

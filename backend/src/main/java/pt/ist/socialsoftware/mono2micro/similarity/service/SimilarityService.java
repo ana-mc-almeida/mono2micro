@@ -18,7 +18,6 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.repository.SimilarityRepository;
 
@@ -111,7 +110,7 @@ public class SimilarityService {
 		for (Similarity existing : getSimilaritiesOfKind(softwareSystemId, similarityDto.getKindName()))
 			if (existing.equalsDto(similarityDto))
 				return existing;
-		Similarity similarity = SimilarityFactory.createSimilarity(representations, similarityDto);
+		Similarity similarity = similarityDto.newSimilarity(representations);
 		similarity.setProfile(profile);
 
 		similarity.generate();
