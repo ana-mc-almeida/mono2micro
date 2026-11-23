@@ -86,25 +86,37 @@ public class EditingChainServiceTest {
 		assertThat(service.runAlgorithmOperation(SIMILARITY, cutWithoutPython()).getName()).isEqualTo("Accesses N3(3)");
 	}
 
-	/** SciPy requires only a Similarity kind; this one also requires a Structure representation, which the Accesses uploads lack. */
 	@Test
 	public void anOperationTheSimilarityDoesNotOfferIsRefusedBeforeItRuns() {
-		SciPyOperation operation = new SciPyOperation("N", 3) {
-			@Override
-			public List<Requirement> requirements() {
-				return Collections.singletonList(Requires.of(StructureRepresentation.class));
-			}
-
-			@Override
-			public ClusterRepresentation apply(Similarity input) {
-				throw new AssertionError("ran an operation the Similarity does not offer");
-			}
-		};
-
-		assertThatThrownBy(() -> service.runAlgorithmOperation(SIMILARITY, operation))
+		assertThatThrownBy(() -> service.runAlgorithmOperation(SIMILARITY, notOffered()))
 				.isInstanceOf(UnavailableFeatureException.class)
 				.hasMessageContaining("requires a Structure representation");
 		verify(operationRepository, never()).save(any());
+	}
+
+	/** A recommendation saves its candidates through {@code run}, on a Similarity it may have just built: the check holds there too. */
+	@Test
+	public void aDirectRunIsCheckedToo() {
+		assertThatThrownBy(() -> service.run(notOffered(), similarity))
+				.isInstanceOf(UnavailableFeatureException.class)
+				.hasMessageContaining("requires a Structure representation");
+		verify(operationRepository, never()).save(any());
+	}
+
+	/** A recommendation's new candidate Similarity is not in storage when it runs; the check reads its software system from it, not by its id. */
+	@Test
+	public void aSimilarityNotYetSavedCanRun() throws Exception {
+		Similarity unsaved = mock(Similarity.class);
+		when(unsaved.getId()).thenReturn("not-saved-yet");
+		when(unsaved.getName()).thenReturn("Accesses");
+		when(unsaved.getKindName()).thenReturn(AccessesKind.ACCESSES);
+		when(unsaved.getSoftwareSystem()).thenReturn(system.getSoftwareSystem());
+		when(clusterRepresentationRepository.findNamesBySimilarityId("not-saved-yet")).thenReturn(Collections.emptySet());
+
+		ClusterRepresentation output = service.run(cutWithoutPython(), unsaved);
+
+		assertThat(output.getSimilarity()).isSameAs(unsaved);
+		verify(operationRepository).save(any());
 	}
 
 	@Test
@@ -120,6 +132,21 @@ public class EditingChainServiceTest {
 
 		assertThat(service.isCollected(produced)).isFalse();
 		assertThat(service.isCollected(imported)).isTrue();
+	}
+
+	/** SciPy requires only a Similarity kind; this one also requires a Structure representation, which the Accesses uploads lack. */
+	private static SciPyOperation notOffered() {
+		return new SciPyOperation("N", 3) {
+			@Override
+			public List<Requirement> requirements() {
+				return Collections.singletonList(Requires.of(StructureRepresentation.class));
+			}
+
+			@Override
+			public ClusterRepresentation apply(Similarity input) {
+				throw new AssertionError("ran an operation the Similarity does not offer");
+			}
+		};
 	}
 
 	/** A SciPy operation cutting into 3 clusters, whose output is built here instead of by the Python service. */

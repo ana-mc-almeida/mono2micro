@@ -52,16 +52,19 @@ public class EditingChainService {
 	 * if the operation is not available for the Similarity, before anything is computed (D-003)
 	 */
 	public ClusterRepresentation runAlgorithmOperation(String similarityId, AlgorithmOperation operation) throws Exception {
-		Similarity similarity = similarityRepository.getById(similarityId);
-		AvailabilityCheck.requireAvailable(operation, contextOf(similarity));
-		return run(operation, similarity);
+		return run(operation, similarityRepository.getById(similarityId));
 	}
 
 	/**
 	 * Applies {@code operation} to {@code input}, then sets up and saves its output under a name its Similarity's other cluster representations do
-	 * not use, and saves the operation linked to it. The caller has checked the operation is available.
+	 * not use, and saves the operation linked to it. {@code input} need not be saved yet: a recommendation's candidate may run on a new Similarity,
+	 * which the set-up saves.
+	 *
+	 * @throws pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException
+	 * if the operation is not available for {@code input}, before anything is computed (D-003); every run is checked here, so no caller can skip it
 	 */
 	public ClusterRepresentation run(AlgorithmOperation operation, Similarity input) throws Exception {
+		AvailabilityCheck.requireAvailable(operation, contextOf(input));
 		ClusterRepresentation output = operation.apply(input);
 		output.setName(uniqueName(output.getName(), clusterRepresentationRepository.findNamesBySimilarityId(input.getId())));
 		clusterRepresentationService.setupDecomposition(output);
