@@ -1,0 +1,20 @@
+{
+  "clusters" : {
+    "Content" : {
+      "Cohesion" : 0.417,
+      "Complexity" : 68.219,
+      "Coupling" : 1.0
+    },
+    "Quizzes" : {
+      "Cohesion" : 0.456,
+      "Complexity" : 60.639,
+      "Coupling" : 0.833
+    }
+  },
+  "decomposition" : {
+    "Cohesion" : 0.437,
+    "Complexity" : 46.447,
+    "Coupling" : 0.917,
+    "Performance" : 6.66
+  }
+}

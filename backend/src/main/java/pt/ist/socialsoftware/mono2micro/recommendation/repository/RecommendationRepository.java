@@ -1,12 +1,20 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 
+import java.util.List;
+
 public interface RecommendationRepository extends MongoRepository<Recommendation, String> {
-    boolean existsByName(String name);
-    Recommendation findByName(String recommendationName);
-    @Query(value = "{'name': ?0}", fields = "{'recommendationResultName': 1, '_id': 1, '_class': 1}")
-    Recommendation getRecommendationResultName(String recommendationName);
+	List<Recommendation> findBySoftwareSystemId(String softwareSystemId);
+
+	/** The recommendations whose Similarities read the representation. The underscore walks the reference. */
+	List<Recommendation> findByRepresentations_Id(String representationId);
+
+	/** The underscore walks the profile reference; plain ProfileId would clash with getProfileId(). */
+	boolean existsByProfile_Id(String profileId);
+
+	default Recommendation getById(String id) {
+		return findById(id).orElseThrow(() -> new RuntimeException("No recommendation " + id + " found."));
+	}
 }

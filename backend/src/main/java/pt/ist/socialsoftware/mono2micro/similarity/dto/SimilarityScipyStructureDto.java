@@ -1,6 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
@@ -10,77 +12,65 @@ import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure.SIMILARITY_SCIPY_STRUCTURE;
 
+@JsonTypeName(SIMILARITY_SCIPY_STRUCTURE)
 public class SimilarityScipyStructureDto extends SimilarityDto {
-    private List<Weights> weightsList;
-    private String linkageType;
-    private String profile;
-    private Constants.TraceType traceType;
+	private List<Weights> weightsList;
+	private String linkageType;
+	private Constants.TraceType traceType;
 
-    public SimilarityScipyStructureDto() { this.type = SIMILARITY_SCIPY_STRUCTURE; }
+	public SimilarityScipyStructureDto() { this.type = SIMILARITY_SCIPY_STRUCTURE; }
 
-    public SimilarityScipyStructureDto(SimilarityScipyStructure similarity) {
-        this.codebaseName = similarity.getStrategy().getCodebase().getName();
-        this.strategyName = similarity.getStrategy().getName();
-        this.name = similarity.getName();
-        this.type = similarity.getType();
-        this.weightsList = similarity.getWeightsList();
-        this.profile = similarity.getProfile();
-        this.linkageType = similarity.getLinkageType();
-        this.traceType = similarity.getTraceType();
+	public SimilarityScipyStructureDto(SimilarityScipyStructure similarity) {
+		super(similarity);
+		this.weightsList = similarity.getWeightsList();
+		this.linkageType = similarity.getLinkageType();
+		this.traceType = similarity.getTraceType();
+	}
 
-    }
+	@Override
+	public Similarity newSimilarity(List<Representation> representations) {
+		return new SimilarityScipyStructure(getKindName(), representations, getName(), this);
+	}
 
-    public SimilarityScipyStructureDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-        this.strategyName = recommend.getStrategy().getName();
-        this.type = SIMILARITY_SCIPY_STRUCTURE;
-        this.weightsList = weightsList;
-        this.profile = recommend.getProfile();
-        this.traceType = recommend.getTraceType();
-        this.linkageType = recommend.getLinkageType();
-    }
+	public String getName() {
+		if (this.name == null) {
+			this.name = namePrefix() + " "
+					+ "params" + "(" + profileLabel() + "," + this.linkageType + "," + this.traceType + ") "
+					+ this.weightsList.stream()
+							.map(weights -> weights.getName())
+							.collect(Collectors.joining(", "));
+		}
 
-    public String getName() {
-        if (this.name == null) {
-            this.name = this.strategyName + " "
-                    + "params" + "(" + this.profile + "," + this.linkageType + "," + this.traceType + ") "
-                    + this.weightsList.stream()
-                    .map(weights -> weights.getName())
-                    .collect(Collectors.joining(", "));
-        }
+		return this.name;
+	}
 
-        return this.name;
-    }
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
+	}
 
-    public List<Weights> getWeightsList() {
-    return weightsList;
-}
+	public List<Weights> getWeightsList() {
+		return weightsList;
+	}
 
-    public void setWeightsList(List<Weights> weightsList) {
-        this.weightsList = weightsList;
-    }
+	public void setWeightsList(List<Weights> weightsList) {
+		this.weightsList = weightsList;
+	}
 
-    public String getProfile() {
-        return profile;
-    }
+	public String getLinkageType() {
+		return linkageType;
+	}
 
-    public void setProfile(String profile) {
-        this.profile = profile;
-    }
+	public void setLinkageType(String linkageType) {
+		this.linkageType = linkageType;
+	}
 
-    public String getLinkageType() {
-        return linkageType;
-    }
+	public Constants.TraceType getTraceType() {
+		return traceType;
+	}
 
-    public void setLinkageType(String linkageType) {
-        this.linkageType = linkageType;
-    }
-
-    public Constants.TraceType getTraceType() {
-        return traceType;
-    }
-
-    public void setTraceType(Constants.TraceType traceType) {
-        this.traceType = traceType;
-    }
+	public void setTraceType(Constants.TraceType traceType) {
+		this.traceType = traceType;
+	}
 
 }

@@ -15,8 +15,8 @@ const Header: FunctionComponent = () => {
             <Navbar.Toggle />
             <Navbar.Collapse>
                 <Nav>
-                    <Nav.Link href="/codebases">
-                        Codebases
+                    <Nav.Link href="/softwareSystems">
+                        Software Systems
                     </Nav.Link>
                     <Nav.Link href="/comparisonTool">
                         Comparison Tool

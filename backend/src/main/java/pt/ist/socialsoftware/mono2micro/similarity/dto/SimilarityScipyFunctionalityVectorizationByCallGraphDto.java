@@ -1,6 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
@@ -9,69 +11,73 @@ import java.util.stream.Collectors;
 
 import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph.SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
 
+@JsonTypeName(SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH)
 public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends SimilarityDto {
-    private String linkageType;
+	private String linkageType;
 
-    private int depth;
+	/**
+	 * 2 when the request names none, as upstream: a recommendation has no depth, so its candidates' Similarities keep the domain class's
+	 * default. The form always sends one.
+	 */
+	// FIXME (Phase 2): a call-graph recommendation always runs with depth 2, which the architect can neither see nor choose; whether that is a bug
+	// is open (../implementation/docs/open-questions.md, "A call-graph recommendation's depth")
+	private int depth = 2;
 
-    private List<Weights> weightsList;
+	private List<Weights> weightsList;
 
-    public SimilarityScipyFunctionalityVectorizationByCallGraphDto() { this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH; }
+	public SimilarityScipyFunctionalityVectorizationByCallGraphDto() { this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH; }
 
-    public SimilarityScipyFunctionalityVectorizationByCallGraphDto(SimilarityScipyFunctionalityVectorizationByCallGraph similarity) {
-        this.codebaseName = similarity.getStrategy().getCodebase().getName();
-        this.strategyName = similarity.getStrategy().getName();
-        this.name = similarity.getName();
-        this.type = similarity.getType();
-        this.linkageType = similarity.getLinkageType();
-        this.weightsList = similarity.getWeightsList();
-        this.depth = similarity.getDepth();
-    }
+	public SimilarityScipyFunctionalityVectorizationByCallGraphDto(SimilarityScipyFunctionalityVectorizationByCallGraph similarity) {
+		super(similarity);
+		this.linkageType = similarity.getLinkageType();
+		this.weightsList = similarity.getWeightsList();
+		this.depth = similarity.getDepth();
+	}
 
-    public SimilarityScipyFunctionalityVectorizationByCallGraphDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-        this.strategyName = recommend.getStrategy().getName();
-        this.name = recommend.getName();
-        this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
-        this.linkageType = recommend.getLinkageType();
-        this.weightsList = weightsList;
-        // this.depth = depth;
-    }
+	@Override
+	public Similarity newSimilarity(List<Representation> representations) {
+		return new SimilarityScipyFunctionalityVectorizationByCallGraph(getKindName(), representations, getName(), this);
+	}
 
-    public String getName() {
-        if (this.name == null) {
-            this.name = this.strategyName + " "
-                    + "params" + "(" + this.linkageType + "," + this.depth + ") "
-                    + this.weightsList.stream()
-                    .map(weights -> weights.getName())
-                    .collect(Collectors.joining(", "));
-        }
+	public String getName() {
+		if (this.name == null) {
+			this.name = namePrefix() + " "
+					+ "params" + "(" + this.linkageType + "," + this.depth + ") "
+					+ this.weightsList.stream()
+							.map(weights -> weights.getName())
+							.collect(Collectors.joining(", "));
+		}
 
-        return this.name;
-    }
+		return this.name;
+	}
 
+	public String getLinkageType() {
+		return linkageType;
+	}
 
-    public String getLinkageType() {
-        return linkageType;
-    }
+	public void setLinkageType(String linkageType) {
+		this.linkageType = linkageType;
+	}
 
-    public void setLinkageType(String linkageType) {
-        this.linkageType = linkageType;
-    }
+	@Override
+	public List<String> weightsTypes() {
+		return typesOf(weightsList);
+	}
 
-    public List<Weights> getWeightsList() {
-        return weightsList;
-    }
+	public List<Weights> getWeightsList() {
+		return weightsList;
+	}
 
-    public void setWeightsList(List<Weights> weightsList) {
-        this.weightsList = weightsList;
-    }
+	public void setWeightsList(List<Weights> weightsList) {
+		this.weightsList = weightsList;
+	}
 
-    public int getDepth() {
-        return depth;
-    }
+	public int getDepth() {
+		return depth;
+	}
 
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
+	public void setDepth(int depth) {
+		this.depth = depth;
+	}
 
 }

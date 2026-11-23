@@ -6,7 +6,7 @@ import AppContext from "../../AppContext";
 import {APIService} from "../../../services/APIService";
 import {Accordion, AccordionDetails, AccordionSummary, Item, ItemCorner} from "../ComparisonTool";
 
-export const MoJoResults = ({codebaseName, comparisonData}) => {
+export const MoJoResults = ({softwareSystemId, comparisonData}) => {
     const context = useContext(AppContext);
     const { translateEntity, updateEntityTranslationFile } = context;
     const [falsePairs, setFalsePairs] = useState([]);
@@ -59,7 +59,7 @@ export const MoJoResults = ({codebaseName, comparisonData}) => {
         const moJoResults = comparisonData.analysisList.find(results => results.type === "MOJO");
         setMoJoResults(moJoResults);
 
-        service.getIdToEntity(codebaseName).then(response => {
+        service.getIdToEntity(softwareSystemId).then(response => {
             updateEntityTranslationFile(response.data);
         }).catch(error => {
             console.log(error);

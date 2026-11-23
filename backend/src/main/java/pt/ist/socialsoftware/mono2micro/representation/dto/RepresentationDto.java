@@ -3,39 +3,50 @@ package pt.ist.socialsoftware.mono2micro.representation.dto;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 public class RepresentationDto {
-    private String name;
+	private String id;
 
-    private String type;
+	private String name;
 
-    private String codebaseName;
+	private String type;
 
-    protected RepresentationDto(Representation representation) {
-        this.name = representation.getName();
-        this.type = representation.getType();
-        this.codebaseName = representation.getCodebase().getName();
-    }
+	private String softwareSystemId;
 
-    public String getName() {
-        return name;
-    }
+	protected RepresentationDto(Representation representation) {
+		this.id = representation.getId();
+		this.name = representation.getName();
+		this.type = representation.getType();
+		this.softwareSystemId = representation.getSoftwareSystem().getId();
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public String getType() {
-        return type;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getCodebaseName() {
-        return codebaseName;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setCodebaseName(String codebaseName) {
-        this.codebaseName = codebaseName;
-    }
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
+	}
+
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
+	}
 }

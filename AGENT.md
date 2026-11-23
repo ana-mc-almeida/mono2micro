@@ -29,14 +29,16 @@ resulting decision in `../implementation/docs/decisions.md`.
 
 Defined in `docker-compose.yml`:
 
+<!-- prettier-ignore-start -->
 | Service | Port | Stack | Role |
-|---|---|---|---|
+| ------- | ---- | ----- | ---- |
 | `mongo` | 27017 | MongoDB | All persisted state; GridFS for large artifacts |
 | `mongo-express` | 8081 | — | Database admin UI |
 | `backend` | 8080 | Spring Boot 2.1.2, Java 8 | Orchestration, metrics, operations. Context path `/mono2micro`. **Does not cluster.** |
 | `scripts` | 5002 | FastAPI / Python | The actual clustering (SciPy) + code2vec |
 | `functionality_refactor` | 5001 | Go 1.14 | Heuristic functionality refactoring |
 | `frontend` | 3000 | React 17 + TypeScript | UI |
+<!-- prettier-ignore-end -->
 
 The **8 collectors are not services** — run-once programs that emit JSON, uploaded
 through the frontend.
@@ -49,8 +51,8 @@ is wrong.
 
 ```bash
 docker-compose build && docker-compose up
-docker-compose up --no-deps -d --build backend     # rebuild backend only
-docker-compose build --no-cache && docker-compose up --build   # clean rebuild
+docker-compose up --no-deps -d --build backend      # rebuild backend only
+docker-compose build --no-cache && docker-compose up --build    # clean rebuild
 ```
 
 UI at http://localhost:3000, mongo-express at http://localhost:8081.
@@ -70,9 +72,9 @@ cd frontend && npm install --legacy-peer-deps && npm start          # :3000
 
 # functionality_refactor (Go)
 cd tools/functionality_refactor/src
-make test          # unit + integration
-make unit-test     # -tags=unit
-make lint          # go fmt, go vet, golangci-lint
+make test           # unit + integration
+make unit-test      # -tags=unit
+make lint           # go fmt, go vet, golangci-lint
 make build
 ```
 
@@ -95,12 +97,226 @@ make build
 
 ## Testing
 
-- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`. The
-  committed suite is a single context-load smoke test (`Mono2microApplicationTests`);
-  most builds use `-DskipTests`.
+- **Backend:** `mvn test`; single test `mvn test -Dtest=ClassName#method`.
+  Packaging still uses `-DskipTests` (see `codebases/` below). Tests are JUnit 5
+  (`junit-jupiter`), with AssertJ and Mockito from `spring-boot-starter-test`.
+  Run `backend/test-summary.py` after `mvn test` for a per-case pass/skip/fail list with
+  reasons; surefire's console output names a parameterized case only by index.
+  Two kinds of suite, split by a **JUnit tag**, not by location:
+  - **Offline unit tests** — `<pkg>/operation/` (the five decomposition edit operations,
+    their undo/redo and history bookkeeping). No Spring context, no Mongo, no Docker, so
+    a bare **`mvn test` runs these and only these** (~2s). Possible because a hand-built
+    `PartitionsClusterRepresentation` has an empty `representationInformations` list, which keeps
+    `AccessesInformation`'s `ContextManager` lookup out of reach; `History` is faked for
+    the same reason. `ManualOperationCharacterizationTest` does attach the real
+    `AccessesInformation`, and keeps the real `ContextManager` out by caching a stub in
+    its place (`StubContextManager`, serving an in-memory `FunctionalityService`). See
+    that package's `README.md`, plus `DecompositionFixture` and
+    `InMemoryHistory`, and **Gap 7** in `../implementation/docs/gap-analysis.md` for the
+    findings they pin.
+  - **Stack tests** — `Mono2microApplicationTests` (context-load smoke test),
+    `DecompositionE2ETest`, which drives the real pipeline for every case x Similarity kind
+    combination and pins the clusters each produces, and `PipelineCharacterizationE2ETest`,
+    which pins manual editing, undo/redo, metrics, MoJo/Purity, expert import and the
+    Context Mapper export over REST. **Needs the stack up** —
+    `docker compose up -d mongo scripts`, plus `functionality_refactor` for the export —
+    and **skips**, naming the service, when one is unreachable (`decomposition/Stack`).
+    The skip is per test, so surefire counts it. With `REQUIRE_STACK=true` it **fails**
+    instead; CI's e2e job sets it, so a green CI run means the stack tests ran. Locally,
+    read the skip count before trusting a green run. All are tagged `@Tag("integration")` and excluded by default
+    via surefire's `<excludedGroups>${excluded.groups}</excludedGroups>` in
+    `backend/pom.xml`.
+
+    The expected values are JSON recorded from today's tool under
+    `src/test/resources/characterization/` (`decomposition/Golden`). On a mismatch, or
+    with nothing recorded, the actual JSON is written to `target/characterization-actual/`
+    under the same name; recording a value is reading that file and copying it over. A
+    restructure ticket that ports an endpoint changes `HttpDecompositionPipeline`'s paths
+    and payloads, **never** these files or the tests' assertions.
+
+    Run **everything** (needs the stack) with an empty override:
+
+    ```bash
+    mvn test -Dexcluded.groups=
+    ```
+
+    Not `-Dgroups=integration` — that runs _only_ the tagged tests and drops the unit
+    suite from the reports `test-summary.py` aggregates.
+
+- **`backend/Makefile`** wraps the long stack commands; `mvn test` is deliberately
+  _not_ wrapped, since it already does the right thing offline in ~2s.
+
+<!-- prettier-ignore-start -->
+| Target | Runs |
+| ----------------------- | ---------------------------------------------------------- |
+| `make coverage` | full suite, then the gate — the CI `e2e` + `coverage` jobs |
+| `make coverage-gate` | the gate alone, on the last run's `jacoco.exec`; no tests |
+| `make test-all` | full suite, no gate |
+| `make test-summary` | per-case pass/skip/fail |
+| `make coverage-summary` | percentages + worst packages |
+| `make coverage-report` | `coverage`, then both summaries even if the gate fires |
+<!-- prettier-ignore-end -->
+
+  The env vars default to the values the e2e job sets and are overridable:
+  `make coverage MONGO_DB=mongodb://otherhost:27017`.
+
+- **Fixtures** are committed under `backend/src/test/resources/representations/`, one
+  folder per case. No case holds every fixture, so combinations whose files are absent
+  **skip** and are listed after the run; a fixture that is present but broken fails.
+  Read that folder's `README.md` before adding a case — `_author.json` carries commit
+  authors' email addresses.
+- **Coverage** is measured by JaCoCo (bound to the `test` phase) and **gated** by
+  `jacoco:check` in the `coverage` profile. Limits are line 50%, instruction 50%,
+  branch 40%, over the whole bundle. The full suite **passes all three** as of
+  2026-09-21 (line 51.4 / instruction 51.0 / branch 47.1); it sat at 44.2 / 43.5 / 38.6
+  before `PurityTest` and `MoJoCalculatorTest` landed. Keep it that way: if a change
+  drops a counter below its limit, the fix is to raise coverage, not to lower the
+  limits. The gate lives in a profile because a plain
+  `mvn test` runs only the offline unit tests and reaches ~5%; measuring that against a
+  whole-suite target would fail every push. `backend/coverage-summary.py` prints the
+  percentages and the worst packages as Markdown; it reports only and never gates.
+
+  **Run the suite and the gate as two commands**, so a coverage shortfall cannot be
+  mistaken for a test failure — this is the split CI uses too (`make coverage` does
+  both):
+
+  ```bash
+  mvn -Dexcluded.groups= clean test      # tests only; still writes jacoco.exec + reports
+  mvn -Pcoverage jacoco:check@jacoco-check   # the gate, replayed on that exec file
+  ```
+
+  Two traps in that second command:
+  - **`@jacoco-check` is required.** A bare `mvn jacoco:check` creates a `default-cli`
+    execution that does not inherit `<rules>` from the named execution, and dies with
+    `The parameters 'rules' for goal jacoco:check are missing or invalid`.
+  - **`target/classes/` must exist.** `jacoco:check` replays the exec file against the
+    compiled bytecode; without it JaCoCo logs `Skipping JaCoCo execution due to missing
+    classes directory` and **exits 0** — a green gate that checked nothing. This is why
+    CI's `coverage` job uploads `target/classes/` alongside `jacoco.exec`.
+
+  JaCoCo's `prepare-agent` sets `<append>false</append>`, so each run's report covers
+  only what that run executed. Without it JaCoCo appends to `target/jacoco.exec` and a
+  run without `clean` silently mixes in the previous run's data — which is how a
+  unit-only run can report the full suite's numbers.
+
+  **The vendored MoJo code was the single biggest drag on the gate, and is now tested
+  rather than excluded.** `qualityAssessment.metrics.severalDecompositions.mojo.src.main.java` (ex-`utils.mojoCalculator`) is 660 lines of copied-in
+  2004 third-party code under a nested `src/main/java` path, and was at 0%.
+
+  An earlier note here recommended a JaCoCo `<excludes>` for it. **That cannot work**:
+  exclusion removes uncovered lines from the denominator but adds no covered ones, so it
+  reaches branch 44.9% (passing) but only 49.5 instruction and **49.2 line** — both still
+  short, with nothing left to exclude. `MoJoCalculatorTest` instead took the package to
+  ~66% and cleared all three limits at once. There are no `<excludes>` in `pom.xml`, and
+  adding one is not the route back to a green gate. See **D-008** in
+  `../implementation/docs/decisions.md`.
+
+  Two things to know before touching that package's tests: `Cluster` and `BipartiteGraph`
+  are **package-private**, so tests must sit in
+  `pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.severalDecompositions.mojo.src.main.java`; and
+  `MoJo.showerrormsg()` ends in **`System.exit(0)`**, so a malformed
+  argument array would kill the surefire fork. Only well-formed argv is exercised.
+
 - **Go tool:** unit and integration tests are separated by **build tags**
-  (`-tags=unit`, `-tags=integration`), not by file location.
-- **Frontend:** `npm test` (react-scripts, jsdom).
+  (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
+  `_test.go` files, so `make test` passes vacuously.
+- **Frontend:** `npm test` (react-scripts, jsdom). The single CRA default test currently
+  fails: Jest cannot parse `vis-network/standalone` (ESM) because `package.json` sets no
+  `transformIgnorePatterns`.
+
+## Formatting (backend)
+
+Java is formatted by **Spotless** with `backend/eclipse-formatter.xml` (tabs, 160
+columns). CI fails on any violation, so run the fix before committing:
+
+```bash
+cd backend
+make format-apply    # mvn spotless:apply — idempotent
+make format-check    # mvn spotless:check — the CI gate
+make lint-imports    # Checkstyle import report; never fails, read the output
+```
+
+`lint-imports` uses `checkstyle:checkstyle`, **not** `checkstyle:check`: every rule in
+`checkstyle-imports.xml` is a `warning`, and `check` counts only errors, so it reports
+"0 violations" while the report lists them all. The static wildcard imports in the
+`*Factory` classes are intentional and are not reported.
+
+## CI
+
+`.github/workflows/ci.yml`. Jobs:
+
+- **`format`** — runs `mvn -B spotless:check` in `backend/` and **gates every test
+  job**: `fast` and `e2e` both declare `needs: format`, so unformatted Java never
+  reaches a test run. Also prints the Checkstyle import report, advisory only.
+- **`fast`** — every push and PR, no Docker. (A push to a branch that already has an
+  open PR skips it, since the `pull_request` run covers the same commit; a small `dedup`
+  job decides.) Backend `mvn -DskipTests clean install`,
+  frontend install/test/build, Go `go build`. The frontend test and `go vet` run
+  **advisory** (`|| true`) because both already fail on pre-existing problems unrelated
+  to any change; fix those, then drop the `|| true`.
+- **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
+  because it builds the ~8GB scripts image. Brings up mongo + scripts via
+  `docker compose`, runs `mvn -Dexcluded.groups= test` (the whole suite, **no**
+  `-Pcoverage`), then `test-summary.py` and `coverage-summary.py`, and uploads the
+  surefire and JaCoCo reports as artifacts. `coverage-summary.py` writes its table to
+  `$GITHUB_STEP_SUMMARY`, so the percentages are on the run page rather than only inside
+  the artifact. This job is green when the tests pass.
+- **`coverage`** — `needs: e2e`, and skipped unless it succeeded. Downloads the
+  `jacoco.exec` + `target/classes/` the e2e job uploaded and runs
+  `mvn -Pcoverage jacoco:check@jacoco-check` against them. Runs **no** tests and needs
+  no Docker, so it finishes in seconds. **This job is red until coverage reaches the
+  limits above** — deliberately, and it is the only one that goes red for that reason.
+  The split exists because the gate used to run inside the e2e job's `mvn` invocation,
+  which made a coverage shortfall read as "end-to-end decomposition failed" when every
+  decomposition test had passed.
+
+Two things CI must do that a local checkout does not need:
+
+1. `cp specific.properties.example specific.properties` — it is gitignored and read at
+   static-init time, so without it every test fails to load the Spring context.
+2. `mkdir -p scripts/models/java-large-release` — `code2vec/controller.py` runs
+   `Config(verify=True)` at import, which raises `"Model load dir ... does not exist"` and
+   crash-loops the scripts container. The directory only has to exist: the model is lazily
+   loaded and the backend reads precomputed `codeVector` arrays from the fixture JSON
+   instead of calling `/code2vec/predict`.
+
+### Software system fixtures
+
+Availability tests need a software system whose uploaded representations are known.
+`codebases/` is gitignored and empty in a fresh clone, so tests carry their own data:
+`<pkg>/fixtures/SoftwareSystemFixtures` (test sources) builds software systems in memory —
+one per representation group, plus `empty()`. A `SoftwareSystem` keeps no list of its
+representations (D-016), so each `Fixture` pairs a software system with the representations
+it collected, and a fixture's id is its name.
+
+```java
+Fixture offered  = SoftwareSystemFixtures.repositoryBased();  // has authorship + commit data
+Fixture withheld = SoftwareSystemFixtures.accessesBased();    // deliberately does not
+```
+
+Availability is derived from which representations a software system holds, by class and
+never by content, so a fixture is plain objects:
+nothing is persisted and no database is contacted. Tests using them run in milliseconds,
+offline, with the same result on any machine. For a service that looks representations up,
+stub the repository with `SoftwareSystemFixtures.stubbed(repository, fixtures...)` rather than
+starting Spring — `SoftwareSystemServiceAvailabilityTest` is the worked example to copy.
+
+Two rules, from the Phase 1 spec's testing decisions:
+
+- **Assert the derived answer, not the derivation.** Never assert that a particular map was
+  read or a method called in an order — those internals are what the refactor is free to
+  change.
+- **Prefer a difference over an absolute set** where the claim is that two software systems
+  get different answers, so the test keeps meaning as features are added.
+
+Add a fixture when a new representation group appears;
+`everyRepresentationGroupIsCoveredByAFixture` fails until you do.
+
+**Limit.** Fixtures call constructors directly and skip `init()`, so the collections that
+`AccessesRepresentation` and `StructureRepresentation` parse from their file (functionality
+names, entity names) are empty. Availability never reads them. A test that needs a software
+system with _real_ functionalities or entities should load committed collector output
+instead — sample files live in `../codebases-structure/` (SpringPetclinic is 24K).
 
 ## Backend layout
 
@@ -125,42 +341,68 @@ beans and reach services through the static `<pkg>/fileManager/ContextManager.ja
 
 ### Domain model
 
+Every entity has a generated id (an ObjectId hex string, set at construction); `name` is a
+display field. GridFS files and REST routes are keyed by id. References go from child to
+parent only, and a parent finds its children by repository query (`findBySoftwareSystemId`,
+`findByRepresentations_Id`, `findBySimilarityId`) — no class keeps a list of its children (D-016),
+except `ClusterRepresentation.history` and the information blocks' functionality map, which tickets
+11–12 replace (D-024).
+
 ```
-Codebase
-├── Representation*        (imported collector files)
-└── Strategy*              (a decomposition approach)
-    ├── Similarity*  ──►  Dendrogram (built by SciPy)
-    ├── Recommendation*
-    └── Decomposition*
-        ├── Cluster / Partition ──► Element (DomainEntity)
-        ├── RepresentationInformation*
-        ├── Operation*  (undo/redo via History)
-        └── metrics: Map<String, Object>
+SoftwareSystem
+├── Representation*        (imported collector files; at most one per kind)
+│   └── Profile*           (a named selection of its units; immutable — D-017)
+├── Similarity*            (of one kind)  ──►  Representation+ (those its kind reads),
+│   │                                         Dendrogram (built by SciPy), Profile? (null: every unit)
+│   └── ClusterRepresentation*  (a Representation too, of the Similarity's software system — D-010, D-015)
+│       ├── Operation?            (the one that produced it, holding it as output; none if collected — D-016)
+│       ├── Cluster / Partition ──► Element (DomainEntity)
+│       ├── RepresentationInformation*
+│       ├── manual edits          (undo/redo via History, until tickets 11–12)
+│       └── metrics: Map<String, Object>
+└── Recommendation*        (of one kind)  ──►  Representation+, Profile? (null: every unit)
 ```
 
+The tree reads parent → child, but each arrow is stored the other way, as a `@DBRef` on the
+child. A Similarity stores no software system: its software system is its representations'
+(D-016), so the system's Similarities are those that read its representations. References to
+concrete types (`SoftwareSystem`, `Profile`) are lazy; references to abstract types
+(`ClusterRepresentation.similarity`, `Operation.output`, `AlgorithmOperation.similarity`, `Similarity.representations`,
+`Profile.representation`) stay
+eager, because a lazy proxy subclasses the declared type and cannot be downcast (D-024).
+A service that needs a software system's representation of some kind calls
+`RepresentationRepository.findBySoftwareSystemIdAndType`; domain code still calls
+`Representation.ofSoftwareSystem(softwareSystem, kind)`, which goes through
+`ContextManager` until ticket 18 removes it.
+
+<!-- prettier-ignore-start -->
 | Concept | Location | Notes |
-|---|---|---|
-| **Codebase** | `<pkg>/codebase/` | Top-level container; id is its name |
-| **Representation** | `<pkg>/representation/domain/` | Abstract + factory; 7 types. Four *groups* at `Representation.java:25-28`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
-| **Strategy** | `<pkg>/strategy/domain/` | **One concrete class**, 7 type strings (`Strategy.java:35-41`). No `StrategyFactory`. Two static maps bind strategies to required representations |
-| **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves |
+| ------- | -------- | ----- |
+| **SoftwareSystem** | `<pkg>/softwareSystem/` | Top-level container `{id, name}`; REST under `/softwareSystems`. Not `System`, because of `java.lang.System` |
+| **Representation** | `<pkg>/representation/` | Abstract + factory in `domain/`; 7 types: 5 in `analytical/`, the 2 id maps in `entityDictionary/`. Four _groups_ in `Representation`: `Accesses Based`, `Repository Based`, `Code Embeddings Based`, `Structure Based` |
+| **Similarity** | `<pkg>/similarity/domain/` | Abstract; `SimilarityScipy` mid-layer; 6 concrete leaves. Each leaf builds its own DTO (`toDto()`), and each request DTO, a JSON subtype found by the scan, builds its Similarity (`newSimilarity(representations)`), so no factory lists the types (D-030). Holds `kindName` and the `representations` its kind reads, and is unique on them, its profile, settings and weights (D-010, D-016). Made on the software system: `GET /softwareSystems/{id}/similarities/available` is the kinds' derivation record, `POST …/similarities/create` refuses a kind the system does not offer with 422 |
+| **Similarity kind** | `<pkg>/similarity/kind/` | 8 kinds, each a `VariableFeature` of `SimilarityKindFamily` named by its `@JsonTypeName`. A kind declares what it requires, the `SimilarityScipy` type that computes it (`similarityType()`), its `informationBlocks()`, its `defaultWeights()` (whose types a request must send), its `settings()` (what its form shows besides the linkage type, the profile and the weights), and where they apply `scopedRepresentationType()` (the representation a profile of it selects) and `requiresClusterTypeConversion()`. `SimilarityKind.getByName` finds one |
+| **Profile** | `<pkg>/refactoring/domainKnowledge/expertKnowledge/` | _Expert knowledge_ (D-017): `{id, name, units, representation, retired}`, a named selection of a representation's units that scopes a Similarity or recommendation. **Immutable**: a move saves new versions of the profiles it changes; discarding one (by a move or a delete) retires it while a Similarity or recommendation uses it, and deletes it otherwise. Unassigned is computed, never stored. `Similarity.profile` and `Recommendation.profile` are nullable, and null means every unit; consumers go through `Profile.unitsOf`. A representation lists its units with `Representation.readUnits` (null: no profile can scope it). Endpoints in `ProfileController`. `Profile` is the one feature of `ExpertKnowledgeFamily` (member type `ExpertKnowledge`): it requires any kind that declares a `scopedRepresentationType()`, so the selector (`GET /softwareSystems/{id}/profiles/available?kindName=`, then `GET …/profiles?kindName=` for the list) and the Profiles button (`GET …/profiles/representationTypes`) follow the kinds, and a profile on a kind that takes none is a 422. The repositories query `existsByProfile_Id`: the underscore walks the reference, since a plain `ProfileId` clashes with the `getProfileId()` getter |
 | **Weights** | `<pkg>/similarity/domain/similarityMatrix/weights/` | Abstract + factory, 5 subclasses. Each fills a slice of a 3-D matrix, flattened as `metric += matrix[i][j][k] * weights[k] / 100` |
-| **Clustering** | `<pkg>/clusteringAlgorithm/` | Abstract, 3 methods. Only `SciPyClustering` registered. `Expert.java` handles expert-supplied decompositions |
-| **Decomposition** | `<pkg>/decomposition/domain/` | Abstract; one subclass `PartitionsDecomposition`. `metrics` is a `Map<String,Object>` keyed by metric type |
-| **Cluster / Element** | `<pkg>/cluster/`, `<pkg>/element/` | `Partition` adds `couplingDependencies` — the cross-cluster reaches that become distributed transactions. `DomainEntity` is the only `Element` |
-| **RepresentationInformation** | `<pkg>/decomposition/domain/representationInformation/` | Per-group decomposition state **and the metric registry** |
-| **Metrics** | `<pkg>/metrics/` | `decompositionMetrics/` (Cohesion, Complexity, Coupling, Performance, TSR), `functionalityMetrics/`, `functionalityRedesignMetrics/` |
-| **Operation** | `<pkg>/operation/` | merge, split, rename, transfer, formCluster; undo/redo via `<pkg>/history/` |
-| **comparisonTool** | `<pkg>/comparisonTool/` | MoJo (`<pkg>/utils/mojoCalculator/`) and Purity |
+| **Operation** | `<pkg>/refactoring/servicesRefactoring/` | `Operation` `{id, output, undone}` reads one input and produces one new `ClusterRepresentation` (D-010, D-016); a representation is _collected_ when no operation has it as output (`EditingChainService.isCollected`). `AlgorithmOperation` adds its input `similarity` and runs as `apply(similarity)`; it is a `VariableFeature` of `AlgorithmOperationFamily`, and its `@JsonTypeName` is the request type, so `POST /similarities/{id}/operations` runs any of them (422 when not offered) and `GET …/operations/available` is their derivation record. `algorithms/SciPyOperation` (cut type and value) is the only one. `EditingChainService.run` sets the output up, saves it and links it on the operation; `OperationOutputDeletion` deletes an operation when its output is deleted, since `representation/` never imports the operations |
+| **ClusterRepresentation** | `<pkg>/representation/clusterRepresentation/` | Abstract `Representation`, stored in the `representation` collection; one subclass `PartitionsClusterRepresentation`. Its `similarity` is required and of its own software system, checked on every save (`ClusterRepresentationSaveCheck`, D-015). `metrics` is a `Map<String,Object>` keyed by metric type. Listed per Similarity (`GET /similarities/{id}/clusterRepresentations`), never with the uploaded files (`findUploadedBySoftwareSystemId`). `clusteringAlgorithm/Expert.java` still imports expert clusterings until ticket 14 |
+| **Cluster / Element** | `<pkg>/representation/clusterRepresentation/domain/`, `<pkg>/granularity/` | `Partition` adds `couplingDependencies` — the cross-cluster reaches that become distributed transactions. `DomainEntity` is the only `Element` |
+| **RepresentationInformation** | `<pkg>/representation/clusterRepresentation/domain/representationInformation/` | Per-group decomposition state **and the metric registry** |
+| **Metrics** | `<pkg>/qualityAssessment/metrics/` | `singleDecomposition/` (Cohesion, Complexity, Coupling, Performance, TSR), with `functionality/` and `functionalityRedesign/` under it |
+| **Manual operation** | `<pkg>/operation/` | merge, split, rename, transfer, formCluster, still edited in place until tickets 11–12; undo/redo via `<pkg>/history/`. An operation runs through `ManualOperationHandlers`, a registry keyed by (operation, cluster kind) that falls back to the kind's superclass (D-014); each `*PartitionsHandler` is the code for `PartitionsClusterRepresentation`, and `ManualOperationHandlerCheck` fails the boot when a pair is covered neither way |
+| **comparisonTool** | `<pkg>/qualityAssessment/metrics/severalDecompositions/` | MoJoFM and Purity; vendored MoJo in `mojo/` |
+| **VariableFeature** | `<pkg>/feature/` | A feature's `requirements()` and an always-empty `excludes()`, read by the one `AvailabilityCheck` into a derivation record (D-019, D-025). The context is the set of present features: built once per software system by asking each family which of its features the system holds, and extended by `withInput`, which asks the families again for an input; every requirement is then a lookup in that set. A requirement has three shapes, all built in `feature/`: `Requires.of(FeatureClass.class)` (that feature), `Requires.of(MemberType.class)` (some feature of that family, as SciPy's `Requires.of(SimilarityKind.class)`), and `Requires.anyOf(...)` over either. Its record line is generated from the family's label. Every feature belongs to one `FeatureFamily`, which lives with the data and decides presence: `representation/RepresentationKindFamily`, `similarity/kind/SimilarityKindFamily` (shares IDToEntity and Accesses), `refactoring/servicesRefactoring/AlgorithmOperationFamily`, `refactoring/domainKnowledge/expertKnowledge/ExpertKnowledgeFamily`. A feature's id is its class and its name its `@JsonTypeName`; `utils/SelfRegistration` scans features and families. `feature/` imports no module (D-022), and `FeatureRegistrationCheck` fails the boot when the families do not add up |
+<!-- prettier-ignore-end -->
 
 ## Extension points
 
-Every extensible axis is a `*Factory` dispatching on a type string:
-`RepresentationFactory`, `SimilarityFactory` / `SimilarityScipyFactory`,
-`ClusteringFactory`, `RecommendationFactory`, `WeightsFactory`,
-`RepresentationInformationFactory`.
+Some extensible axes are still a `*Factory` dispatching on a type string:
+`RepresentationFactory` and `RecommendationFactory`. The others register themselves:
+Similarity types through their request DTOs, algorithm operations and `Weights` by the
+self-registration scan, and manual operations through the `ManualOperationHandlers`
+registry (D-014).
 
-The Python side documents its own seam in `scripts/main.py:20`:
+The Python side documents its own seam in `scripts/main.py`:
 
 ```python
 # To add different algorithms, create a new router and include it here
@@ -168,17 +410,39 @@ The Python side documents its own seam in `scripts/main.py:20`:
 
 ### New clustering algorithm
 
-1. Subclass `<pkg>/clusteringAlgorithm/Clustering.java` — implement
-   `generateDecomposition`, `getType`, `getAlgorithmSupportedStrategyTypes`.
-2. Register in `ClusteringFactory` — **both** the `switch` **and** the
-   `algorithmTypes` list. The frontend reads that list via
-   `GET /mono2micro/clustering/{algorithmType}/getAlgorithmSupportedStrategyTypes`.
-3. New numerics: add a router in `scripts/`, `include_router` it in `scripts/main.py`,
-   call it over `WebClient` the way `SciPyClustering` does.
+1. Subclass `<pkg>/refactoring/servicesRefactoring/AlgorithmOperation.java` in
+   `algorithms/` — its parameters as plain fields, a no-arg constructor, and
+   `apply(similarity)` returning a new, unsaved `ClusterRepresentation` measured with the
+   Similarity. Annotate it `@JsonTypeName` (the scan refuses an unnamed one at startup):
+   that name is also the request's `type`, so `POST /similarities/{id}/operations` runs it
+   with no new endpoint. Declare what it needs in `requirements()`.
+   `Requires.of(SimilarityKind.class)` accepts every kind, as SciPy does; a kind's class,
+   or a `Requires.anyOf` of several, accepts only those. `AlgorithmOperationFamily` claims
+   the new class without an edit.
+2. New numerics: add a router in `scripts/`, `include_router` it in `scripts/main.py`,
+   call it over `WebClient` the way `SciPyOperation` does.
+3. Frontend: its form, under its name in `operationForms` in `Decompositions.js`. The
+   screen shows the forms of the operations the Similarity's record offers.
 
-`getAlgorithmSupportedStrategyTypes()` is how "not every algorithm supports every
-strategy" is expressed — the code-level counterpart of the feature model's cross-tree
-constraints.
+That requirement is how "not every algorithm supports every Similarity kind" is
+expressed: the shared availability check reads it with the Similarity as input, whose
+kind the Similarity-kind family reads from its `kindName`
+(`FamilyScanTest.sciPyAcceptsASimilarityOfEveryKindTheFamilyFinds` asks it once per kind).
+
+### New manual operation
+
+1. `<pkg>/operation/xxx/XxxOperation.java` — subclass `Operation`, its fields and
+   `getOperationType()`, and an entry in `Operation`'s `@JsonSubTypes`.
+2. `<pkg>/operation/xxx/XxxPartitionsHandler.java` — implement `ManualOperationHandler`
+   for `PartitionsClusterRepresentation`: `apply` and `undo`, neither touching the history. The
+   scan registers it.
+3. Frontend: its type string beside the others `ClusterView.js` sends (`OperationTypes`),
+   and the dialog that builds its body. It posts to the one
+   `POST /decomposition/{id}/operations` endpoint, which needs no edit.
+
+A new cluster kind (a `ClusterRepresentation` subclass) needs a handler only for the operations
+whose partition code is wrong for it; the rest fall back. `ManualOperationHandlerCheck`
+stops the boot if any pair is left uncovered.
 
 ### New metric
 
@@ -187,33 +451,52 @@ constraints.
    `RepresentationInformation.getDecompositionMetrics()` — `AccessesInformation`,
    `RepositoryInformation`, or `StructureInformation`.
 
-`PartitionsDecomposition.calculateMetrics()` then collects it automatically. Because
+`PartitionsClusterRepresentation.calculateMetrics()` then collects it automatically. Because
 metrics live in a `Map<String,Object>`, no schema change is needed — but the frontend
 must know the key to display it.
 
 ### New representation
 
-New subclass in `<pkg>/representation/domain/` with a type constant → case in
+New subclass in `<pkg>/representation/analytical/domain/` with a type constant, annotated
+`@JsonTypeName` with it so `RepresentationKindFamily` finds it, and overriding `readUnits`
+if a profile can select its units → case in
 `RepresentationFactory` → entry in `Representation.representationGroupToRepresentations`
 → matching `RepresentationInformation` subclass + factory case → frontend
 `models/representation/files/` + `RepresentationFactory.ts`.
 
-### New similarity generator — budget for ~9 files
+### New Similarity kind
 
-The type string is duplicated across five registries and mirrored in TypeScript:
+A kind computed by an existing `SimilarityScipy` type (another weighting of the Accesses
+family, say) needs one place, two with new weight dimensions:
 
-1. `<pkg>/similarity/domain/SimilarityScipyXxx.java` — subclass `SimilarityScipy`
-2. `<pkg>/similarity/domain/SimilarityFactory.java` — case
-3. `<pkg>/similarity/domain/SimilarityScipyFactory.java` — case
-4. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` + `@JsonSubTypes` in `SimilarityDto.java`
-5. `<pkg>/recommendation/domain/RecommendationsType.java` + `RecommendationFactory`
-6. `<pkg>/strategy/domain/Strategy.java` — constant + entries in **both** static maps
-7. `<pkg>/clusteringAlgorithm/SciPyClustering.java` — add to `getAlgorithmSupportedStrategyTypes()`
-8. If new weight dimensions: `.../weights/XxxWeights.java` + `@JsonSubTypes` in
-   `Weights.java` + `WeightsFactory` case
-9. Frontend: `models/similarity/` + `SimilarityFactory.ts`, `StrategyTypes.ts`,
-   `RecommendationTypes.ts` + `RecommendationFactory.ts`, `models/weights/` +
-   `WeightsFactory.ts`, a form under `components/similarity/forms/`
+1. `<pkg>/similarity/kind/XxxKind.java` — subclass `SimilarityKind`, its name as
+   `@JsonTypeName`, `requirements()` for what it needs beyond the IDToEntity and Accesses
+   representations its family shares, `similarityType()`, `informationBlocks()` and
+   `defaultWeights()`, which also fix the weights types a request must send; `settings()` for the `SimilaritySetting`s its request takes, `scopedRepresentationType()` if a profile can scope it, and
+   `requiresClusterTypeConversion()` if its recommendation's clusters need it.
+   `SimilarityKindFamily` finds it, SciPy accepts it, `Profile` offers itself for it, and the
+   frontend's one `SimilarityForm` renders it from `GET /similarityKinds/{name}`, all with no edit
+2. If new weight dimensions: `.../weights/XxxWeights.java` — `@JsonTypeName`; the scan makes
+   it a JSON subtype and `WeightsFactory` builds it by name; and its frontend twin under
+   `models/weights/`
+
+A kind with a new computation also needs its type string in these registries:
+
+3. `<pkg>/similarity/domain/SimilarityScipyXxx.java` — subclass `SimilarityScipy`, with
+   `toDto()` returning its DTO
+4. `<pkg>/similarity/dto/SimilarityScipyXxxDto.java` — `@JsonTypeName`; the self-registration
+   scan makes it a JSON subtype of `SimilarityDto` (`JsonSubtypeConfiguration`), and its
+   `newSimilarity(representations)` builds the Similarity, so no factory needs a case. A
+   recommendation builds its candidates' requests as this JSON, so the DTO's field names are
+   the settings a recommendation sends (`RecommendMatrixSciPy.candidateRequest`). Whether a
+   recommendation can save the candidates is the kind's `savesRecommendationCandidates()`
+   (false for the vectorization kinds: Gap 9, D-027)
+5. Frontend: `models/similarity/` + `SimilarityFactory.ts` (the Similarity's card). If its
+   request takes a setting no kind took before: a `SimilaritySetting` constant, in the backend
+   enum and its twin in `models/similarity/SimilarityKindDescription.ts`, and the setting's field
+   in `components/similarity/forms/SimilarityForm.js`. The form only collects the settings and
+   calls `onSubmit(request)`, showing the `status` it is passed; `SoftwareSystemPage` creates
+   the Similarity and turns a refusal into that status (`similarityCreationStatus.js`)
 
 Miss one and the variant fails at runtime rather than compile time. This fan-out is a
 known finding, not an accident of your change — see
@@ -243,13 +526,13 @@ export const REFACTORIZATION_TOOL_URL = "http://localhost:5001/api/v1/";
 Eight independent projects under `collectors/`, each with its own build — no shared
 build system. Read the collector's own README before building it.
 
-| Collector | Build |
-|---|---|
+| Collector                                                                          | Build                                              |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------- |
 | `spoon-callgraph`, `structure-collector`, `code2vec-callgraph`, `codeql-collector` | Maven (`mvn compile exec:java`, GUI/prompt driven) |
-| `commit-collection` | Python (poetry + requirements.txt) |
-| `dynamic-collection` | AspectJ |
-| `java-callgraph` | Python scripts (ECSA2019 artifact) |
-| `eclipse-plugin-callgraph` | Eclipse plugin |
+| `commit-collection`                                                                | Python (poetry + requirements.txt)                 |
+| `dynamic-collection`                                                               | AspectJ                                            |
+| `java-callgraph`                                                                   | Python scripts (ECSA2019 artifact)                 |
+| `eclipse-plugin-callgraph`                                                         | Eclipse plugin                                     |
 
 `codeql-collector` is the newest and most active — Django, Rails, SpringDataJPA,
 FenixFramework.
@@ -259,7 +542,12 @@ FenixFramework.
 - Default branch is `master`. The fork tracks
   `git@github.com:ana-mc-almeida/mono2micro.git`.
 - `codebases/` is a runtime volume — keep it empty for backend packaging.
-- Adding a variant means registering it in **every** factory that knows the concept;
-  grep for an existing type string to find them all.
+- Adding a variant of a self-registered axis (see "Extension points") means adding its
+  classes, with no list to edit. For an axis still behind a `*Factory`, register it in
+  **every** factory that knows the concept; grep for an existing type string to find them
+  all, frontend `*Factory.ts` files included.
 - When a change relates to a feature-model axis, use the model's vocabulary in
   commits and comments, and note the outcome in `../implementation/docs/decisions.md`.
+- Comments and this file cite code by class or member (`{@code MergePartitionsHandler.merge}`,
+  `MoJo.showerrormsg()`), never by line number: line numbers go stale silently whenever
+  the file above them changes.

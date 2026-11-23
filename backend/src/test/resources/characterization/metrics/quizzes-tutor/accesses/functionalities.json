@@ -1,0 +1,552 @@
+{
+  "AdministrationController.createCourseExecution" : {
+    "metrics" : {
+      "Complexity" : 126.0,
+      "Performance" : 14.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 51,
+        "System Complexity" : 78
+      }
+    }
+  },
+  "AdministrationController.getCourseExecutions" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "AdministrationController.removeCourseExecution" : {
+    "metrics" : {
+      "Complexity" : 62.0,
+      "Performance" : 9.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 24,
+        "System Complexity" : 33
+      }
+    }
+  },
+  "AssessmentController.assessmentSetStatus" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 3,
+        "System Complexity" : 6
+      }
+    }
+  },
+  "AssessmentController.createAssessment" : {
+    "metrics" : {
+      "Complexity" : 174.0,
+      "Performance" : 33.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 13,
+        "System Complexity" : 97
+      }
+    }
+  },
+  "AssessmentController.getAvailableAssessments" : {
+    "metrics" : {
+      "Complexity" : 11.0,
+      "Performance" : 3.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 2
+      }
+    }
+  },
+  "AssessmentController.getExecutionCourseAssessments" : {
+    "metrics" : {
+      "Complexity" : 9.0,
+      "Performance" : 2.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 2
+      }
+    }
+  },
+  "AssessmentController.removeAssessment" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 7,
+        "System Complexity" : 10
+      }
+    }
+  },
+  "AssessmentController.updateAssessment" : {
+    "metrics" : {
+      "Complexity" : 237.0,
+      "Performance" : 51.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 141,
+        "System Complexity" : 122
+      }
+    }
+  },
+  "AuthController.demoAdminAuth" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 9,
+        "System Complexity" : 8
+      }
+    }
+  },
+  "AuthController.demoStudentAuth" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 9,
+        "System Complexity" : 8
+      }
+    }
+  },
+  "AuthController.demoTeacherAuth" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 9,
+        "System Complexity" : 8
+      }
+    }
+  },
+  "AuthController.fenixAuth" : {
+    "metrics" : {
+      "Complexity" : 32.0,
+      "Performance" : 4.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 28,
+        "System Complexity" : 7
+      }
+    }
+  },
+  "CourseController.createCourseExecution" : {
+    "metrics" : {
+      "Complexity" : 138.0,
+      "Performance" : 16.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 78,
+        "System Complexity" : 78
+      }
+    }
+  },
+  "CourseController.getCourseExecutions" : {
+    "metrics" : {
+      "Complexity" : 14.0,
+      "Performance" : 2.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 6
+      }
+    }
+  },
+  "CourseController.getCourseStudents" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "ImportExportController.exportAll" : {
+    "metrics" : {
+      "Complexity" : 119.0,
+      "Performance" : 12.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 140,
+        "System Complexity" : 69
+      }
+    }
+  },
+  "ImportExportController.importAll" : {
+    "metrics" : {
+      "Complexity" : 422.0,
+      "Performance" : 47.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 142,
+        "System Complexity" : 351
+      }
+    }
+  },
+  "QuestionController.createQuestion" : {
+    "metrics" : {
+      "Complexity" : 110.0,
+      "Performance" : 13.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 98,
+        "System Complexity" : 40
+      }
+    }
+  },
+  "QuestionController.exportQuestions" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "QuestionController.getAvailableQuestions" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "QuestionController.getCourseQuestions" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "QuestionController.getQuestion" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "QuestionController.questionSetStatus" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 7,
+        "System Complexity" : 16
+      }
+    }
+  },
+  "QuestionController.removeQuestion" : {
+    "metrics" : {
+      "Complexity" : 72.0,
+      "Performance" : 9.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 14,
+        "System Complexity" : 38
+      }
+    }
+  },
+  "QuestionController.updateQuestion" : {
+    "metrics" : {
+      "Complexity" : 102.0,
+      "Performance" : 13.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 76,
+        "System Complexity" : 23
+      }
+    }
+  },
+  "QuestionController.updateQuestionTopics" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 8,
+        "System Complexity" : 28
+      }
+    }
+  },
+  "QuestionController.uploadImage" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 18,
+        "System Complexity" : 22
+      }
+    }
+  },
+  "QuizController.createQuiz" : {
+    "metrics" : {
+      "Complexity" : 164.0,
+      "Performance" : 19.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 88,
+        "System Complexity" : 107
+      }
+    }
+  },
+  "QuizController.deleteQuiz" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 15,
+        "System Complexity" : 42
+      }
+    }
+  },
+  "QuizController.exportQuiz" : {
+    "metrics" : {
+      "Complexity" : 50.0,
+      "Performance" : 5.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 65,
+        "System Complexity" : 31
+      }
+    }
+  },
+  "QuizController.findNonGeneratedQuizzes" : {
+    "metrics" : {
+      "Complexity" : 99.0,
+      "Performance" : 13.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 10
+      }
+    }
+  },
+  "QuizController.getQuiz" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "QuizController.getQuizAnswers" : {
+    "metrics" : {
+      "Complexity" : 23.0,
+      "Performance" : 3.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 28,
+        "System Complexity" : 8
+      }
+    }
+  },
+  "QuizController.updateQuiz" : {
+    "metrics" : {
+      "Complexity" : 156.0,
+      "Performance" : 19.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 8,
+        "System Complexity" : 92
+      }
+    }
+  },
+  "StatementController.concludeQuiz" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 18,
+        "System Complexity" : 18
+      }
+    }
+  },
+  "StatementController.getAvailableQuizzes" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 18,
+        "System Complexity" : 53
+      }
+    }
+  },
+  "StatementController.getNewQuiz" : {
+    "metrics" : {
+      "Complexity" : 359.0,
+      "Performance" : 44.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 66,
+        "System Complexity" : 212
+      }
+    }
+  },
+  "StatementController.getQuizByQRCode" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 28,
+        "System Complexity" : 53
+      }
+    }
+  },
+  "StatementController.getSolvedQuizzes" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "StatementController.startQuiz" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 13,
+        "System Complexity" : 10
+      }
+    }
+  },
+  "StatementController.submitAnswer" : {
+    "metrics" : {
+      "Complexity" : 120.0,
+      "Performance" : 17.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 63,
+        "System Complexity" : 63
+      }
+    }
+  },
+  "StatsController.getStats" : {
+    "metrics" : {
+      "Complexity" : 42.0,
+      "Performance" : 4.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 12
+      }
+    }
+  },
+  "TopicController.createTopic" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 23,
+        "System Complexity" : 25
+      }
+    }
+  },
+  "TopicController.getCourseTopics" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Inconsistency Complexity" : 0
+      }
+    }
+  },
+  "TopicController.removeTopic" : {
+    "metrics" : {
+      "Complexity" : 40.0,
+      "Performance" : 5.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 19,
+        "System Complexity" : 52
+      }
+    }
+  },
+  "TopicController.updateTopic" : {
+    "metrics" : {
+      "Complexity" : 0.0,
+      "Performance" : 1.0
+    },
+    "redesigns" : {
+      "Monolith Trace" : {
+        "Functionality Complexity" : 5,
+        "System Complexity" : 12
+      }
+    }
+  }
+}

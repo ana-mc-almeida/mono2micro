@@ -7,5 +7,5 @@ To run the analysis scripts
 4. Execute the python scripts for each one of the analysis
 5. For the python scripts that use the MojoFM algorithm, (`7_dendogram_evolution_analysis_MoJoFM_BeforeIncrementingN.py`,
 `7_dendogram_evolution_analysis_MoJoFM_TransformNintoNPlus1.py` and `9_static_vs_dynamic_bestDecompositions.py`) it is 
-   necessary that it the script in `backend/src/main/java/pt/ist/socialsoftware/mono2micro/utils/mojoCalculator/` is running,
+   necessary that it the script in `backend/src/main/java/pt/ist/socialsoftware/mono2micro/qualityAssessment/metrics/severalDecompositions/mojo/` is running,
    therefore, execute the commmnd `mvn exec:java`

@@ -5,6 +5,7 @@ import {URL} from "../../constants/constants"
 import React from "react";
 import {WeightsFactory} from "../weights/WeightsFactory";
 import Weights from "../weights/Weights";
+import {similarityBase} from "../../services/similarityRoutes";
 
 const SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES = 'SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES';
 export {SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES};
@@ -21,10 +22,10 @@ export default class SimilarityScipyFunctionalityVectorizationBySequenceOfAccess
     }
 
     printCard(handleDeleteSimilarity: (similarity: Similarity) => void): JSX.Element {
-        return <Card key={this.name} className="mb-4" style={{ width: '20rem' }}>
+        return <Card key={this.id} className="mb-4" style={{ width: '20rem' }}>
             <Card.Img
                 variant="top"
-                src={URL + "/similarity/" + this.name + "/image?" + new Date().getTime()}
+                src={URL + "/similarity/" + this.id + "/image?" + new Date().getTime()}
             />
             <Card.Body>
                 <Card.Title>{this.name}</Card.Title>
@@ -34,7 +35,7 @@ export default class SimilarityScipyFunctionalityVectorizationBySequenceOfAccess
                         Object.entries(weights.weightsLabel).map(([key, value]) => <span key={key}>{value + ": " + weights[key] + "%"} <br/></span>)
                     )}
                 </Card.Text>
-                <Button href={`/codebases/${this.codebaseName}/${this.strategyName}/${this.name}/decomposition`}
+                <Button href={`${similarityBase(this.softwareSystemId)}/${this.id}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

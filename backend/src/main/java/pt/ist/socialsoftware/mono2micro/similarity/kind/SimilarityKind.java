@@ -1,0 +1,101 @@
+package pt.ist.socialsoftware.mono2micro.similarity.kind;
+
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * One of the eight Similarity kinds the tool offers (with Repository alone and Accesses and Repository apart, D-026), as a feature that declares what a
+ * software system must have collected before the kind can be offered.
+ *
+ * <p>A kind is not a {@code SimilarityScipy*} class. Those six classes compute the matrices and
+ * stay fused (Gap 5, D-009), and one of them, {@code SimilarityScipyAccessesAndRepository},
+ * computes three kinds. So each kind is its own small class, named by its {@code @JsonTypeName} and
+ * found by the self-registration scan (D-021), and it names the class that computes it with {@link #similarityType()}. The kinds are one
+ * {@link SimilarityKindFamily}, which shares the requirements every kind has.
+ */
+public abstract class SimilarityKind implements VariableFeature {
+
+	/** The type of the {@code SimilarityScipy*} class that computes this kind, which a request for the kind must use. */
+	public abstract String similarityType();
+
+	/**
+	 * The information blocks a decomposition gets when it is clustered from a Similarity of this kind, built afresh on each call.
+	 *
+	 * <p>Provisional (D-019 point 5): a plain method, not a requirement, replacing the map it came from. Every kind keeps Accesses.
+	 */
+	public abstract List<RepresentationInformation> informationBlocks();
+
+	/**
+	 * The weights a Similarity of this kind is computed with, in order, at the values its form starts from; built afresh on each call, since
+	 * a form edits them (D-029). Empty for a kind computed without weights.
+	 */
+	public abstract List<Weights> defaultWeights();
+
+	/**
+	 * The types of the {@link #defaultWeights()}: the kind fixes its criteria (D-013), so a request for it must send exactly these, in order.
+	 */
+	public List<String> weightsTypes() {
+		return defaultWeights().stream().map(Weights::getType).collect(Collectors.toList());
+	}
+
+	/** The settings a request for this kind takes besides its linkage type, its profile and its weights, in the order its form shows them. */
+	public List<SimilaritySetting> settings() {
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Refuses a request that sends other weights than this kind is computed with (D-013): with them it would compute another kind under this
+	 * one's name.
+	 *
+	 * @throws IllegalArgumentException
+	 * if {@code requestedWeightsTypes} are not this kind's {@link #weightsTypes()}, in order
+	 */
+	public void requireWeights(List<String> requestedWeightsTypes) {
+		if (!weightsTypes().equals(requestedWeightsTypes))
+			throw new IllegalArgumentException("The " + SelfRegistration.nameOf(this) + " kind is computed with the weights " + weightsTypes()
+					+ ", not " + requestedWeightsTypes + ".");
+	}
+
+	/**
+	 * The type of the representation whose units a profile of this kind selects, or null when the kind takes no profile (D-017: each kind
+	 * declares whether a profile can scope it).
+	 */
+	public String scopedRepresentationType() {
+		return null;
+	}
+
+	/**
+	 * Whether a recommendation of this kind clusters something other than entities, such as classes or functionalities, so its candidates'
+	 * clusters must be converted to clusters of entities.
+	 */
+	public boolean requiresClusterTypeConversion() {
+		return false;
+	}
+
+	/**
+	 * Whether a recommendation of this kind can save the candidates it computes. The vectorization kinds cannot: a known defect inherited from
+	 * upstream (Gap 9, D-027), fixed in Phase 2.
+	 */
+	public boolean savesRecommendationCandidates() {
+		return true;
+	}
+
+	/**
+	 * The kind named {@code name}.
+	 *
+	 * @throws IllegalArgumentException
+	 * if no kind has that name
+	 */
+	public static SimilarityKind getByName(String name) {
+		SimilarityKind kind = SelfRegistration.prototypes(SimilarityKind.class).get(name);
+		if (kind == null)
+			throw new IllegalArgumentException("No Similarity kind is named \"" + name + "\"");
+		return kind;
+	}
+}

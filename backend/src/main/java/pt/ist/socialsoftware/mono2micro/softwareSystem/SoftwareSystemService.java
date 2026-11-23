@@ -1,0 +1,105 @@
+package pt.ist.socialsoftware.mono2micro.softwareSystem;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.repository.ClusterRepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
+import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
+
+import javax.management.openmbean.KeyAlreadyExistsException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+public class SoftwareSystemService {
+
+	@Autowired
+	RepresentationService representationService;
+
+	@Autowired
+	SoftwareSystemRepository softwareSystemRepository;
+
+	@Autowired
+	RepresentationRepository representationRepository;
+
+	@Autowired
+	SimilarityService similarityService;
+
+	@Autowired
+	RecommendationService recommendationService;
+
+	@Autowired
+	ClusterRepresentationRepository clusterRepresentationRepository;
+
+	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
+		if (softwareSystemRepository.existsByName(softwareSystemName))
+			throw new KeyAlreadyExistsException();
+		return softwareSystemRepository.save(new SoftwareSystem(softwareSystemName));
+	}
+
+	public Map<String, List<String>> getRepresentationGroups() {
+		return Representation.representationGroupToRepresentations;
+	}
+
+	public List<String> getSoftwareSystemRepresentationGroups(String softwareSystemId) {
+		Set<String> representationTypes = representationKinds(softwareSystemId);
+
+		return Representation.representationGroupToRepresentations.entrySet().stream()
+				.filter(entry -> representationTypes.containsAll(entry.getValue()))
+				.map(Map.Entry::getKey)
+				.collect(Collectors.toList());
+	}
+
+	public List<SoftwareSystem> getSoftwareSystems() {
+		return softwareSystemRepository.getSoftwareSystems();
+	}
+
+	public SoftwareSystem getSoftwareSystemById(String softwareSystemId) {
+		return softwareSystemRepository.getById(softwareSystemId);
+	}
+
+	public List<RepresentationDto> getRepresentationTypes(String softwareSystemId) {
+		return RepresentationDtoFactory.getFactory().getRepresentationDtos(getRepresentations(softwareSystemId));
+	}
+
+	/** The representations the software system uploaded; its cluster representations are listed by Similarity. */
+	public List<Representation> getRepresentations(String softwareSystemId) {
+		return representationRepository.findUploadedBySoftwareSystemId(softwareSystemId);
+	}
+
+	/** The decompositions of the software system: those of its Similarities. */
+	public List<ClusterRepresentation> getDecompositions(String softwareSystemId) {
+		return similarityService.getSimilarities(softwareSystemId).stream()
+				.flatMap(similarity -> clusterRepresentationRepository.findBySimilarityId(similarity.getId()).stream())
+				.collect(Collectors.toList());
+	}
+
+	public void deleteSoftwareSystem(String softwareSystemId) {
+		SoftwareSystem softwareSystem = getSoftwareSystemById(softwareSystemId);
+		for (Similarity similarity : similarityService.getSimilarities(softwareSystemId))
+			similarityService.deleteSimilarity(similarity);
+		for (Recommendation recommendation : recommendationService.getRecommendations(softwareSystemId))
+			recommendationService.deleteRecommendation(recommendation);
+		for (Representation representation : representationRepository.findBySoftwareSystemId(softwareSystemId))
+			representationService.deleteRepresentation(representation.getId());
+		softwareSystemRepository.delete(softwareSystem);
+	}
+
+	private Set<String> representationKinds(String softwareSystemId) {
+		return representationRepository.findUploadedBySoftwareSystemId(softwareSystemId).stream()
+				.map(Representation::getType)
+				.collect(Collectors.toSet());
+	}
+}

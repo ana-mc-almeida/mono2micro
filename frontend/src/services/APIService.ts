@@ -7,20 +7,22 @@ import {
     ComparisonToolDto,
     Cluster,
     LocalTransactionsGraph,
-    RefactorCodebase,
+    RefactorSoftwareSystem,
     Edges
 } from "../type-declarations/types";
 import { addSearchParamsToUrl } from "../utils/url";
 import {RepresentationFactory} from "../models/representation/RepresentationFactory";
 import Similarity from "../models/similarity/Similarity";
 import {SimilarityFactory} from "../models/similarity/SimilarityFactory";
-import {DecompositionFactory} from "../models/decompositions/DecompositionFactory";
-import Decomposition from "../models/decompositions/Decomposition";
-import Codebase from "../models/codebase/Codebase";
+import {ClusterRepresentationFactory} from "../models/clusterRepresentations/ClusterRepresentationFactory";
+import ClusterRepresentation from "../models/clusterRepresentations/ClusterRepresentation";
+import SoftwareSystem from "../models/softwareSystem/SoftwareSystem";
 import {RecommendationFactory} from "../models/recommendation/RecommendationFactory";
 import Recommendation from "../models/recommendation/Recommendation";
 import Representation from "../models/representation/Representation";
-import Strategy from "../models/strategy/Strategy";
+import {availableNames, DerivationRecord} from "../models/feature/DerivationRecord";
+import {WeightsFactory} from "../models/weights/WeightsFactory";
+import {SimilarityKindDescription} from "../models/similarity/SimilarityKindDescription";
 
 export class APIService {
     axios: AxiosInstance;
@@ -46,22 +48,22 @@ export class APIService {
     }
 
     //Analysis
-    analysis(decomposition1Name: string, decomposition2Name: string) {
-        return this.axios.post<ComparisonToolDto>("/comparison/" + decomposition1Name + "/" + decomposition2Name);
+    analysis(decomposition1Id: string, decomposition2Id: string) {
+        return this.axios.post<ComparisonToolDto>("/comparison/" + decomposition1Id + "/" + decomposition2Id);
     }
 
     // Recommendation
     recommendation(
-        requestedStrategyRecommendation: Recommendation
+        requestedRecommendation: Recommendation
     ) {
-        return this.axios.put("recommendation/createRecommendation", requestedStrategyRecommendation)
+        return this.axios.put("recommendation/createRecommendation", requestedRecommendation)
             .then((response) => {return RecommendationFactory.getRecommendation(response.data)});
     }
 
     getRecommendationResult(
-        recommendationName: string
+        recommendationId: string
     ) {
-        return this.axios.get("/recommendation/" + recommendationName + "/getRecommendationResult")
+        return this.axios.get("/recommendation/" + recommendationId + "/getRecommendationResult")
             .then(response => {
                 if (response.data === "")
                     return [];
@@ -70,7 +72,7 @@ export class APIService {
     }
 
     createRecommendationDecompositions(
-        recommendationName: string,
+        recommendationId: string,
         decompositionNames: string[]
     ) {
         const data = new FormData();
@@ -80,49 +82,67 @@ export class APIService {
         // unfortunately, this is needed so that data.append does not interpret the commas as an array separation
         data.append('decompositionNames', "");
 
-        return this.axios.post<null>("/recommendation/" + recommendationName + "/createDecompositions", data);
+        return this.axios.post<null>("/recommendation/" + recommendationId + "/createDecompositions", data);
     }
 
-    //Codebases
-    getCodebases() {
-        return this.axios.get("/codebases").then(response => response.data.map((codebase:any) => new Codebase(codebase)));
+    //Software Systems
+    getSoftwareSystems() {
+        return this.axios.get("/softwareSystems").then(response => response.data.map((softwareSystem:any) => new SoftwareSystem(softwareSystem)));
     }
 
-    getCodebase(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName).then(response => new Codebase(response.data));
+    getSoftwareSystem(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId).then(response => new SoftwareSystem(response.data));
     }
 
-    getCodebaseStrategies(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/getCodebaseStrategies")
-            .then(response => {return response.data.map((strategy:any) => new Strategy(strategy))});
+    getSoftwareSystemDecompositions(softwareSystemId: string) {
+        return this.axios.get<ClusterRepresentation[]>("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemDecompositions");
     }
 
-    getCodebaseDecompositions(codebaseName: string) {
-        return this.axios.get<Decomposition[]>("/codebase/" + codebaseName + "/getCodebaseDecompositions");
+    deleteSoftwareSystem(softwareSystemId: string) {
+        return this.axios.delete<null>("/softwareSystems/" + softwareSystemId + "/delete");
     }
 
-    deleteCodebase(name: string) {
-        return this.axios.delete<null>("/codebase/" + name + "/delete");
-    }
-
-    createCodebase(codebaseName: string) {
+    createSoftwareSystem(softwareSystemName: string) {
         const data = new FormData();
-        data.append('codebaseName', codebaseName);
-        return this.axios.post<null>("/codebase/create", data);
+        data.append('softwareSystemName', softwareSystemName);
+        return this.axios.post("/softwareSystems/create", data);
     }
 
-    getCodebaseRepresentationGroups(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/getCodebaseRepresentationGroups");
+    getSoftwareSystemRepresentationGroups(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemRepresentationGroups");
     }
 
     getRepresentationGroups() {
-        return this.axios.get("/codebase/getRepresentationGroups");
+        return this.axios.get("/softwareSystems/getRepresentationGroups");
+    }
+
+    // Whether a profile is offered for a Similarity of the kind: the Profile feature's derivation record (D-017).
+    isProfileOffered(softwareSystemId: string, kindName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/profiles/available", {params: {kindName}}).then(
+            response => availableNames(response.data).length > 0);
+    }
+
+    // The profiles a Similarity of the kind can be scoped by: those of the representation the backend says the kind scopes.
+    getOfferedProfiles(softwareSystemId: string, kindName: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/profiles", {params: {kindName}}).then(
+            response => response.data);
+    }
+
+    // The types of the software system's representations whose cards link to their profiles.
+    getProfiledRepresentationTypes(softwareSystemId: string) {
+        return this.axios.get<string[]>("/softwareSystems/" + softwareSystemId + "/profiles/representationTypes").then(
+            response => response.data);
     }
 
     // Profiles
-    addAccessesProfile(representationName: string, profile: string) {
-        return this.axios.post<null>(
-            "/representation/" + representationName + "/addAccessesProfile",
+    getProfiles(representationId: string) {
+        return this.axios.get<{ profiles: { id: string, name: string, units: string[] }[], unassigned: string[] }>(
+            "/representation/" + representationId + "/getProfiles");
+    }
+
+    addProfile(representationId: string, profile: string) {
+        return this.axios.post(
+            "/representation/" + representationId + "/addProfile",
             null,
             {
                 params: {
@@ -131,37 +151,31 @@ export class APIService {
             });
     }
 
-    moveAccessesFunctionalities(
-        representationName: string,
-        functionalities: string[],
-        targetProfile: string,
+    /** A null target moves the units to Unassigned. */
+    moveUnits(
+        representationId: string,
+        units: string[],
+        targetProfileId: string | null,
     ) {
         return this.axios.post<null>(
-            "/representation/" + representationName + "/moveAccessesFunctionalities",
-            functionalities,
+            "/representation/" + representationId + "/moveUnits",
+            units,
             {
-                params: {
-                    "targetProfile" : targetProfile
+                params: targetProfileId === null ? {} : {
+                    "targetProfileId" : targetProfileId
                 }
             }
         );
     }
 
-    deleteAccessesProfile(representationName: string, profile: string) {
-        return this.axios.delete<null>(
-            "/representation/" + representationName + "/deleteAccessesProfile",
-            {
-                params: {
-                    "profile" : profile
-                }
-            }
-        );
+    deleteProfile(profileId: string) {
+        return this.axios.delete<null>("/profile/" + profileId + "/delete");
     }
 
     //Representation
 
     addRepresentations(
-        codebaseName: string,
+        softwareSystemId: string,
         selectedRepresentationType: string,
         representations: Map<string, File>
     ) {
@@ -173,119 +187,97 @@ export class APIService {
         const data = new FormData();
         Object.entries(representations).forEach((entry) => {data.append("representationTypes", entry[0]); data.append("representations", entry[1])});
 
-        return this.axios.post<null>("/codebase/" + codebaseName + "/addRepresentations/" + selectedRepresentationType, data, config);
+        return this.axios.post<null>("/softwareSystems/" + softwareSystemId + "/addRepresentations/" + selectedRepresentationType, data, config);
     }
 
-    getRepresentations(codebaseName: string) {
-        return this.axios.get<Representation[]>("/codebase/" + codebaseName + "/getRepresentations")
+    getRepresentations(softwareSystemId: string) {
+        return this.axios.get<Representation[]>("/softwareSystems/" + softwareSystemId + "/getRepresentations")
             .then((response) => RepresentationFactory.getRepresentations(response.data));
     }
 
-    getCodebaseRepresentation(codebaseName: string, representationType: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/representation/" + representationType + "/getCodebaseRepresentation")
+    getSoftwareSystemRepresentation(softwareSystemId: string, representationType: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/representation/" + representationType + "/getSoftwareSystemRepresentation")
             .then((response) => RepresentationFactory.getRepresentation(response.data));
     }
 
-    getRepresentation(representationName: string) {
-        return this.axios.get("/representation/" + representationName + "/getRepresentation")
+    getRepresentation(representationId: string) {
+        return this.axios.get("/representation/" + representationId + "/getRepresentation")
             .then((response) => RepresentationFactory.getRepresentation(response.data));
     }
 
-    deleteRepresentation(id: string) {
-        return this.axios.delete<null>("/representation/" + id + "/delete");
+    deleteRepresentation(representationId: string) {
+        return this.axios.delete<null>("/representation/" + representationId + "/delete");
     }
 
-    getIdToEntity(codebaseName: string) {
-        return this.axios.get<string>("/representation/" + codebaseName + "/getIdToEntity");
+    getIdToEntity(softwareSystemId: string) {
+        // FIXME (ticket 07): takes a software system name under /representation; move with the backend route
+        return this.axios.get<string>("/representation/" + softwareSystemId + "/getIdToEntity");
     }
 
 
     //Similarities
-    deleteSimilarity(similarityName: string) {
-        return this.axios.delete<null>("/similarity/" + similarityName + "/delete");
+    deleteSimilarity(similarityId: string) {
+        return this.axios.delete<null>("/similarity/" + similarityId + "/delete");
     }
 
-    getSimilarity(similarityName: string) {
-        return this.axios.get("/similarity/" + similarityName + "/getSimilarity").then(
+    getSimilarity(similarityId: string) {
+        return this.axios.get("/similarity/" + similarityId + "/getSimilarity").then(
             response => { return SimilarityFactory.getSimilarity(response.data); });
     }
 
-    createSimilarity(similarity: Similarity) {
-        return this.axios.post<null>("/similarity/create", similarity);
+    // A Similarity of a kind, on the software system. A kind the software system does not offer is refused with 422, and a type or
+    // weights the kind is not computed with with 400.
+    createSimilarity(softwareSystemId: string, similarity: Similarity) {
+        return this.axios.post("/softwareSystems/" + softwareSystemId + "/similarities/create", similarity);
     }
 
-    getAllowableCodebaseStrategyTypes(codebaseName: string) {
-        return this.axios.get("/codebase/" + codebaseName + "/getAllowableCodebaseStrategyTypes");
+    // What the Similarity form needs to render a kind, which the backend's kind declares (D-029).
+    getSimilarityKind(kindName: string): Promise<SimilarityKindDescription> {
+        return this.axios.get("/similarityKinds/" + encodeURIComponent(kindName)).then(
+            response => ({...response.data, defaultWeights: WeightsFactory.getWeightsList(response.data.defaultWeights)}));
     }
 
-    getAlgorithmSupportedStrategyTypes(algorithmType: string) {
-        return this.axios.get("/clustering/" + algorithmType + "/getAlgorithmSupportedStrategyTypes");
+    // The names of the Similarity kinds the software system offers, from their derivation record (D-013).
+    getOfferedSimilarityKinds(softwareSystemId: string) {
+        return this.axios.get<DerivationRecord>("/softwareSystems/" + softwareSystemId + "/similarities/available").then(
+            response => availableNames(response.data));
     }
 
-
-    //Strategies
-    createStrategy(
-        codebaseName: string,
-        strategyRepresentations: string[],
-        strategyAlgorithm: string
-    ) {
-        const config = {
-            headers: {
-                'content-type': 'multipart/form-data'
-            }
-        }
-        const data = new FormData();
-        strategyRepresentations.forEach(repr => data.append("strategyTypes", repr));
-        data.append("algorithmType", strategyAlgorithm);
-
-        return this.axios.post<null>("/codebase/" + codebaseName + "/createStrategy", data, config);
-    }
-
-    getAlgorithms() {
-        return this.axios.get("/strategy/getAlgorithms");
-    }
-
-    getStrategySimilarities(strategyName: string) {
-        return this.axios.get("/strategy/" + strategyName + "/getStrategySimilarities").then(
+    // The Similarities made on the software system.
+    getSimilarities(softwareSystemId: string) {
+        return this.axios.get("/softwareSystems/" + softwareSystemId + "/similarities").then(
             response => response.data.map((similarity: any) => SimilarityFactory.getSimilarity(similarity)));
     }
 
-    getStrategyDecompositions(strategyName: string) {
-        return this.axios.get("/strategy/" + strategyName + "/getStrategyDecompositions").then(
-            response => response.data.map((decomposition: any) => DecompositionFactory.getDecomposition(decomposition)));
+    getEdgeWeights(decompositionId: string, viewType: string) {
+        return this.axios.get<Edges>("/decomposition/" + decompositionId + "/" + viewType + "/getEdgeWeights");
     }
 
-    getStrategy(strategyName: string) {
-        return this.axios.get("/strategy/" + strategyName + "/getStrategy").then(
-            response => new Strategy(response.data));
+    getGraphPositions(decompositionId: string) {
+        return this.axios.get("/positionHistory/" + decompositionId + "/getGraphPositions");
     }
 
-    deleteStrategy(strategyName: string) {
-        return this.axios.delete<null>("/strategy/" + strategyName + "/delete");
+    saveGraphPositions(decompositionId: string, graphPositions: any) {
+        return this.axios.post<null>("/positionHistory/" + decompositionId + "/saveGraphPositions", graphPositions);
     }
 
-    getEdgeWeights(decompositionName: string, viewType: string) {
-        return this.axios.get<Edges>("/decomposition/" + decompositionName + "/" + viewType + "/getEdgeWeights");
+    snapshotDecomposition(decompositionId: string) {
+        return this.axios.get<null>("/decomposition/" + decompositionId + "/snapshotDecomposition");
     }
 
-    getGraphPositions(decompositionName: string) {
-        return this.axios.get("/positionHistory/" + decompositionName + "/getGraphPositions");
+    /** The names of the algorithm operations the Similarity offers, from its derivation record (D-013). */
+    getAvailableOperationNames(similarityId: string) {
+        return this.axios.get<DerivationRecord>("/similarities/" + similarityId + "/operations/available").then(
+            response => availableNames(response.data));
     }
 
-    saveGraphPositions(decompositionName: string, graphPositions: any) {
-        return this.axios.post<null>("/positionHistory/" + decompositionName + "/saveGraphPositions", graphPositions);
-    }
-
-    snapshotDecomposition(decompositionName: string) {
-        return this.axios.get<null>("/decomposition/" + decompositionName + "/snapshotDecomposition");
-    }
-
-    createDecomposition(decompositionDto: any) {
-        return this.axios.post("/similarity/createDecomposition", decompositionDto);
+    /** Runs an algorithm operation on the Similarity; the request's type names the operation. */
+    runOperation(similarityId: string, operation: {type: string}) {
+        return this.axios.post<ClusterRepresentation>("/similarities/" + similarityId + "/operations", operation);
     }
 
     createExpertDecomposition(
-        similarityName: string,
+        similarityId: string,
         expertName: string,
         expertFile: any
     ) {
@@ -298,68 +290,68 @@ export class APIService {
         data.append('expertName', expertName);
         data.append('expertFile', expertFile);
 
-        return this.axios.post<null>("/similarity/" + similarityName + "/createExpertDecomposition", data, config);
+        return this.axios.post<null>("/similarity/" + similarityId + "/createExpertDecomposition", data, config);
     }
 
     //Decomposition
 
     getDecompositions(
-        similarityName: string
+        similarityId: string
     ) {
-        return this.axios.get<Decomposition[]>(
-            "/similarity/" + similarityName + "/decompositions",
+        return this.axios.get<ClusterRepresentation[]>(
+            "/similarities/" + similarityId + "/clusterRepresentations",
         ).then(responseList => {
             if (responseList.data.length == 0)
                 return responseList.data;
             return responseList.data.map((response: any) => {
-                return DecompositionFactory.getDecomposition(response);
+                return ClusterRepresentationFactory.getClusterRepresentation(response);
             });
         });
     }
 
     getDecomposition(
-        decompositionName: string
+        decompositionId: string
     ) {
-        return this.axios.get<Decomposition>("/decomposition/" + decompositionName)
-            .then(response => DecompositionFactory.getDecomposition(response.data));
+        return this.axios.get<ClusterRepresentation>("/decomposition/" + decompositionId)
+            .then(response => ClusterRepresentationFactory.getClusterRepresentation(response.data));
     }
 
     getClusters(
-        decompositionName: string
+        decompositionId: string
     ) {
-        return this.axios.get<Record<number, Cluster>>("/decomposition/" + decompositionName + "/getClusters");
+        return this.axios.get<Record<number, Cluster>>("/decomposition/" + decompositionId + "/getClusters");
     }
 
     updateDecomposition(
-        decompositionName: string
+        decompositionId: string
     ) {
-        return this.axios.get<Decomposition>(
-            "/decomposition/" + decompositionName + "/update"
+        return this.axios.get<ClusterRepresentation>(
+            "/decomposition/" + decompositionId + "/update"
         );
     }
 
-    async exportDecomposition(decompositionName: string) {
+    async exportDecomposition(decompositionId: string) {
         return await this.axios.get(
-            "/decomposition/" + decompositionName + "/export",
+            "/decomposition/" + decompositionId + "/export",
             {responseType: 'blob',}
         );
     }
 
     deleteDecomposition(
-        decompositionName: string
+        decompositionId: string
     ) {
         return this.axios.delete<null>(
-            "/decomposition/" + decompositionName + "/delete"
+            "/decomposition/" + decompositionId + "/delete"
         );
     }
 
     getLocalTransactionsGraphForFunctionality(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string
     ) {
         return this.axios.get<LocalTransactionsGraph>(
             addSearchParamsToUrl(
-                "/accesses/" + decompositionName + "/getLocalTransactionsGraphForFunctionality",
+                "/accesses/" + decompositionId + "/getLocalTransactionsGraphForFunctionality",
                 { functionalityName: functionalityName },
             )
         );
@@ -367,82 +359,53 @@ export class APIService {
 
     //Cluster
 
-    mergeClusters(
-        decompositionName: string,
+    applyOperation(
+        decompositionId: string,
         data: any
     ) {
-        return this.axios.post<null>(
-            "/decomposition/" + decompositionName + "/merge", data);
-    }
-
-    renameCluster(
-        decompositionName: string,
-        data: any
-    ) {
-        return this.axios.post<null>("/decomposition/" + decompositionName + "/rename", data);
-    }
-
-    splitCluster(
-        decompositionName: string,
-        data: any
-    ) {
-        return this.axios.post<null>("/decomposition/" + decompositionName + "/split", data);
-    }
-
-    formCluster(
-        decompositionName: string,
-        data: any
-    ) {
-        return this.axios.post<null>("/decomposition/" + decompositionName + "/formCluster", data);
-    }
-
-    transferEntities(
-        decompositionName: string,
-        data: any
-    ) {
-        return this.axios.post<null>("/decomposition/" + decompositionName + "/transfer", data);
+        return this.axios.post<null>("/decomposition/" + decompositionId + "/operations", data);
     }
 
     undoOperation(
-        decompositionName: string
+        decompositionId: string
     ) {
-        return this.axios.get("/history/" + decompositionName + "/undoOperation");
+        return this.axios.get("/history/" + decompositionId + "/undoOperation");
     }
 
     redoOperation(
-        decompositionName: string
+        decompositionId: string
     ) {
-        return this.axios.get("/history/" + decompositionName + "/redoOperation");
+        return this.axios.get("/history/" + decompositionId + "/redoOperation");
     }
 
     canUndoRedo(
-        decompositionName: string
+        decompositionId: string
     ) {
-        return this.axios.get<Record<string, Boolean>>("/history/" + decompositionName + "/canUndoRedo");
+        return this.axios.get<Record<string, Boolean>>("/history/" + decompositionId + "/canUndoRedo");
     }
 
     getFunctionalitiesAndFunctionalitiesClusters(
-        decompositionName: string,
+        decompositionId: string,
     ) {
         return this.axios.get<Record<string, any>>(
-            "/accesses/" + decompositionName + "/getFunctionalitiesAndFunctionalitiesClusters"
+            "/accesses/" + decompositionId + "/getFunctionalitiesAndFunctionalitiesClusters"
         );
     }
 
     getClustersAndClustersFunctionalities(
-        decompositionName: string
+        decompositionId: string
     ) {
         return this.axios.get<Record<string, any>>(
-            "/accesses/" + decompositionName + "/getClustersAndClustersFunctionalities"
+            "/accesses/" + decompositionId + "/getClustersAndClustersFunctionalities"
         );
     }
 
     getSearchItems(
-        decompositionName: string,
+        decompositionId: string,
         viewType: string
 ) {
         return this.axios.get<any[]>(
-            "/decomposition/" + decompositionName + "/" + viewType + "/getSearchItems"
+            "/decomposition/" + decompositionId + "/" + viewType + "/getSearchItems"
         );
     }
 
@@ -450,7 +413,7 @@ export class APIService {
     //FunctionalityRedesign
 
     addCompensating(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string,
         redesignName: string,
         clusterID: number,
@@ -458,7 +421,7 @@ export class APIService {
         fromID: string
     ) {
         return this.axios.post(
-            "/decomposition/" + decompositionName + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/addCompensating",
+            "/decomposition/" + decompositionId + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/addCompensating",
             {
                 fromID: fromID,
                 cluster : clusterID,
@@ -468,14 +431,14 @@ export class APIService {
     }
 
     sequenceChange(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string,
         redesignName: string,
         localTransaction: string,
         newCaller: string
     ) {
         return this.axios.post(
-            "/decomposition/" + decompositionName + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/sequenceChange",
+            "/decomposition/" + decompositionId + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/sequenceChange",
             {
                 localTransactionID: localTransaction,
                 newCaller: newCaller
@@ -484,7 +447,7 @@ export class APIService {
     }
 
     dcgi(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string,
         redesignName: string,
         fromClusterID: number,
@@ -492,7 +455,7 @@ export class APIService {
         localTransactions: string
     ) {
         return this.axios.post(
-            "/decomposition/" + decompositionName + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/dcgi",
+            "/decomposition/" + decompositionId + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/dcgi",
             {
                 fromCluster: fromClusterID,
                 toCluster: toClusterID,
@@ -502,55 +465,55 @@ export class APIService {
     }
 
     selectPivotTransaction(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string,
         redesignName: string,
         transactionID: string,
         newRedesignName: string
     ) {
         return this.axios.post(
-            "/decomposition/" + decompositionName + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/pivotTransaction",
+            "/decomposition/" + decompositionId + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/pivotTransaction",
             null,
             { params: {"transactionID" : transactionID, "newRedesignName": newRedesignName}}
         );
     }
 
     changeLTName(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string,
         redesignName: string,
         transactionID: string,
         newName: string
     ) {
         return this.axios.post(
-            "/decomposition/" + decompositionName + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/changeLTName",
+            "/decomposition/" + decompositionId + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/changeLTName",
             null,
             { params: {"transactionID" : transactionID, "newName": newName}}
         );
     }
 
     deleteRedesign(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string,
         redesignName: string
     ){
         return this.axios.delete(
-            "/decomposition/" + decompositionName + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/deleteRedesign"
+            "/decomposition/" + decompositionId + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/deleteRedesign"
         );
     }
 
     setUseForMetrics(
-        decompositionName: string,
+        decompositionId: string,
         functionalityName: string,
         redesignName: string
     ){
         return this.axios.post(
-            "/decomposition/" + decompositionName + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/useForMetrics"
+            "/decomposition/" + decompositionId + "/functionality/" + functionalityName + "/redesign/" + redesignName + "/useForMetrics"
         );
     }
 
-    refactorCodebase(
-        decompositionName: string,
+    refactorSoftwareSystem(
+        decompositionId: string,
         functionalityNames: string[],
         dataDependenceThreshold: number,
         minimizeSumOfComplexities: boolean,
@@ -558,8 +521,8 @@ export class APIService {
         newRefactor: boolean,
     ) {
 
-        const refactorRequest: RefactorCodebase = {
-            decomposition_name: decompositionName,
+        const refactorRequest: RefactorSoftwareSystem = {
+            decomposition_id: decompositionId,
             functionality_names: functionalityNames,
             data_dependence_threshold: dataDependenceThreshold,
             minimize_sum_of_complexities: minimizeSumOfComplexities,
@@ -574,11 +537,11 @@ export class APIService {
     }
 
     viewRefactor(
-        decompositionName: string,
+        decompositionId: string,
     ) {
 
         return this.refactorizationToolAxios.get(
-            "/refactor/decomposition/" + decompositionName ,
+            "/refactor/decomposition/" + decompositionId ,
         );
     }
 }

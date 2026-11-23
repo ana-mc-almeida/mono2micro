@@ -37,10 +37,10 @@ func New(
 }
 
 func (svc *DefaultHandler) HandleRefactorCodebase(ctx context.Context, request *values.RefactorCodebaseRequest) (*values.RefactorCodebaseResponse, error) {
-	decomposition, err := svc.databaseHandler.ReadDecomposition(ctx, request.DecompositionName)
+	decomposition, err := svc.databaseHandler.ReadDecomposition(ctx, request.DecompositionID)
 	if err != nil {
-		svc.logger.Log("decomposition", request.DecompositionName, "error", "failed to read decomposition")
-		return nil, fmt.Errorf("failed to read decomposition %s", request.DecompositionName)
+		svc.logger.Log("decomposition", request.DecompositionID, "error", "failed to read decomposition")
+		return nil, fmt.Errorf("failed to read decomposition %s", request.DecompositionID)
 	}
 
 	response := svc.refactorHandler.RefactorDecomposition(
@@ -52,6 +52,6 @@ func (svc *DefaultHandler) HandleRefactorCodebase(ctx context.Context, request *
 	return response, nil
 }
 
-func (svc *DefaultHandler) HandleViewRefactorization(ctx context.Context, decompositionName string) (*values.RefactorCodebaseResponse, error) {
-	return svc.databaseHandler.ReadDecompositionRefactorization(ctx, decompositionName)
+func (svc *DefaultHandler) HandleViewRefactorization(ctx context.Context, decompositionID string) (*values.RefactorCodebaseResponse, error) {
+	return svc.databaseHandler.ReadDecompositionRefactorization(ctx, decompositionID)
 }

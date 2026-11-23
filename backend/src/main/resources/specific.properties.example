@@ -7,8 +7,13 @@
 
 scripts.address=${SCRIPTS_ADDRESS:http://localhost:5002}
 
-# MongoDB address with credentials
+# MongoDB address
+# Default without credentials because docker-compose runs "mongod --noauth",
+# which rejects a connection that presents credentials.
 
-spring.data.mongodb.uri=${MONGO_DB:mongodb://mono2micro:mono2microPass@localhost:27017}
+spring.data.mongodb.uri=${MONGO_DB:mongodb://localhost:27017}
+
+# For a MongoDB that requires authentication, put the credentials in the URI:
+#spring.data.mongodb.uri=${MONGO_DB:mongodb://mono2micro:mono2microPass@localhost:27017}
 
 spring.data.mongodb.database=${MONGO_DB_NAME:mono2micro}

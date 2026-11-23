@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
 
@@ -17,31 +18,35 @@ import java.util.*;
 @RequestMapping(value = "/mono2micro")
 public class RecommendationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(RecommendationController.class);
+	private static final Logger logger = LoggerFactory.getLogger(RecommendationController.class);
 
 	@Autowired
 	RecommendationService recommendationService;
 
+	/** Rejects a kind, or a profile, the software system does not offer with 422, as a Similarity request is (D-003, D-013). */
 	@PutMapping(value = "/recommendation/createRecommendation")
 	public ResponseEntity<RecommendationDto> createRecommendation(@RequestBody RecommendationDto recommendationDto) {
 		logger.debug("Create recommendation");
 
 		try {
 			return new ResponseEntity<>(recommendationService.createRecommendation(recommendationDto), HttpStatus.CREATED);
+		} catch (UnavailableFeatureException e) {
+			logger.debug(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	@GetMapping(value = "/recommendation/{recommendationName}/getRecommendationResult")
+	@GetMapping(value = "/recommendation/{recommendationId}/getRecommendationResult")
 	public ResponseEntity<String> getRecommendationResult(
-			@PathVariable String recommendationName
+			@PathVariable String recommendationId
 	) {
 		logger.debug("Get recommendation result");
 
 		try {
-			return new ResponseEntity<>(recommendationService.getRecommendationResultFromName(recommendationName), HttpStatus.OK);
+			return new ResponseEntity<>(recommendationService.getRecommendationResult(recommendationId), HttpStatus.OK);
 
 		} catch (NoSuchFileException e) { // Since it is an asynchronous call, the file might not be created yet
 			return new ResponseEntity<>(null, HttpStatus.OK);
@@ -51,15 +56,15 @@ public class RecommendationController {
 		}
 	}
 
-	@PostMapping(value = "/recommendation/{recommendationName}/createDecompositions")
+	@PostMapping(value = "/recommendation/{recommendationId}/createDecompositions")
 	public ResponseEntity<HttpStatus> createDecompositions(
-			@PathVariable String recommendationName,
+			@PathVariable String recommendationId,
 			@RequestParam List<String> decompositionNames
 	) {
 		try {
 			logger.debug("createDecompositions");
 
-			recommendationService.createDecompositions(recommendationName, decompositionNames);
+			recommendationService.createDecompositions(recommendationId, decompositionNames);
 			logger.debug("decomposition creation ended");
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {

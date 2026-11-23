@@ -53,11 +53,11 @@ func (svc *DefaultHandler) RefactorDecomposition(
 	decompositionData := svc.createInitialDecompositionData(request, validFunctionalities)
 	err := svc.databaseHandler.StoreDecompositionRefactorization(ctx, decompositionData)
 	if err != nil {
-		svc.logger.Log("decomposition", request.DecompositionName, "validFunctionalities", len(validFunctionalities), "error", err)
+		svc.logger.Log("decomposition", request.DecompositionID, "validFunctionalities", len(validFunctionalities), "error", err)
 		return nil
 	}
 
-	svc.logger.Log("decomposition", request.DecompositionName, "validFunctionalities", len(validFunctionalities))
+	svc.logger.Log("decomposition", request.DecompositionID, "validFunctionalities", len(validFunctionalities))
 
 	//fmt.Println(decomposition.StrategyType)
 	//fmt.Println(decomposition.Name)
@@ -108,7 +108,7 @@ func (svc *DefaultHandler) RefactorDecomposition(
 		go func(request *values.RefactorCodebaseRequest, decomposition *mono2micro.Decomposition, functionality *mono2micro.Functionality) {
 			initialRedesign := functionality.GetFunctionalityRedesign()
 
-			svc.logger.Log("decomposition", request.DecompositionName, "functionality", functionality.Name, "status", "refactoring...")
+			svc.logger.Log("decomposition", request.DecompositionID, "functionality", functionality.Name, "status", "refactoring...")
 
 			timeoutChannel := make(chan bool, 1)
 			redesignChannel := make(chan []*mono2micro.FunctionalityRedesign, 1)
@@ -129,21 +129,21 @@ func (svc *DefaultHandler) RefactorDecomposition(
 			// if the functionality takes too long to be refactored we want to timeout
 			select {
 			case sagaRedesigns := <-redesignChannel:
-				svc.logger.Log("decomposition", request.DecompositionName, "functionality", functionality.Name, "status", "finished refactoring!")
+				svc.logger.Log("decomposition", request.DecompositionID, "functionality", functionality.Name, "status", "finished refactoring!")
 
 				bestRedesign := sagaRedesigns[0]
 
 				// TODO: multiple goroutines could try to write in the file at the same time !!!!
 				svc.databaseHandler.UpdateFunctionalityRefactorization(
-					request.DecompositionName,
+					request.DecompositionID,
 					svc.createFinalFunctionalityData(functionality, initialRedesign, bestRedesign),
 				)
 				return
 			case <-timeoutChannel:
 				err := fmt.Sprintf("refactor operation timed out after %d seconds!", refactorTimeout)
-				svc.logger.Log("decomposition", request.DecompositionName, "functionality", functionality.Name, "error", err)
+				svc.logger.Log("decomposition", request.DecompositionID, "functionality", functionality.Name, "error", err)
 				svc.databaseHandler.UpdateFunctionalityRefactorization(
-					request.DecompositionName,
+					request.DecompositionID,
 					&values.Functionality{
 						Name: functionality.Name,
 						Monolith: &values.Monolith{
@@ -520,7 +520,7 @@ func (svc *DefaultHandler) createInitialDecompositionData(
 	}
 
 	return &values.RefactorCodebaseResponse{
-		DecompositionName:       request.DecompositionName,
+		DecompositionID:         request.DecompositionID,
 		Functionalities:         functionalitiesData,
 		DataDependenceThreshold: request.DataDependenceThreshold,
 		Status:                  values.RefactoringCodebase.String(),

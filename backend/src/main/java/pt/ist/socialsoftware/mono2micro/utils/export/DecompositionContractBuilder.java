@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.utils.export;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,41 +14,41 @@ import java.io.InputStream;
  */
 public abstract class DecompositionContractBuilder {
 
-    protected Decomposition decomposition;
-    protected JSONObject accessesRepresentationAsJSON;
-    protected JSONObject structureRepresentationAsJSON;
-    protected JSONObject sagaRefactorizationAsJSON;
+	protected ClusterRepresentation decomposition;
+	protected JSONObject accessesRepresentationAsJSON;
+	protected JSONObject structureRepresentationAsJSON;
+	protected JSONObject sagaRefactorizationAsJSON;
 
-    public DecompositionContractBuilder(Decomposition decomposition) {
-        this.decomposition = decomposition;
-    }
+	public DecompositionContractBuilder(ClusterRepresentation decomposition) {
+		this.decomposition = decomposition;
+	}
 
-    public DecompositionContractBuilder addAccessRepresentationData(InputStream accessRepresentationData) throws IOException, JSONException {
-        this.accessesRepresentationAsJSON = new JSONObject(new String(IOUtils.toByteArray(accessRepresentationData)));
-        accessRepresentationData.close();
-        return this;
-    }
+	public DecompositionContractBuilder addAccessRepresentationData(InputStream accessRepresentationData) throws IOException, JSONException {
+		this.accessesRepresentationAsJSON = new JSONObject(new String(IOUtils.toByteArray(accessRepresentationData)));
+		accessRepresentationData.close();
+		return this;
+	}
 
-    public DecompositionContractBuilder addStructureRepresentationData(InputStream structureRepresentationData) throws IOException, JSONException {
-        this.structureRepresentationAsJSON = new JSONObject(new String(IOUtils.toByteArray(structureRepresentationData)));
-        structureRepresentationData.close();
-        return this;
-    }
+	public DecompositionContractBuilder addStructureRepresentationData(InputStream structureRepresentationData) throws IOException, JSONException {
+		this.structureRepresentationAsJSON = new JSONObject(new String(IOUtils.toByteArray(structureRepresentationData)));
+		structureRepresentationData.close();
+		return this;
+	}
 
-    public DecompositionContractBuilder addSagaRefactorizationData(InputStream sagaRefactorizationData) throws IOException, JSONException {
-        this.sagaRefactorizationAsJSON = new JSONObject(new String(IOUtils.toByteArray(sagaRefactorizationData)));
-        sagaRefactorizationData.close();
-        return this;
-    }
+	public DecompositionContractBuilder addSagaRefactorizationData(InputStream sagaRefactorizationData) throws IOException, JSONException {
+		this.sagaRefactorizationAsJSON = new JSONObject(new String(IOUtils.toByteArray(sagaRefactorizationData)));
+		sagaRefactorizationData.close();
+		return this;
+	}
 
-    public String buildContract() throws IOException, JSONException {
-        if (isMissingContractData()) {
-            throw new IOException();
-        }
-        return parseContractData();
-    }
+	public String buildContract() throws IOException, JSONException {
+		if (isMissingContractData()) {
+			throw new IOException();
+		}
+		return parseContractData();
+	}
 
-    protected abstract boolean isMissingContractData();
+	protected abstract boolean isMissingContractData();
 
-    protected abstract String parseContractData() throws IOException, JSONException;
+	protected abstract String parseContractData() throws IOException, JSONException;
 }

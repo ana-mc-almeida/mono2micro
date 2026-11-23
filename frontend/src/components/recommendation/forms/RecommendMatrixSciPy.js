@@ -9,11 +9,10 @@ import filterFactory, {numberFilter} from "react-bootstrap-table2-filter";
 import paginationFactory from "react-bootstrap-table2-paginator";
 import {Modal, ModalBody, ModalFooter, ModalTitle} from "react-bootstrap";
 import BootstrapTable from "react-bootstrap-table-next";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import Dropdown from "react-bootstrap/Dropdown";
-import {RepresentationFile} from "../../../models/representation/Representation";
+import {RecommendationType} from "../../../models/recommendation/RecommendationTypes";
+import {ProfileSelect} from "../../profile/ProfileSelect";
 import {TraceType} from "../../../type-declarations/types";
-import {WeightsFactory} from "../../../models/weights/WeightsFactory";
+import {KIND_NOT_LOADED} from "../../similarity/forms/similarityCreationStatus";
 
 
 const nFilter = numberFilter({placeholder: "filter"});
@@ -63,12 +62,11 @@ const selectRow = {
     clickToSelect: true
 };
 
-export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategies, recommendationType}) => {
+export const RecommendMatrixSciPy = ({softwareSystemId, kind, onDecompositionsCreated}) => {
 
     const service = new APIService();
     const [isUploaded, setIsUploaded] = useState("");
-    const [profiles, setProfiles] = useState([]);
-    const [profile, setProfile] = useState("Generic")
+    const [profileId, setProfileId] = useState(null);
     const [linkageType, setLinkageType] = useState("average");
     const [tracesMaxLimit, setTracesMaxLimit] = useState(0);
     const [traceType, setTraceType] = useState(TraceType.ALL);
@@ -78,26 +76,22 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
     const [loading, setLoading] = useState(false);
     const [isSelected, setIsSelected] = useState("");
     const [weightsList, setWeightsList] = useState([]);
+    // A kind may have no weights, so an empty list does not tell whether they have arrived.
+    const [weightsLoaded, setWeightsLoaded] = useState(false);
     const [recommendation, setRecommendation] = useState(undefined);
     const [decompositionInfo, setDecompositionInfo] = useState([]);
 
-    // Executes when it is informed that there is information to be updated
     useEffect(() => {
-        loadProfiles();
-        setWeightsList(WeightsFactory.getWeightListByStrategyType(strategy.strategyTypes));
+        new APIService().getSimilarityKind(kind)
+            .then(description => {
+                setWeightsList(description.defaultWeights);
+                setWeightsLoaded(true);
+            })
+            .catch(() => setIsUploaded(KIND_NOT_LOADED));
     }, [])
-
-    function loadProfiles() {
-        service.getCodebaseRepresentation(codebaseName, RepresentationFile.ACCESSES)
-            .then((response) => setProfiles(response.profiles));
-    }
 
     function handleChangeLinkageType(event) {
         setLinkageType(event.target.id);
-    }
-
-    function handleChangeProfile(profile) {
-        setProfile(profile);
     }
 
     function handleChangeTracesMaxLimit(event) {
@@ -115,9 +109,9 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
         }
         else setIsSelected("Creating decomposition...");
 
-        service.createRecommendationDecompositions(recommendation.name, selectedDecompositions.selectionContext.selected)
+        service.createRecommendationDecompositions(recommendation.id, selectedDecompositions.selectionContext.selected)
             .then(() => {
-                setUpdateStrategies({});
+                onDecompositionsCreated();
                 setIsSelected("Decompositions created.");
             }).catch(() => setIsSelected("Error during decomposition's creation."));
     }
@@ -130,17 +124,18 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
         setLoading(true);
 
         service.recommendation({
-            type: recommendationType,
-            strategyName: strategy.name,
+            type: RecommendationType.RECOMMEND_MATRIX_SCIPY,
+            softwareSystemId,
+            kindName: kind,
             weightsList,
-            profile,
+            profileId,
             linkageType,
             tracesMaxLimit,
             traceType
         }).then(recommendation => {
                 setRecommendation(recommendation);
 
-                service.getRecommendationResult(recommendation.name).then(list => {
+                service.getRecommendationResult(recommendation.id).then(list => {
                     if (list.length !== 0) {
                         let line = Object.keys(list[0]);
                         setDecompositionInfo(columns.filter(column => line.includes(column.dataField)));
@@ -211,24 +206,12 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
             { renderRecommendationList() }
 
             <Form onSubmit={handleCreateRecommendation} className="mt-2 mb-3">
-                <Form.Group as={Row} controlId="selectFunctionalityProfiles" className="align-items-center mb-3">
-                    <Form.Label column sm={2}>
-                        Select Codebase Profile
-                    </Form.Label>
-                    <Col sm={2}>
-                        <DropdownButton title={profile === ""? 'Functionality Profiles': profile}>
-                            {profiles !== [] && Object.keys(profiles).map(profile =>
-                                <Dropdown.Item
-                                    key={profile}
-                                    onClick={() => handleChangeProfile(profile)}
-                                    active={profile === profile}
-                                >
-                                    {profile}
-                                </Dropdown.Item>
-                            )}
-                        </DropdownButton>
-                    </Col>
-                </Form.Group>
+                <ProfileSelect
+                    softwareSystemId={softwareSystemId}
+                    kindName={kind}
+                    profileId={profileId}
+                    setProfileId={setProfileId}
+                />
                 <Form.Group as={Row} controlId="amountOfTraces" className="mb-3">
                     <Form.Label column sm={2}>
                         Amount of Traces per Functionality
@@ -282,7 +265,7 @@ export const RecommendMatrixSciPy = ({codebaseName, strategy, setUpdateStrategie
                     <Col sm={{offset: 2}}>
                         <Button
                             type="submit"
-                            disabled={isUploaded === "Gathering recommendations..." || !(profile !== "") || loading}
+                            disabled={!weightsLoaded || isUploaded === "Gathering recommendations..." || loading}
                         >
                             Recommend Decompositions
                         </Button>

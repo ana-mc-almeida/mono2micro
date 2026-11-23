@@ -1,18 +1,21 @@
 export default abstract class Representation {
+    id!: string;
     name!: string;
     type!: string;
-    codebaseName!: string;
+    softwareSystemId!: string;
     inputFile!: string;
 
     protected constructor(representation: Representation) {
+        this.id = representation.id;
         this.name = representation.name;
         this.type = representation.type;
-        this.codebaseName = representation.codebaseName;
+        this.softwareSystemId = representation.softwareSystemId;
         this.inputFile = representation.inputFile;
     }
 
-    // This function is used to be displayed in the context of the codebase
-    abstract printCard(handleDeleteRepresentation: (representation: Representation) => void): JSX.Element;
+    // This function is used to be displayed in the context of the software system. offersProfiles: whether the backend
+    // offers profiles on this representation, which the cards of representations with units follow (D-017).
+    abstract printCard(handleDeleteRepresentation: (representation: Representation) => void, offersProfiles?: boolean): JSX.Element;
 }
 
 export enum RepresentationFile {

@@ -4,24 +4,23 @@ import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 
 export default class StructureRepresentation extends Representation {
-    profiles!: Map<string, string>;
-
     constructor(representation: StructureRepresentation) {
         super(representation);
-        this.profiles = representation.profiles;
     }
 
-    printCard(handleDeleteRepresentation: (representation: Representation) => void): JSX.Element {
+    printCard(handleDeleteRepresentation: (representation: Representation) => void, offersProfiles?: boolean): JSX.Element {
         return <Card className={"text-center"} key={this.type} style={{width: '13rem'}}>
             <Card.Header>{this.type}</Card.Header>
             <Card.Body>
-                <Button
-                    href={`/codebase/${this.codebaseName}/${this.name}/profiles`}
-                    className="mb-2"
-                >
-                    Change Profile
-                </Button>
-                <br/>
+                {offersProfiles && <>
+                    <Button
+                        href={`/softwareSystems/${this.softwareSystemId}/${this.id}/profiles`}
+                        className="mb-2"
+                    >
+                        Profiles
+                    </Button>
+                    <br/>
+                </>}
                 <Button
                     onClick={() => handleDeleteRepresentation(this)}
                     className="mb-2"

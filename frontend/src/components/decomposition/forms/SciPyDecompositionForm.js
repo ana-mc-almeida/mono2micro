@@ -11,7 +11,7 @@ import HttpStatus from "http-status-codes";
 
 
 export const SciPyDecompositionForm = ({loadDecompositions}) => {
-    let { similarityName } = useParams();
+    let { similarityId } = useParams();
 
     const [createExpert, setCreateExpert] = useState(undefined);
 
@@ -50,13 +50,12 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
 
         const service = new APIService();
 
-        service.createDecomposition({
+        service.runOperation(similarityId, {
             type: "SciPy Clustering",
-            similarityName,
             cutType,
             cutValue
         }).then(response => {
-            if (response.status === HttpStatus.OK) {
+            if (response.status === HttpStatus.CREATED) {
                 loadDecompositions();
                 setIsUploaded("");
                 setCreateExpert(undefined);
@@ -64,8 +63,12 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
                 setIsUploaded("Failed to create decomposition.");
             }
         })
-        .catch(() => {
-            setIsUploaded("Failed to create decomposition.");
+        .catch(error => {
+            if (error.response !== undefined && error.response.status === HttpStatus.UNPROCESSABLE_ENTITY) {
+                setIsUploaded("This Similarity does not offer the SciPy algorithm.");
+            } else {
+                setIsUploaded("Failed to create decomposition.");
+            }
         });
     }
 
@@ -76,7 +79,7 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
 
         const service = new APIService();
         service.createExpertDecomposition(
-            similarityName,
+            similarityId,
             expertName,
             expertFile
         ).then(response => {
@@ -110,8 +113,8 @@ export const SciPyDecompositionForm = ({loadDecompositions}) => {
                 <img
                     className={"d-block mb-4"}
                     width="70%"
-                    src={URL + "/similarity/" + similarityName + "/image?" + new Date().getTime()}
-                    alt="Strategy"
+                    src={URL + "/similarity/" + similarityId + "/image?" + new Date().getTime()}
+                    alt="Dendrogram"
                 />
 
                 <Form.Group as={Row} controlId="height" className="mb-3">

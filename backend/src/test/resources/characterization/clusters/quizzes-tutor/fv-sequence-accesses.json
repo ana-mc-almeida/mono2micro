@@ -1,0 +1,5 @@
+{
+  "Cluster0" : [ "Assessment", "Course", "CourseExecution", "Image", "Option", "Question", "QuestionAnswer", "Quiz", "QuizAnswer", "QuizQuestion", "Topic", "TopicConjunction", "User" ],
+  "Cluster1" : [ ],
+  "Cluster2" : [ ]
+}

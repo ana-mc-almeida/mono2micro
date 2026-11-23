@@ -1,0 +1,5 @@
+{
+  "Cluster0" : [ "Owner", "Pet" ],
+  "Cluster1" : [ "Vet" ],
+  "Cluster2" : [ "Visit" ]
+}

@@ -1,4 +1,4 @@
-import Decomposition from "../models/decompositions/Decomposition";
+import ClusterRepresentation from "../models/clusterRepresentations/ClusterRepresentation";
 
 export interface Edges {
     edges: Edge[];
@@ -89,8 +89,8 @@ export interface DomainEntity extends Elem {
 }
 
 export interface ComparisonToolDto {
-    decomposition1?: Decomposition;
-    decomposition2?: Decomposition;
+    decomposition1?: ClusterRepresentation;
+    decomposition2?: ClusterRepresentation;
 }
 
 export interface DefaultComparisonToolDto extends ComparisonToolDto {
@@ -111,10 +111,9 @@ export interface DefaultComparisonToolDto extends ComparisonToolDto {
     mojoSingletons?: number;
 }
 
-export interface RefactorCodebase {
-    codebase_name?: string;
-    strategy_name?: string;
-    decomposition_name?: string;
+export interface RefactorSoftwareSystem {
+    software_system_name?: string;
+    decomposition_id?: string;
     functionality_names?: string[];
     data_dependence_threshold?: number;
     minimize_sum_of_complexities?: boolean;

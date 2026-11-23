@@ -5,25 +5,28 @@ import {URL} from "../../constants/constants"
 import React from "react";
 import {WeightsFactory} from "../weights/WeightsFactory";
 import Weights from "../weights/Weights";
+import {similarityBase} from "../../services/similarityRoutes";
 
 const SIMILARITY_SCIPY_STRUCTURE = 'SIMILARITY_SCIPY_STRUCTURE';
 export {SIMILARITY_SCIPY_STRUCTURE};    
 
 export default class SimilarityScipyStructure extends Similarity {
-    profile: string;
+    profileId: string | null;
+    profileName: string | null;
     weightsList: Weights[];
 
     constructor(similarity: any) {
         super(similarity);
-        this.profile =              similarity.profile                 ||     "Generic";
+        this.profileId =            similarity.profileId               ||     null;
+        this.profileName =          similarity.profileName             ||     null;
         this.weightsList = WeightsFactory.getWeightsList(similarity.weightsList);
     }
 
     printCard(handleDeleteSimilarity: (similarity: Similarity) => void): JSX.Element {
-        return <Card key={this.name} className="mb-4" style={{ width: '20rem' }}>
+        return <Card key={this.id} className="mb-4" style={{ width: '20rem' }}>
             <Card.Img
                 variant="top"
-                src={URL + "/similarity/" + this.name + "/image?" + new Date().getTime()}
+                src={URL + "/similarity/" + this.id + "/image?" + new Date().getTime()}
             />
             <Card.Body>
                 <Card.Title>{this.name}</Card.Title>
@@ -32,7 +35,7 @@ export default class SimilarityScipyStructure extends Similarity {
                         Object.entries(weights.weightsLabel).map(([key, value]) => <span key={key}>{value + ": " + weights[key] + "%"} <br/></span>)
                     )}
                 </Card.Text>
-                <Button href={`/codebases/${this.codebaseName}/${this.strategyName}/${this.name}/decomposition`}
+                <Button href={`${similarityBase(this.softwareSystemId)}/${this.id}/decomposition`}
                         variant={"success"}
                         className="mb-2">
                     Decomposition Generation

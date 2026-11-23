@@ -2,100 +2,92 @@ package pt.ist.socialsoftware.mono2micro.representation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 import org.springframework.web.multipart.MultipartFile;
-import pt.ist.socialsoftware.mono2micro.codebase.domain.Codebase;
-import pt.ist.socialsoftware.mono2micro.codebase.repository.CodebaseRepository;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.repository.SoftwareSystemRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileRepository;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.RepresentationFactory;
 import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.service.StrategyService;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class RepresentationService {
-    @Autowired
-    CodebaseRepository codebaseRepository;
+	@Autowired
+	SoftwareSystemRepository softwareSystemRepository;
 
-    @Autowired
-    StrategyService strategyService;
+	@Autowired
+	RepresentationRepository representationRepository;
 
-    @Autowired
-    RepresentationRepository representationRepository;
+	@Autowired
+	ProfileRepository profileRepository;
 
-    @Autowired
-    GridFsService gridFsService;
+	@Autowired
+	GridFsService gridFsService;
 
-    public void addRepresentations(String codebaseName, String representationInfoType, List<String> representationTypes, List<Object> representations) throws Exception {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
+	@Autowired
+	SimilarityService similarityService;
 
-        if (representationTypes == null && representations == null) { // representations already added
-            return;
-        }
-        if (representationTypes == null || representations == null || representationTypes.size() != representations.size())
-            throw new RuntimeException("Number of representations is different from the number of representation types.");
+	@Autowired
+	RecommendationService recommendationService;
 
-        List<String> availableRepresentationsTypes = codebase.getRepresentations().stream().map(Representation::getType).collect(Collectors.toList());
+	public void addRepresentations(String softwareSystemId, String representationInfoType, List<String> representationTypes, List<Object> representations)
+			throws Exception {
+		SoftwareSystem softwareSystem = softwareSystemRepository.getById(softwareSystemId);
 
-        for (String representationType : representationTypes)
-            if (availableRepresentationsTypes.contains(representationType))
-                throw new RuntimeException("Re-sending representations is not allowed.");
+		if (representationTypes == null && representations == null) { // representations already added
+			return;
+		}
+		if (representationTypes == null || representations == null || representationTypes.size() != representations.size())
+			throw new RuntimeException("Number of representations is different from the number of representation types.");
 
-        for (int i = 0; i < representationTypes.size(); i++) {
-            String representationType = representationTypes.get(i);
-            byte[] representationFileStream = ((MultipartFile) representations.get(i)).getBytes();
-            Representation representation = RepresentationFactory.getRepresentation(representationType);
-            String fileName = representation.init(codebase, representationFileStream);
-            codebase.addRepresentation(representation);
-            gridFsService.saveFile(new ByteArrayInputStream(representationFileStream), fileName);
-            representationRepository.save(representation);
-        }
-        codebaseRepository.save(codebase);
-    }
+		// A software system holds at most one collected representation per kind.
+		List<String> availableRepresentationsTypes = representationRepository.findBySoftwareSystemId(softwareSystemId).stream().map(Representation::getType)
+				.collect(Collectors.toList());
 
-    public Representation getCodebaseRepresentation(String codebaseName, String representationType) {
-        Codebase codebase = codebaseRepository.findByName(codebaseName);
-        return codebase.getRepresentations().stream().filter(representation -> representation.getType().equals(representationType)).findFirst()
-                .orElseThrow(() -> new RuntimeException("No representation with type" + representationType));
-    }
+		for (String representationType : representationTypes)
+			if (availableRepresentationsTypes.contains(representationType))
+				throw new RuntimeException("Re-sending representations is not allowed.");
 
-    public Representation getRepresentation(String representationId) {
-        return representationRepository.findById(representationId).orElseThrow(() -> new RuntimeException("No representation " + representationId + " found."));
-    }
+		for (int i = 0; i < representationTypes.size(); i++) {
+			String representationType = representationTypes.get(i);
+			byte[] representationFileStream = ((MultipartFile) representations.get(i)).getBytes();
+			Representation representation = RepresentationFactory.getRepresentation(representationType);
+			String fileName = representation.init(softwareSystem, representationFileStream);
+			gridFsService.saveFile(new ByteArrayInputStream(representationFileStream), fileName);
+			representationRepository.save(representation);
+		}
+	}
 
-    public void deleteRepresentation(String representationId) {
-        Representation representation = representationRepository.findById(representationId).orElseThrow(() -> new RuntimeException("No representation with id " + representationId));
-        gridFsService.deleteFile(representation.getName());
-        representationRepository.deleteById(representationId);
-    }
+	public Representation getSoftwareSystemRepresentation(String softwareSystemId, String representationType) {
+		return representationRepository.findBySoftwareSystemIdAndType(softwareSystemId, representationType)
+				.orElseThrow(() -> new RuntimeException("No representation with type" + representationType));
+	}
 
-    public void deleteSingleRepresentation(String representationId) {
-        Representation representation = representationRepository.findById(representationId).orElseThrow(() -> new RuntimeException("No representation with id " + representationId));
-        Codebase codebase = representation.getCodebase();
-        codebase.removeRepresentation(representationId);
-        ArrayList<Strategy> strategies = new ArrayList<>();
-        for (Strategy strategy: codebase.getStrategies()) {
-            boolean deleted = false;
-            for (String strategyType: strategy.getStrategyTypes()) {
-                if (Strategy.strategiesToRepresentations.get(strategyType).contains(representation.getType())) {
-                    strategyService.deleteStrategy(strategy);
-                    deleted = true;
-                    break;
-                }
-            }
-            if (!deleted)
-                strategies.add(strategy);
-        }
+	public Representation getRepresentationById(String representationId) {
+		return representationRepository.getById(representationId);
+	}
 
-        codebase.setStrategies(strategies);
-        gridFsService.deleteFile(representation.getName());
-        codebaseRepository.save(codebase);
-        representationRepository.deleteById(representationId);
-    }
+	public void deleteRepresentation(String representationId) {
+		Representation representation = getRepresentationById(representationId);
+		profileRepository.deleteByRepresentationId(representationId);
+		gridFsService.deleteFile(representation.getId());
+		representationRepository.deleteById(representationId);
+	}
+
+	public void deleteSingleRepresentation(String representationId) {
+		Representation representation = getRepresentationById(representationId);
+		similarityService.deleteSimilaritiesReading(representationId);
+		recommendationService.deleteRecommendationsReading(representationId);
+
+		profileRepository.deleteByRepresentationId(representationId);
+		gridFsService.deleteFile(representation.getId());
+		representationRepository.deleteById(representationId);
+	}
 }

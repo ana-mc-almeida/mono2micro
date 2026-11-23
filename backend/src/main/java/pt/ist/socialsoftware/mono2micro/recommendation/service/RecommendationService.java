@@ -4,14 +4,16 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendationFactory;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
-import pt.ist.socialsoftware.mono2micro.strategy.domain.Strategy;
-import pt.ist.socialsoftware.mono2micro.strategy.repository.StrategyRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,46 +21,82 @@ import java.util.List;
 
 @Service
 public class RecommendationService {
-    @Autowired
-    StrategyRepository strategyRepository;
+	@Autowired
+	RecommendationRepository recommendationRepository;
 
-    @Autowired
-    RecommendationRepository recommendationRepository;
+	@Autowired
+	SimilarityService similarityService;
 
-    @Autowired
-    GridFsService gridFsService;
+	@Autowired
+	ProfileService profileService;
 
-    public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
-        Strategy strategy = strategyRepository.findByName(recommendationDto.getStrategyName());
-        RecommendMatrixSciPy existingRecommendation = (RecommendMatrixSciPy) strategy.getRecommendations().stream()
-                .filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
+	@Autowired
+	GridFsService gridFsService;
 
-        Recommendation recommendation;
-        // Create from scratch
-        if (existingRecommendation == null) {
-            recommendation = RecommendationFactory.getRecommendation(strategy, recommendationDto);
-            recommendationRepository.save(recommendation);
-            strategyRepository.save(strategy);
-        }
-        else return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
+	@Autowired
+	EditingChainService editingChainService;
 
-        recommendation.generateRecommendation(recommendationRepository);
-        return RecommendationDtoFactory.getRecommendationDto(recommendation);
-    }
+	/**
+	 * Returns the new recommendation of the requested kind on the software system, or the existing one equal to the request.
+	 *
+	 * @throws IllegalArgumentException
+	 * if no kind has the requested name, or the request's weights are not the ones its kind is computed with
+	 * @throws pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException
+	 * if the software system's representations do not offer the requested kind
+	 */
+	public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
+		String softwareSystemId = recommendationDto.getSoftwareSystemId();
+		SimilarityKind kind = SimilarityKind.getByName(recommendationDto.getKindName());
+		kind.requireWeights(recommendationDto.weightsTypes());
+		List<Representation> representations = similarityService.resolveRepresentations(kind, softwareSystemId);
 
-    public void createDecompositions(String recommendationName, List<String> decompositionNames) throws Exception {
-        Recommendation recommendation = recommendationRepository.findByName(recommendationName);
-        recommendation.createDecompositions(decompositionNames);
-    }
+		List<Recommendation> softwareSystemRecommendations = recommendationRepository.findBySoftwareSystemId(softwareSystemId);
+		Recommendation existingRecommendation = softwareSystemRecommendations.stream()
+				.filter(recommendation -> recommendation.equalsDto(recommendationDto)).findFirst().orElse(null);
+		if (existingRecommendation != null)
+			return RecommendationDtoFactory.getRecommendationDto(existingRecommendation);
 
-    public void deleteRecommendation(Recommendation recommendation) {
-        recommendation.deleteProperties();
-        gridFsService.deleteFile(recommendation.getRecommendationResultName());
-        recommendationRepository.delete(recommendation);
-    }
+		Recommendation recommendation = RecommendationFactory.getRecommendation(representations, softwareSystemRecommendations, recommendationDto);
+		recommendation.setProfile(profileService.getScopingProfile(recommendationDto.getProfileId(), softwareSystemId, kind));
+		recommendationRepository.save(recommendation);
 
-    public String getRecommendationResultFromName(String recommendationName) throws IOException {
-        Recommendation recommendation = recommendationRepository.getRecommendationResultName(recommendationName);
-        return IOUtils.toString(gridFsService.getFile(recommendation.getRecommendationResultName()), StandardCharsets.UTF_8);
-    }
+		recommendation.generateRecommendation(recommendationRepository);
+		return RecommendationDtoFactory.getRecommendationDto(recommendation);
+	}
+
+	/**
+	 * Saves the chosen candidates, each as a SciPy operation and its output on the Similarity of its weights, found among the software system's
+	 * of the same kind or created (D-016).
+	 */
+	public void createDecompositions(String recommendationId, List<String> decompositionNames) throws Exception {
+		Recommendation recommendation = getRecommendationById(recommendationId);
+		recommendation.createDecompositions(
+				similarityService.getSimilaritiesOfKind(recommendation.getSoftwareSystem().getId(), recommendation.getKindName()), decompositionNames,
+				editingChainService);
+	}
+
+	public List<Recommendation> getRecommendations(String softwareSystemId) {
+		return recommendationRepository.findBySoftwareSystemId(softwareSystemId);
+	}
+
+	/** Deletes the recommendations whose Similarities read the representation, as deleting a representation must. */
+	public void deleteRecommendationsReading(String representationId) {
+		for (Recommendation recommendation : recommendationRepository.findByRepresentations_Id(representationId))
+			deleteRecommendation(recommendation);
+	}
+
+	public void deleteRecommendation(Recommendation recommendation) {
+		recommendation.deleteProperties();
+		gridFsService.deleteFile(recommendation.getRecommendationResultName());
+		recommendationRepository.delete(recommendation);
+	}
+
+	public String getRecommendationResult(String recommendationId) throws IOException {
+		Recommendation recommendation = getRecommendationById(recommendationId);
+		return IOUtils.toString(gridFsService.getFile(recommendation.getRecommendationResultName()), StandardCharsets.UTF_8);
+	}
+
+	private Recommendation getRecommendationById(String recommendationId) {
+		return recommendationRepository.getById(recommendationId);
+	}
 }

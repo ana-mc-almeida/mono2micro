@@ -21,37 +21,37 @@ import java.util.Set;
  */
 @Service
 public class GridFsService {
-    @Autowired
-    GridFsTemplate gridFsTemplate;
+	@Autowired
+	GridFsTemplate gridFsTemplate;
 
-    @Autowired
-    private GridFsOperations operations;
+	@Autowired
+	private GridFsOperations operations;
 
-    public void saveFile(InputStream fileStream, String fileName) {
-        gridFsTemplate.store(fileStream, fileName);
-    }
+	public void saveFile(InputStream fileStream, String fileName) {
+		gridFsTemplate.store(fileStream, fileName);
+	}
 
-    public InputStream getFile(String fileName) throws IOException {
-        GridFSFile gridFSFile = gridFsTemplate.findOne(new Query(Criteria.where("filename").is(fileName)));
-        if (gridFSFile == null)
-            throw new NoSuchFileException("No file called: " + fileName);
-        return operations.getResource(gridFSFile).getInputStream();
-    }
+	public InputStream getFile(String fileName) throws IOException {
+		GridFSFile gridFSFile = gridFsTemplate.findOne(new Query(Criteria.where("filename").is(fileName)));
+		if (gridFSFile == null)
+			throw new NoSuchFileException("No file called: " + fileName);
+		return operations.getResource(gridFSFile).getInputStream();
+	}
 
-    public String getFileAsString(String fileName) throws IOException {
-        return IOUtils.toString(getFile(fileName), StandardCharsets.UTF_8);
-    }
+	public String getFileAsString(String fileName) throws IOException {
+		return IOUtils.toString(getFile(fileName), StandardCharsets.UTF_8);
+	}
 
-    public void replaceFile(InputStream fileStream, String fileName) {
-        gridFsTemplate.delete(new Query(Criteria.where("filename").is(fileName)));
-        gridFsTemplate.store(fileStream, fileName);
-    }
+	public void replaceFile(InputStream fileStream, String fileName) {
+		gridFsTemplate.delete(new Query(Criteria.where("filename").is(fileName)));
+		gridFsTemplate.store(fileStream, fileName);
+	}
 
-    public void deleteFile(String fileName) {
-        gridFsTemplate.delete(new Query(Criteria.where("filename").is(fileName)));
-    }
+	public void deleteFile(String fileName) {
+		gridFsTemplate.delete(new Query(Criteria.where("filename").is(fileName)));
+	}
 
-    public void deleteFiles(Set<String> fileNames) {
-        gridFsTemplate.delete(new Query(Criteria.where("filename").in(fileNames)));
-    }
+	public void deleteFiles(Set<String> fileNames) {
+		gridFsTemplate.delete(new Query(Criteria.where("filename").in(fileNames)));
+	}
 }

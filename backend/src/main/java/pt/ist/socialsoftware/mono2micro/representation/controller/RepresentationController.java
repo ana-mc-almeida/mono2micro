@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
-import pt.ist.socialsoftware.mono2micro.codebase.CodebaseController;
+// FIXME (ticket 07): unused import, left over from a copied logger; remove
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemController;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.dto.RepresentationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
@@ -18,73 +19,76 @@ import java.util.List;
 @RequestMapping(value = "/mono2micro")
 public class RepresentationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(RepresentationController.class);
+	private static final Logger logger = LoggerFactory.getLogger(RepresentationController.class);
 
-    @Autowired
-    RepresentationService representationService;
+	@Autowired
+	RepresentationService representationService;
 
-    @GetMapping(value = "/codebase/{codebaseName}/representation/{representationType}/getCodebaseRepresentation")
-    public ResponseEntity<RepresentationDto> getCodebaseRepresentation(
-            @PathVariable String codebaseName,
-            @PathVariable String representationType
-    ) {
-        logger.debug("getCodebaseRepresentation");
+	@GetMapping(value = "/softwareSystems/{softwareSystemId}/representation/{representationType}/getSoftwareSystemRepresentation")
+	public ResponseEntity<RepresentationDto> getSoftwareSystemRepresentation(
+			@PathVariable String softwareSystemId,
+			@PathVariable String representationType
+	) {
+		logger.debug("getSoftwareSystemRepresentation");
 
-        try {
-            return new ResponseEntity<>(
-                    RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getCodebaseRepresentation(codebaseName, representationType)),
-                    HttpStatus.OK
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		try {
+			return new ResponseEntity<>(
+					RepresentationDtoFactory.getFactory()
+							.getRepresentationDto(representationService.getSoftwareSystemRepresentation(softwareSystemId, representationType)),
+					HttpStatus.OK
+			);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
+	@DeleteMapping(value = "/representation/{representationId}/delete")
+	public ResponseEntity<HttpStatus> deleteRepresentation(@PathVariable String representationId) {
+		// FIXME (ticket 07): copied from deleteSoftwareSystem; should be "deleteRepresentation"
+		logger.debug("deleteSoftwareSystem");
 
-    @DeleteMapping(value = "/representation/{representationName}/delete")
-    public ResponseEntity<HttpStatus> deleteRepresentation(@PathVariable String representationName) {
-        logger.debug("deleteCodebase");
+		try {
+			representationService.deleteSingleRepresentation(representationId);
+			return new ResponseEntity<>(HttpStatus.OK);
 
-        try {
-            representationService.deleteSingleRepresentation(representationName);
-            return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+	@GetMapping(value = "/representation/{representationId}/getRepresentation")
+	public ResponseEntity<RepresentationDto> getRepresentation(@PathVariable String representationId) {
+		logger.debug("getRepresentation");
 
-    @GetMapping(value = "/representation/{representationName}/getRepresentation")
-    public ResponseEntity<RepresentationDto> getRepresentation(@PathVariable String representationName) {
-        logger.debug("getRepresentation");
+		try {
+			return new ResponseEntity<>(
+					RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentationById(representationId)),
+					HttpStatus.OK);
 
-        try {
-            return new ResponseEntity<>(RepresentationDtoFactory.getFactory().getRepresentationDto(representationService.getRepresentation(representationName)), HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+	@PostMapping(value = "/softwareSystems/{softwareSystemId}/addRepresentations/{representationInfoType}")
+	public ResponseEntity<HttpStatus> addRepresentations(
+			@PathVariable String softwareSystemId,
+			@PathVariable String representationInfoType,
+			@Nullable @RequestParam List<String> representationTypes,
+			@Nullable @RequestParam List<Object> representations
+	) {
+		logger.debug("addRepresentations");
 
-    @PostMapping(value = "/codebase/{codebaseName}/addRepresentations/{representationInfoType}")
-    public ResponseEntity<HttpStatus> createStrategy(
-            @PathVariable String codebaseName,
-            @PathVariable String representationInfoType,
-            @Nullable @RequestParam List<String> representationTypes,
-            @Nullable @RequestParam List<Object> representations
-    ){
-        logger.debug("createStrategy");
+		try {
+			representationService.addRepresentations(softwareSystemId, representationInfoType, representationTypes, representations);
+			return new ResponseEntity<>(HttpStatus.CREATED);
 
-        try {
-            representationService.addRepresentations(codebaseName, representationInfoType, representationTypes, representations);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

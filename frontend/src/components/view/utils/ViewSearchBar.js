@@ -40,7 +40,7 @@ const columnEntries = [
 ];
 
 export const ViewSearchBar = ({viewType, dataFields, openSearch, setOpenSearch, setSearchedItem}) => {
-    let { decompositionName } = useParams();
+    let { decompositionId } = useParams();
     const [fuse, setFuse] = useState(undefined);
     const [pattern, setPattern] = useState("");
     const [filteredItems, setFilteredItems] = useState([]);
@@ -51,7 +51,7 @@ export const ViewSearchBar = ({viewType, dataFields, openSearch, setOpenSearch, 
         if (openSearch) {
             setColumns(columnEntries.filter(item => dataFields.includes(item.dataField)));
             const service = new APIService();
-            service.getSearchItems(decompositionName, viewType).then(response => {
+            service.getSearchItems(decompositionId, viewType).then(response => {
                 setSearchItems(response.data);
             }).catch(error => {
                 console.error("Error during search items fetch:", error);

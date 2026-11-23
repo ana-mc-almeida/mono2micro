@@ -60,8 +60,8 @@ export const Item = styled(Paper)(({ theme }) => ({ backgroundColor: '#dee2e6', 
 
 
 export const ComparisonTool = () => {
-    const [codebases, setCodebases] = useState([]);
-    const [codebase, setCodebase] = useState({});
+    const [softwareSystems, setSoftwareSystems] = useState([]);
+    const [softwareSystem, setSoftwareSystem] = useState({});
     const [decompositions, setDecompositions] = useState([]);
     const [isUploaded, setIsUploaded] = useState("");
     const [decomposition1, setDecomposition1] = useState({});
@@ -69,20 +69,20 @@ export const ComparisonTool = () => {
     const [comparisonData, setComparisonData] = useState({});
     const [analysisTypes, setAnalysisTypes] = useState([]);
 
-    useEffect(() => loadCodebases(), []);
+    useEffect(() => loadSoftwareSystems(), []);
 
-    function loadCodebases() {
+    function loadSoftwareSystems() {
         const service = new APIService();
-        service.getCodebases().then(response => {
-            setCodebases(response);
+        service.getSoftwareSystems().then(response => {
+            setSoftwareSystems(response);
         });
     }
 
-    function loadCodebaseDecompositions(codebaseName) {
+    function loadSoftwareSystemDecompositions(softwareSystemId) {
         const service = new APIService();
         
-        service.getCodebaseDecompositions(
-            codebaseName
+        service.getSoftwareSystemDecompositions(
+            softwareSystemId
         ).then((response) => {
             if (response.data !== null) {
                 setDecompositions(response.data);
@@ -90,10 +90,10 @@ export const ComparisonTool = () => {
         });
     }
 
-    function changeCodebase(codebase) {
-        setCodebase(codebase);
+    function changeSoftwareSystem(softwareSystem) {
+        setSoftwareSystem(softwareSystem);
 
-        loadCodebaseDecompositions(codebase.name);
+        loadSoftwareSystemDecompositions(softwareSystem.id);
     }
 
     function changeDecomposition1(decomposition) {
@@ -110,7 +110,7 @@ export const ComparisonTool = () => {
         setIsUploaded("Uploading...");
 
         const service = new APIService();
-        service.analysis(decomposition1.name, decomposition2.name)
+        service.analysis(decomposition1.id, decomposition2.id)
             .then(response => {
                 if (response.status === HttpStatus.OK) {
                     setComparisonData(response.data);
@@ -144,7 +144,7 @@ export const ComparisonTool = () => {
     decompositions.forEach((decomposition) => {
         const dropdownItem = (
             <Dropdown.Item
-                key={decomposition.name}
+                key={decomposition.id}
                 onClick={() => changeDecomposition1(decomposition)}
             >
                 {decomposition.name}
@@ -165,7 +165,7 @@ export const ComparisonTool = () => {
     decompositions.forEach((decomposition) => {
         const dropdownItem = (
             <Dropdown.Item
-                key={decomposition.name}
+                key={decomposition.id}
                 onClick={() => changeDecomposition2(decomposition)}
             >
                 {decomposition.name}
@@ -195,24 +195,24 @@ export const ComparisonTool = () => {
             <h4 style={{ color: "#666666" }}>Comparison Tool</h4>
 
             <Form onSubmit={handleSubmit}>
-                <Form.Group as={Row} controlId="codebase">
+                <Form.Group as={Row} controlId="softwareSystem">
                     <Form.Label column sm={2}>
-                        Codebase
+                        Software System
                     </Form.Label>
                     <Col sm={5}>
                         <DropdownButton
                             className="mb-2"
-                            title={Object.keys(codebase).length === 0 ?
-                                "Select Codebase" :
-                                codebase.name
+                            title={Object.keys(softwareSystem).length === 0 ?
+                                "Select Software System" :
+                                softwareSystem.name
                             }
                         >
-                            {codebases.map(codebase =>
+                            {softwareSystems.map(softwareSystem =>
                                 <Dropdown.Item
-                                    key={codebase.name}
-                                    onClick={() => changeCodebase(codebase)}
+                                    key={softwareSystem.id}
+                                    onClick={() => changeSoftwareSystem(softwareSystem)}
                                 >
-                                    {codebase.name}
+                                    {softwareSystem.name}
                                 </Dropdown.Item>
                             )}
                         </DropdownButton>
@@ -265,7 +265,7 @@ export const ComparisonTool = () => {
                         <Button
                             className="me-2 mb-3"
                             type="submit"
-                            disabled={Object.keys(codebase).length === 0 ||
+                            disabled={Object.keys(softwareSystem).length === 0 ||
                                 Object.keys(decomposition1).length === 0 ||
                                 Object.keys(decomposition2).length === 0
                             }
@@ -283,7 +283,7 @@ export const ComparisonTool = () => {
 
             {analysisTypes.includes("MOJO") &&
                 <MoJoResults
-                    codebaseName={codebase.name}
+                    softwareSystemId={softwareSystem.id}
                     comparisonData={comparisonData}
                 />
             }

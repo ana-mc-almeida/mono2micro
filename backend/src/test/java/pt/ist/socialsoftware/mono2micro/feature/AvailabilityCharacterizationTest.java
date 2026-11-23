@@ -1,0 +1,276 @@
+package pt.ist.socialsoftware.mono2micro.feature;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.AlgorithmOperation;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures;
+import pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.Fixture;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.repository.RepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.RepositoryKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.StructureKind;
+import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
+import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.ACCESSES_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.CODE_EMBEDDINGS_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.EMPTY_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.REPOSITORY_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.fixtures.SoftwareSystemFixtures.STRUCTURE_BASED_NAME;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation.ACCESSES;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation.AUTHOR;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation.CODE_EMBEDDINGS;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CommitRepresentation.COMMIT;
+import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation.ENTITY_TO_ID;
+import static pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation.ID_TO_ENTITY;
+import static pt.ist.socialsoftware.mono2micro.representation.domain.Representation.STRUCTURE_TYPE;
+import static pt.ist.socialsoftware.mono2micro.representation.analytical.domain.StructureRepresentation.STRUCTURE;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKind.ACCESSES_AND_REPOSITORY;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.ClassVectorizationKind.CLASS_VECTORIZATION;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.EntityVectorizationKind.ENTITY_VECTORIZATION;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationSequenceOfAccessesKind.FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
+import static pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
+
+/**
+ * Pins today's availability answers, so that the shared availability check of D-013 and D-019
+ * can be shown to give the same ones.
+ *
+ * <p>Two questions are characterized: which of the eight Similarity kinds a set of uploads
+ * makes available, and which of them the SciPy algorithm accepts. Each
+ * test asserts the exact answer, offered and withheld alike, and never which map or method
+ * produced it. Whatever replaces those internals must keep these answers, except where a test
+ * names the decision that changes one.
+ *
+ * <p>Follows {@code SoftwareSystemServiceAvailabilityTest}: in-memory fixtures, a stubbed repository,
+ * no Spring, Mongo or Docker.
+ */
+public class AvailabilityCharacterizationTest {
+
+	private static final String UNGROUPED_STRUCTURE_NAME = "fixture-structure-without-entity-to-id";
+	private static final String EVERYTHING_NAME = "fixture-everything";
+	private static final String ACCESSES_ONLY_NAME = "fixture-accesses-only";
+
+	private static final Set<String> VECTORIZATION_KINDS = Set.of(
+			CLASS_VECTORIZATION,
+			ENTITY_VECTORIZATION,
+			FUNCTIONALITY_VECTORIZATION_CALLGRAPH,
+			FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES);
+
+	/** Accesses and Repository is its own kind beside Repository alone (D-026). */
+	private static final Set<String> REPOSITORY_KINDS = Set.of(RepositoryKind.REPOSITORY, ACCESSES_AND_REPOSITORY);
+
+	private static final Set<String> ALL_KINDS = union(
+			union(Set.of(AccessesKind.ACCESSES, StructureKind.STRUCTURE), REPOSITORY_KINDS),
+			VECTORIZATION_KINDS);
+
+	/** Every representation type the tool accepts, by type, so a test can leave one out. */
+	private static final List<Supplier<Representation>> EVERY_REPRESENTATION = List.of(
+			IDToEntityRepresentation::new,
+			EntityToIDRepresentation::new,
+			AccessesRepresentation::new,
+			AuthorRepresentation::new,
+			CommitRepresentation::new,
+			CodeEmbeddingsRepresentation::new,
+			StructureRepresentation::new);
+
+	@Mock
+	private RepresentationRepository representationRepository;
+
+	@InjectMocks
+	private SoftwareSystemService softwareSystemService;
+
+	@InjectMocks
+	private SimilarityService similarityService;
+
+	@BeforeEach
+	public void givenTheFixtureSoftwareSystemsExist() {
+		MockitoAnnotations.initMocks(this);
+		for (Fixture fixture : SoftwareSystemFixtures.all())
+			givenTheRepositoryFinds(fixture);
+		givenTheRepositoryFinds(SoftwareSystemFixtures.softwareSystemWith(
+				UNGROUPED_STRUCTURE_NAME,
+				new IDToEntityRepresentation(),
+				new AccessesRepresentation(),
+				new StructureRepresentation()));
+		givenTheRepositoryFinds(everythingExcept(null, EVERYTHING_NAME));
+		givenTheRepositoryFinds(SoftwareSystemFixtures.softwareSystemWith(
+				ACCESSES_ONLY_NAME,
+				new AccessesRepresentation()));
+	}
+
+	// Similarity kinds offered per upload set
+
+	@Test
+	public void noUploadsOfferNoKind() {
+		assertThat(offeredKinds(EMPTY_NAME)).isEmpty();
+	}
+
+	/** Every kind needs the ID-to-entity map, so accesses alone are not enough. */
+	@Test
+	public void accessesWithoutTheIdToEntityMapOfferNoKind() {
+		assertThat(offeredKinds(ACCESSES_ONLY_NAME)).isEmpty();
+	}
+
+	@Test
+	public void accessesBasedUploadsOfferOnlyTheAccessesKind() {
+		assertThat(offeredKinds(ACCESSES_BASED_NAME))
+				.containsExactlyInAnyOrder(AccessesKind.ACCESSES);
+	}
+
+	/** Repository alone and Accesses and Repository are two kinds (D-026). */
+	@Test
+	public void repositoryBasedUploadsOfferTheAccessesAndBothRepositoryKinds() {
+		assertThat(offeredKinds(REPOSITORY_BASED_NAME))
+				.containsExactlyInAnyOrderElementsOf(union(Set.of(AccessesKind.ACCESSES), REPOSITORY_KINDS));
+	}
+
+	@Test
+	public void codeEmbeddingsBasedUploadsOfferTheAccessesKindAndTheFourVectorizationKinds() {
+		assertThat(offeredKinds(CODE_EMBEDDINGS_BASED_NAME))
+				.containsExactlyInAnyOrderElementsOf(union(Set.of(AccessesKind.ACCESSES), VECTORIZATION_KINDS));
+	}
+
+	@Test
+	public void structureBasedUploadsOfferTheAccessesAndStructureKinds() {
+		assertThat(offeredKinds(STRUCTURE_BASED_NAME))
+				.containsExactlyInAnyOrder(AccessesKind.ACCESSES, StructureKind.STRUCTURE);
+	}
+
+	@Test
+	public void everyRepresentationUploadedOffersAllEightKinds() {
+		assertThat(offeredKinds(EVERYTHING_NAME)).containsExactlyInAnyOrderElementsOf(ALL_KINDS);
+	}
+
+	/**
+	 * What is offered is a kind, not a free combination of criteria, so the Accesses+Structure and Repository+Structure checkbox combinations
+	 * are no longer offered: the first threw while its matrix was built, and in the second Structure added nothing (D-013, O-12). Every
+	 * representation uploaded offers exactly the kinds, and none of them combines Structure with anything.
+	 */
+	@Test
+	public void theTwoBrokenCriteriaCombinationsAreNoLongerOffered() {
+		assertThat(similarityService.getAvailableKinds(EVERYTHING_NAME).getFeatures())
+				.extracting(DerivationRecord.FeatureAvailability::getName)
+				.containsExactlyInAnyOrderElementsOf(ALL_KINDS)
+				.doesNotContain("Accesses and Structure", "Repository and Structure", "Accesses and Repository and Structure");
+	}
+
+	/**
+	 * Leaving out one representation type at a time withholds exactly the kinds that need it, so
+	 * no kind can lose or gain a requirement without one of these cases failing.
+	 */
+	@ParameterizedTest(name = "without {0}")
+	@MethodSource("kindsOfferedWithoutEachRepresentation")
+	public void leavingOutOneRepresentationWithholdsExactlyTheKindsThatNeedIt(String missingType, Set<String> expectedKinds) {
+		Fixture fixture = everythingExcept(missingType, "fixture-everything-but-" + missingType);
+		givenTheRepositoryFinds(fixture);
+
+		assertThat(offeredKinds(fixture.getId())).containsExactlyInAnyOrderElementsOf(expectedKinds);
+	}
+
+	/** Without Entity-to-ID, Structure is withheld, because the Structure kind declares it (D-019); see the Structure test below. */
+	static Stream<Arguments> kindsOfferedWithoutEachRepresentation() {
+		return Stream.of(
+				Arguments.of(ID_TO_ENTITY, Set.of()),
+				Arguments.of(ACCESSES, Set.of()),
+				Arguments.of(ENTITY_TO_ID, union(Set.of(AccessesKind.ACCESSES), REPOSITORY_KINDS)),
+				Arguments.of(CODE_EMBEDDINGS, union(Set.of(AccessesKind.ACCESSES, StructureKind.STRUCTURE), REPOSITORY_KINDS)),
+				Arguments.of(AUTHOR, without(ALL_KINDS, REPOSITORY_KINDS)),
+				Arguments.of(COMMIT, without(ALL_KINDS, REPOSITORY_KINDS)),
+				Arguments.of(STRUCTURE, without(ALL_KINDS, Set.of(StructureKind.STRUCTURE))));
+	}
+
+	/**
+	 * The Structure kind's dependence on Entity-to-ID, a behavior change D-019 allows.
+	 *
+	 * <p>Before ticket 04, Structure was offered without Entity-to-ID, although
+	 * {@code SimilarityScipyStructure.fillElements} reads it and would fail without it. D-019 has
+	 * the Structure kind declare Entity-to-ID, so Structure is now withheld; the leave-one-out case
+	 * without Entity-to-ID changed with it. No user sees the change: the UI could never reach this
+	 * case, because the Structure upload group requires Entity-to-ID and the frontend uploads by
+	 * group. The second assertion pins that.
+	 */
+	@Test
+	public void structureIsWithheldWithoutEntityToIdAndItsUploadGroupIsNotSatisfied() {
+		assertThat(offeredKinds(UNGROUPED_STRUCTURE_NAME))
+				.containsExactlyInAnyOrder(AccessesKind.ACCESSES);
+		assertThat(softwareSystemService.getSoftwareSystemRepresentationGroups(UNGROUPED_STRUCTURE_NAME))
+				.doesNotContain(STRUCTURE_TYPE);
+	}
+
+	// Similarity kinds the SciPy algorithm accepts
+
+	@Test
+	public void theSciPyAlgorithmAcceptsASimilarityOfEachOfTheEightKinds() {
+		AlgorithmOperation sciPy = SelfRegistration.prototypes(AlgorithmOperation.class).get(SciPyOperation.SCIPY);
+		AvailabilityContext noSystem = FeatureFamilies.scanned().contextFor(Collections.emptyList());
+
+		assertThat(SelfRegistration.prototypes(SimilarityKind.class).keySet().stream()
+				.filter(kindName -> !AvailabilityCheck.derive(Collections.singletonList(sciPy), noSystem.withInput(similarityOf(kindName))).availableNames()
+						.isEmpty()))
+				.containsExactlyInAnyOrderElementsOf(ALL_KINDS);
+	}
+
+	private static Similarity similarityOf(String kindName) {
+		Similarity similarity = mock(Similarity.class);
+		when(similarity.getKindName()).thenReturn(kindName);
+		return similarity;
+	}
+
+	private List<String> offeredKinds(String softwareSystemId) {
+		return similarityService.getAvailableKinds(softwareSystemId).availableNames();
+	}
+
+	private void givenTheRepositoryFinds(Fixture fixture) {
+		SoftwareSystemFixtures.stubbed(representationRepository, fixture);
+	}
+
+	/** A software system with every representation type except {@code missingType}; {@code null} omits none. */
+	private static Fixture everythingExcept(String missingType, String name) {
+		List<Representation> representations = new ArrayList<>();
+		for (Supplier<Representation> representation : EVERY_REPRESENTATION)
+			representations.add(representation.get());
+		representations.removeIf(representation -> representation.getType().equals(missingType));
+		return SoftwareSystemFixtures.softwareSystemWith(name, representations.toArray(new Representation[0]));
+	}
+
+	private static Set<String> union(Set<String> first, Set<String> second) {
+		Set<String> union = new HashSet<>(first);
+		union.addAll(second);
+		return union;
+	}
+
+	private static Set<String> without(Set<String> kinds, Set<String> withheld) {
+		Set<String> without = new HashSet<>(kinds);
+		without.removeAll(withheld);
+		return without;
+	}
+}

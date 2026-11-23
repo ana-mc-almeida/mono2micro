@@ -74,8 +74,8 @@ func (r *RefactorCodebaseHTTPHandler) ServeHTTP(w http.ResponseWriter, req *http
 }
 
 func (r *RefactorCodebaseHTTPHandler) validateRequest(req *values.RefactorCodebaseRequest) error {
-	if req.DecompositionName == "" {
-		return fmt.Errorf("A decomposition name must be set.")
+	if req.DecompositionID == "" {
+		return fmt.Errorf("A decomposition id must be set.")
 	}
 	return nil
 }

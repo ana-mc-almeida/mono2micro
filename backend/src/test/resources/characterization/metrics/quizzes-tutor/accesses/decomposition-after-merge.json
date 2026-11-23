@@ -1,0 +1,21 @@
+{
+  "clusters" : {
+    "Cluster1" : {
+      "Cohesion" : 0.54,
+      "Complexity" : 64.333,
+      "Coupling" : 0.714
+    },
+    "Merged" : {
+      "Cohesion" : 0.359,
+      "Complexity" : 60.657,
+      "Coupling" : 1.0
+    }
+  },
+  "decomposition" : {
+    "Cohesion" : 0.45,
+    "Complexity" : 45.17,
+    "Coupling" : 0.857,
+    "Performance" : 6.319,
+    "Silhouette Score" : 0.3
+  }
+}

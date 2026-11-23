@@ -1,59 +1,138 @@
 package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
+import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
-import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyClassVectorization.SIMILARITY_SCIPY_CLASS_VECTORIZATION;
-import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyEntityVectorization.SIMILARITY_SCIPY_ENTITY_VECTORIZATION;
-import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses.SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
-import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccessesAndRepository.SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
-import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph.SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH;
-import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyStructure.SIMILARITY_SCIPY_STRUCTURE;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * A request for a Similarity, and the description of one. Its subclasses are JSON subtypes by their {@code @JsonTypeName}, found by the
+ * self-registration scan (D-019 point 8), and each creates the Similarity of its type, so a new type registers itself: no factory lists the types.
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = SimilarityScipyAccessesAndRepositoryDto.class, name = SIMILARITY_SCIPY_ACCESSES_REPOSITORY),
-        @JsonSubTypes.Type(value = SimilarityScipyClassVectorizationDto.class, name = SIMILARITY_SCIPY_CLASS_VECTORIZATION),
-        @JsonSubTypes.Type(value = SimilarityScipyEntityVectorizationDto.class, name = SIMILARITY_SCIPY_ENTITY_VECTORIZATION),
-        @JsonSubTypes.Type(value = SimilarityScipyFunctionalityVectorizationByCallGraphDto.class, name = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_CALLGRAPH),
-        @JsonSubTypes.Type(value = SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto.class, name = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES),
-        @JsonSubTypes.Type(value = SimilarityScipyStructureDto.class, name = SIMILARITY_SCIPY_STRUCTURE)
-})
 public abstract class SimilarityDto {
-    String codebaseName;
-    String strategyName;
-    String name;
-    String type;
+	String id;
+	String softwareSystemId;
+	String name;
+	/** The type of the Similarity class that computes it, which picks this DTO's subclass. */
+	String type;
+	/** The name of its Similarity kind, which fixes its criteria and the representations it reads. */
+	String kindName;
+	/** The ids of the representations it reads. Set by the backend, so a request never chooses them. */
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	List<String> representationIds;
+	/** Null for no profile: the Similarity is built on every unit (D-017). */
+	String profileId;
+	String profileName;
 
-    public String getName() {
-        return name;
-    }
+	protected SimilarityDto() {}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	/** Describes what every Similarity holds: its id, software system, kind, representations, name, type and profile. */
+	protected SimilarityDto(Similarity similarity) {
+		this.id = similarity.getId();
+		this.softwareSystemId = similarity.getSoftwareSystem().getId();
+		this.kindName = similarity.getKindName();
+		this.representationIds = similarity.getRepresentationIds();
+		this.name = similarity.getName();
+		this.type = similarity.getType();
+		copyProfile(similarity.getProfile());
+	}
 
-    public String getType() {
-        return type;
-    }
+	/** A new Similarity of this request's type, reading {@code representations}, which are those its kind requires. Not yet computed or saved. */
+	public abstract Similarity newSimilarity(List<Representation> representations);
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getStrategyName() {
-        return strategyName;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setStrategyName(String strategyName) {
-        this.strategyName = strategyName;
-    }
+	public String getType() {
+		return type;
+	}
 
-    public String getCodebaseName() {
-        return codebaseName;
-    }
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public void setCodebaseName(String codebaseName) {
-        this.codebaseName = codebaseName;
-    }
+	public String getKindName() {
+		return kindName;
+	}
+
+	public void setKindName(String kindName) {
+		this.kindName = kindName;
+	}
+
+	public List<String> getRepresentationIds() {
+		return representationIds;
+	}
+
+	public void setRepresentationIds(List<String> representationIds) {
+		this.representationIds = representationIds;
+	}
+
+	/** The types of the weights the request sends, in order, which must be the ones its kind is computed with (D-013). */
+	public List<String> weightsTypes() {
+		return Collections.emptyList();
+	}
+
+	protected static List<String> typesOf(List<Weights> weightsList) {
+		return weightsList == null ? Collections.emptyList() : weightsList.stream().map(Weights::getType).collect(Collectors.toList());
+	}
+
+	/** What a generated name starts with: the kind. */
+	protected String namePrefix() {
+		return kindName;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getProfileId() {
+		return profileId;
+	}
+
+	public void setProfileId(String profileId) {
+		this.profileId = profileId;
+	}
+
+	public String getProfileName() {
+		return profileName;
+	}
+
+	public void setProfileName(String profileName) {
+		this.profileName = profileName;
+	}
+
+	/** Not a setter, so that a request's JSON never binds to it. */
+	protected void copyProfile(Profile profile) {
+		this.profileId = Profile.idOf(profile);
+		this.profileName = Profile.nameOf(profile);
+	}
+
+	/** How the generated name shows the profile. */
+	protected String profileLabel() {
+		return profileName == null ? "No profile" : profileName;
+	}
+
+	public String getSoftwareSystemId() {
+		return softwareSystemId;
+	}
+
+	public void setSoftwareSystemId(String softwareSystemId) {
+		this.softwareSystemId = softwareSystemId;
+	}
 }
