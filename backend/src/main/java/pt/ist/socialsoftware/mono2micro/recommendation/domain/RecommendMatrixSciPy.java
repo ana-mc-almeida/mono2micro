@@ -198,51 +198,28 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 		Map<Short, String> idToEntity = getIDToEntityName(gridFsService); // read once: every candidate shares it
 		int maxClusters = getMaxClusters(idToEntity.size());
-		int numberOfTotalSteps = similarityMatricesNames.size() * (1 + maxClusters - MIN_CLUSTERS) / CLUSTER_STEP;
+		// Upstream's loop for the kinds that require cluster-type conversion tested its stop after each cut, so it also cut at one above the maximum
+		// FIXME (Phase 2): whether that extra candidate is intended is open (../implementation/docs/open-questions.md, "A recommendation's candidate
+		// loops and comma-joined candidates")
+		int lastNumberOfClusters = requiresClusterTypeConversion() ? maxClusters + 1 : maxClusters;
+		int numberOfTotalSteps = similarityMatricesNames.size() * (1 + lastNumberOfClusters - MIN_CLUSTERS) / CLUSTER_STEP;
 		System.out.println("Number of decompositions to be made: " + numberOfTotalSteps);
 
-		if (requiresClusterTypeConversion()) {
-			similarityMatricesNames.parallelStream().forEach(similarityMatrixName -> {
-				int numberOfClusters = MIN_CLUSTERS;
-				int numberOfEntitiesClusters = MIN_CLUSTERS;
+		similarityMatricesNames.parallelStream().forEach(similarityMatrixName -> {
+			for (int numberOfClusters = MIN_CLUSTERS; numberOfClusters <= lastNumberOfClusters; numberOfClusters += CLUSTER_STEP) {
+				try {
+					addRecommendationToJSON(recommendationJSON, measureCandidate(similarityMatrixName, numberOfClusters, idToEntity));
 
-				do {
-					try {
-						JSONObject decompositionJSON = measureCandidate(similarityMatrixName, numberOfClusters, idToEntity);
-						numberOfEntitiesClusters = decompositionJSON.getInt("numberOfClusters");
+					System.out.println("Decomposition " + recommendationJSON.length() + "/" + numberOfTotalSteps);
 
-						addRecommendationToJSON(recommendationJSON, decompositionJSON);
-
-						System.out.println("Decomposition " + recommendationJSON.length() + "/" + numberOfEntitiesClusters);
-
-						numberOfClusters++;
-
-						// Every 20 candidates, updates the recommendation results file
-						if (recommendationJSON.length() % 20 == 0)
-							setRecommendationResult(gridFsService, recommendationJSON);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				} while (numberOfEntitiesClusters <= maxClusters);
-			});
-		} else {
-			similarityMatricesNames.parallelStream().forEach(similarityMatrixName -> {
-
-				for (int numberOfClusters = MIN_CLUSTERS; numberOfClusters <= maxClusters; numberOfClusters += CLUSTER_STEP) {
-					try {
-						addRecommendationToJSON(recommendationJSON, measureCandidate(similarityMatrixName, numberOfClusters, idToEntity));
-
-						System.out.println("Decomposition " + recommendationJSON.length() + "/" + numberOfTotalSteps);
-
-						// Every 20 candidates, updates the recommendation results file
-						if (recommendationJSON.length() % 20 == 0)
-							setRecommendationResult(gridFsService, recommendationJSON);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+					// Every 20 candidates, updates the recommendation results file
+					if (recommendationJSON.length() % 20 == 0)
+						setRecommendationResult(gridFsService, recommendationJSON);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			});
-		}
+			}
+		});
 
 		setRecommendationResult(gridFsService, recommendationJSON);
 		setCompleted(true);
