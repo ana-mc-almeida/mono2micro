@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
@@ -42,10 +41,6 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses exten
 	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(String kindName, List<Representation> representations, String name,
 			SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto dto) {
 		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
-	}
-
-	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(RecommendMatrixSciPy recommendation) {
-		super(recommendation);
 	}
 
 	@Override

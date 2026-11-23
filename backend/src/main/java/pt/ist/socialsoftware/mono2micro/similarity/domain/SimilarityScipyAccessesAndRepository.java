@@ -7,7 +7,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
@@ -38,13 +37,6 @@ public class SimilarityScipyAccessesAndRepository extends SimilarityScipy {
 		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
 		this.tracesMaxLimit = dto.getTracesMaxLimit();
 		this.traceType = dto.getTraceType();
-	}
-
-	public SimilarityScipyAccessesAndRepository(RecommendMatrixSciPy recommendation) {
-		super(recommendation);
-		setProfile(recommendation.getProfile());
-		this.tracesMaxLimit = recommendation.getTracesMaxLimit();
-		this.traceType = recommendation.getTraceType();
 	}
 
 	@Override

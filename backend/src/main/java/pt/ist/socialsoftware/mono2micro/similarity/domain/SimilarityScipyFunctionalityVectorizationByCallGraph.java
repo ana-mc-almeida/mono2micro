@@ -5,7 +5,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
@@ -40,10 +39,6 @@ public class SimilarityScipyFunctionalityVectorizationByCallGraph extends Simila
 			SimilarityScipyFunctionalityVectorizationByCallGraphDto dto) {
 		super(kindName, representations, name, dto.getLinkageType(), dto.getWeightsList());
 		this.depth = dto.getDepth();
-	}
-
-	public SimilarityScipyFunctionalityVectorizationByCallGraph(RecommendMatrixSciPy recommendation) {
-		super(recommendation);
 	}
 
 	@Override

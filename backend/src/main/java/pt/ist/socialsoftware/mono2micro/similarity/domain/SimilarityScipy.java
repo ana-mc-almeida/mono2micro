@@ -10,7 +10,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.CodeEmbeddingsRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.EntityToIDRepresentation;
@@ -41,15 +40,6 @@ public abstract class SimilarityScipy extends Similarity {
 		super(kindName, representations, name);
 		this.linkageType = linkageType;
 		this.weightsList = weightsList;
-	}
-
-	/** A temporary similarity for a recommendation; its matrices are keyed by the recommendation's id. */
-	// FIXME (ticket 10): recommendations should not need a temporary similarity; remove this constructor once the recommendation run and its candidates go
-	// through SciPyOperation
-	public SimilarityScipy(RecommendMatrixSciPy recommendation) {
-		this(recommendation.getKindName(), recommendation.getRepresentations(), recommendation.getName(), recommendation.getLinkageType(),
-				recommendation.getWeightsList());
-		this.id = recommendation.getId();
 	}
 
 	/** The ID-to-entity map, when the caller already read it: a recommendation's candidates share one. Never stored. */

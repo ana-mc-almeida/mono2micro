@@ -171,9 +171,11 @@ public class RecommendMatrixSciPy extends Recommendation {
 		ForkJoinPool.commonPool().submit(() -> {
 			try {
 				GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-				SimilarityScipy similarityScipy = SimilarityScipyFactory.getSimilarityScipy(this);
-				setSimilarityMatricesNames(
-						similarityScipy.generateMultipleMatrices(gridFsService, this, fillElements(gridFsService), getTotalNumberOfWeights()));
+				// One Similarity of this recommendation's own settings computes every candidate's matrix, named after this recommendation
+				SimilarityScipy matrices = (SimilarityScipy) candidateRequest(getWeightsList()).newSimilarity(getRepresentations());
+				matrices.setId(getId());
+				matrices.setProfile(getProfile());
+				setSimilarityMatricesNames(matrices.generateMultipleMatrices(gridFsService, this, fillElements(gridFsService), getTotalNumberOfWeights()));
 				generateCandidates(gridFsService);
 
 				recommendationRepository.save(this);
@@ -186,8 +188,8 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 	/**
 	 * Cuts every matrix into 3 up to the maximum number of clusters, through {@link SciPyOperation}, and writes each candidate's weights, size and
-	 * metrics to the result file. A candidate is measured with a stand-in Similarity of this recommendation's settings, whose id is its matrix's
-	 * name, and neither is kept: saving a candidate is {@link #createDecompositions}.
+	 * metrics to the result file. A candidate is measured with an unsaved Similarity of its own weights, whose id is its matrix's name, and neither
+	 * is kept: saving a candidate is {@link #createDecompositions}.
 	 */
 	private void generateCandidates(GridFsService gridFsService) throws Exception {
 		JSONArray recommendationJSON = new JSONArray();
@@ -249,8 +251,9 @@ public class RecommendMatrixSciPy extends Recommendation {
 	/** Cuts the matrix into {@code numberOfClusters} and describes the candidate: its name, weights, number of clusters, size and metrics. */
 	private JSONObject measureCandidate(String similarityMatrixName, int numberOfClusters, Map<Short, String> idToEntity) throws Exception {
 		String[] weights = (similarityMatrixName + "," + numberOfClusters).split(",");
-		SimilarityScipy similarity = SimilarityScipyFactory.getSimilarityScipy(this);
+		SimilarityScipy similarity = (SimilarityScipy) candidateRequest(weightsOf(weights)).newSimilarity(getRepresentations());
 		similarity.setId(similarityMatrixName);
+		similarity.setProfile(getProfile());
 		similarity.useIDToEntityName(idToEntity);
 
 		ClusterRepresentation candidate = new SciPyOperation("N", numberOfClusters).apply(similarity);

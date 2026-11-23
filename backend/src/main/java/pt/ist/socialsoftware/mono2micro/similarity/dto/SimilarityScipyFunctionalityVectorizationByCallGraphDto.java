@@ -15,7 +15,13 @@ import static pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy
 public class SimilarityScipyFunctionalityVectorizationByCallGraphDto extends SimilarityDto {
 	private String linkageType;
 
-	private int depth;
+	/**
+	 * 2 when the request names none, as upstream: a recommendation has no depth, so its candidates' Similarities keep the domain class's
+	 * default. The form always sends one.
+	 */
+	// FIXME (Phase 2): a call-graph recommendation always runs with depth 2, which the architect can neither see nor choose; whether that is a bug
+	// is open (../implementation/docs/open-questions.md, "A call-graph recommendation's depth")
+	private int depth = 2;
 
 	private List<Weights> weightsList;
 

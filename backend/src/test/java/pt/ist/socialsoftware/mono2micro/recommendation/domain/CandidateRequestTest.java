@@ -1,14 +1,18 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.domain;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationByCallGraph;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.AccessesWeights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesKind;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.FunctionalityVectorizationCallGraphKind;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
@@ -57,6 +61,21 @@ class CandidateRequestTest {
 		assertThat(request.getTraceType()).isEqualTo(Constants.TraceType.LONGEST);
 		assertThat(request.getTracesMaxLimit()).isEqualTo(7);
 		assertThat(request.getWeightsList()).isEqualTo(weights);
+	}
+
+	/**
+	 * Upstream built a call-graph recommendation's Similarity from the recommendation, which has no depth, so it ran with the class default of 2.
+	 * The candidate's Similarity keeps that depth, or the run never walks the call graph and computes other candidates.
+	 */
+	@Test
+	@DisplayName("a call-graph recommendation's candidates are computed with upstream's depth of 2")
+	void aCallGraphCandidateKeepsUpstreamsDepth() {
+		RecommendMatrixSciPy recommendation = recommendation(FunctionalityVectorizationCallGraphKind.FUNCTIONALITY_VECTORIZATION_CALLGRAPH);
+
+		SimilarityScipyFunctionalityVectorizationByCallGraph candidate = (SimilarityScipyFunctionalityVectorizationByCallGraph) recommendation
+				.candidateRequest(Collections.emptyList()).newSimilarity(recommendation.getRepresentations());
+
+		assertThat(candidate.getDepth()).isEqualTo(2);
 	}
 
 	static Stream<String> kindNames() {
