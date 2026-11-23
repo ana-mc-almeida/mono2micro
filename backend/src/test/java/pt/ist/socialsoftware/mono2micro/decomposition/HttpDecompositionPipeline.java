@@ -347,6 +347,39 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		return getJson("/similarities/{id}/operations/available", similarityId).path("features");
 	}
 
+	/** Requests a recommendation, or finds the equal one, and returns it as the backend describes it, completion flag included. */
+	JsonNode requestRecommendation(Map<String, Object> request) {
+		ResponseEntity<JsonNode> response = rest.exchange(
+				base + "/recommendation/createRecommendation",
+				HttpMethod.PUT,
+				new HttpEntity<>(request, jsonHeaders()),
+				JsonNode.class);
+		require(response, HttpStatus.CREATED, "request a recommendation");
+		return response.getBody();
+	}
+
+	JsonNode getRecommendationResult(String recommendationId) {
+		return getJson("/recommendation/{id}/getRecommendationResult", recommendationId);
+	}
+
+	/** Saves the named candidates of the recommendation, as the frontend's Create button does (APIService.createRecommendationDecompositions). */
+	void saveRecommendationCandidates(String recommendationId, List<String> names) {
+		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
+		names.forEach(name -> form.add("decompositionNames", name));
+		// As the frontend does: Spring splits a lone value on its commas, and a candidate's name has some
+		form.add("decompositionNames", "");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		ResponseEntity<String> response = rest.exchange(
+				base + "/recommendation/{id}/createDecompositions",
+				HttpMethod.POST,
+				new HttpEntity<>(form, headers),
+				String.class,
+				recommendationId);
+		require(response, HttpStatus.OK, "save candidates " + names + " of " + recommendationId);
+	}
+
 	void deleteSimilarity(String similarityId) {
 		rest.delete(base + "/similarity/{id}/delete", similarityId);
 	}

@@ -29,7 +29,7 @@ public abstract class AlgorithmOperation extends Operation implements VariableFe
 
 	/**
 	 * Clusters {@code input} into a new cluster representation measured with it, named after the Similarity and this operation's parameters. It
-	 * neither saves the output nor sets up its information blocks: the editing chain does.
+	 * neither saves the output nor sets up its information blocks: the editing chain does, or a recommendation measures it without keeping it.
 	 */
 	public abstract ClusterRepresentation apply(Similarity input) throws Exception;
 }

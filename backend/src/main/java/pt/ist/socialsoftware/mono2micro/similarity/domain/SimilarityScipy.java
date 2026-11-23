@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
@@ -51,8 +52,19 @@ public abstract class SimilarityScipy extends Similarity {
 		this.id = recommendation.getId();
 	}
 
+	/** The ID-to-entity map, when the caller already read it: a recommendation's candidates share one. Never stored. */
+	@Transient
+	private Map<Short, String> idToEntityName;
+
+	/** Uses {@code idToEntityName}, already read by the caller, instead of reading the map again. */
+	public void useIDToEntityName(Map<Short, String> idToEntityName) {
+		this.idToEntityName = Collections.unmodifiableMap(idToEntityName);
+	}
+
 	@Override
 	public Map<Short, String> getIDToEntityName() throws IOException {
+		if (idToEntityName != null)
+			return idToEntityName;
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
 		IDToEntityRepresentation idToEntity = (IDToEntityRepresentation) Representation.ofSoftwareSystem(getSoftwareSystem(), ID_TO_ENTITY);
 		return new ObjectMapper().readValue(gridFsService.getFileAsString(idToEntity.getId()), new TypeReference<Map<Short, String>>() {});
