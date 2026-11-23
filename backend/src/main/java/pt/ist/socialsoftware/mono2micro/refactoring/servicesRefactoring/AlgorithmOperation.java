@@ -2,11 +2,15 @@ package pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.mongodb.core.mapping.DBRef;
+import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 
-/** An operation that clusters a Similarity, such as a run of a clustering algorithm (D-012). */
-public abstract class AlgorithmOperation extends Operation {
+/**
+ * An operation that clusters a Similarity, such as a run of a clustering algorithm (D-012). Each one is a variable feature that declares which
+ * Similarities it can cluster, and registers itself: its {@code @JsonTypeName} is its name, so a new algorithm needs no factory of its own.
+ */
+public abstract class AlgorithmOperation extends Operation implements VariableFeature {
 	/** The Similarity it clustered, which its output is measured with (D-015). Eager, as an abstract type (D-024). */
 	@DBRef
 	@JsonIgnore

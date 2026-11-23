@@ -37,8 +37,8 @@ public class SimilarityController {
 	EditingChainService editingChainService;
 
 	/**
-	 * Runs SciPy on the request's Similarity through the editing chain, which saves the output and the operation. The frontend's create endpoint,
-	 * kept until the operations' own endpoint replaces it.
+	 * Runs SciPy on the request's Similarity through the editing chain, which checks it is offered and saves the output and the operation. The
+	 * frontend's create endpoint, kept until the operations' own endpoint replaces it.
 	 */
 	@PostMapping(value = "/similarity/createDecomposition")
 	public ResponseEntity<HttpStatus> createDecomposition(
@@ -48,8 +48,7 @@ public class SimilarityController {
 
 		try {
 			SciPyRequestDto request = (SciPyRequestDto) decompositionRequest;
-			editingChainService.run(new SciPyOperation(request.getCutType(), request.getCutValue()),
-					similarityService.getSimilarityById(request.getSimilarityId()));
+			editingChainService.runAlgorithmOperation(request.getSimilarityId(), new SciPyOperation(request.getCutType(), request.getCutValue()));
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -157,6 +156,21 @@ public class SimilarityController {
 					HttpStatus.OK
 			);
 
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/** Every algorithm operation, offered or withheld for the Similarity, with what each failed: the derivation record (D-013). */
+	@GetMapping(value = "/similarities/{similarityId}/operations/available")
+	public ResponseEntity<DerivationRecord> getAvailableOperations(
+			@PathVariable String similarityId
+	) {
+		logger.debug("getAvailableOperations");
+
+		try {
+			return new ResponseEntity<>(editingChainService.getAvailableAlgorithmOperations(similarityId), HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

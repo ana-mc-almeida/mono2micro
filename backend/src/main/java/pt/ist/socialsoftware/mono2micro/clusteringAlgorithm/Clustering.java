@@ -1,7 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.clusteringAlgorithm;
 
-import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
-
-public abstract class Clustering implements VariableFeature {
+public abstract class Clustering {
+	// FIXME: this will be removed later
 	public abstract String getType();
 }

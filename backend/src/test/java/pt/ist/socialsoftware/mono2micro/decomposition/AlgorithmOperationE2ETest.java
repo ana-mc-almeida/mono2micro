@@ -1,5 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.decomposition;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.OperationRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/** Running an algorithm operation on a Similarity (D-010, D-012, D-016): a run is saved as the operation and its output. */
+/**
+ * Running an algorithm operation on a Similarity (D-010, D-012, D-016): a Similarity lists the operations it can run, and a run is saved as the
+ * operation and its output.
+ */
 @Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("Algorithm operations on a Similarity")
@@ -39,6 +44,20 @@ class AlgorithmOperationE2ETest {
 	void removeCreatedSoftwareSystems() {
 		cleanups.forEach(Runnable::run);
 		cleanups.clear();
+	}
+
+	@Test
+	@DisplayName("The record lists every algorithm operation, and SciPy is offered for a Similarity")
+	void availableOperations() {
+		HttpDecompositionPipeline pipeline = pipeline();
+		String similarity = pipeline.createSimilarity(system(pipeline), SimilarityCase.accesses());
+
+		JsonNode features = pipeline.availableOperations(similarity);
+
+		assertThat(features).hasSize(1);
+		assertThat(features.get(0).path("name").asText()).isEqualTo(SciPyOperation.SCIPY);
+		assertThat(features.get(0).path("available").asBoolean()).isTrue();
+		assertThat(features.get(0).path("failedRequirements")).isEmpty();
 	}
 
 	@Test

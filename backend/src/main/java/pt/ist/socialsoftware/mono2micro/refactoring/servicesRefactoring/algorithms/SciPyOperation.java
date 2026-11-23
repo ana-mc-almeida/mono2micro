@@ -1,13 +1,20 @@
 package pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
+import pt.ist.socialsoftware.mono2micro.feature.Requirement;
+import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.AlgorithmOperation;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
+import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
+
+import java.util.Collections;
+import java.util.List;
 
 import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
 
@@ -15,7 +22,10 @@ import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
  * Hierarchical clustering by the Python service: it cuts a Similarity's dendrogram by a number of clusters ("N") or by a height ("H"), and keeps
  * the run's Silhouette Score.
  */
+@JsonTypeName(SciPyOperation.SCIPY)
 public class SciPyOperation extends AlgorithmOperation {
+	public static final String SCIPY = "SciPy Clustering";
+
 	private String cutType;
 	private float cutValue;
 
@@ -24,6 +34,12 @@ public class SciPyOperation extends AlgorithmOperation {
 	public SciPyOperation(String cutType, float cutValue) {
 		this.cutType = cutType;
 		this.cutValue = cutValue;
+	}
+
+	/** It clusters a Similarity of any kind (D-025). */
+	@Override
+	public List<Requirement> requirements() {
+		return Collections.singletonList(Requires.of(SimilarityKind.class));
 	}
 
 	@Override

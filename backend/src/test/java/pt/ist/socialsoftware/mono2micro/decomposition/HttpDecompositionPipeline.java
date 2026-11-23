@@ -341,6 +341,11 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				similarityId);
 	}
 
+	/** The algorithm operations' derivation record for the Similarity: each operation, whether it is offered, and what it failed. */
+	JsonNode availableOperations(String similarityId) {
+		return getJson("/similarities/{id}/operations/available", similarityId).path("features");
+	}
+
 	void deleteSimilarity(String similarityId) {
 		rest.delete(base + "/similarity/{id}/delete", similarityId);
 	}

@@ -7,8 +7,9 @@ import pt.ist.socialsoftware.mono2micro.feature.AvailabilityContext;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.FeatureFamilies;
 import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.AlgorithmOperation;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
+import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ExpertKnowledge;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.AccessesAndRepositoryKind;
@@ -25,6 +26,8 @@ import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
@@ -54,12 +57,12 @@ public class FamilyScanTest {
 	}
 
 	@Test
-	public void everyAlgorithmAppearsInTheRecord() {
+	public void everyAlgorithmOperationAppearsInTheRecord() {
 		DerivationRecord record = AvailabilityCheck.derive(
-				SelfRegistration.prototypes(Clustering.class).values(), NOTHING_COLLECTED);
+				SelfRegistration.prototypes(AlgorithmOperation.class).values(), NOTHING_COLLECTED);
 
 		assertThat(record.getFeatures()).extracting(FeatureAvailability::getName)
-				.containsExactly(SciPyClustering.SCIPY);
+				.containsExactly(SciPyOperation.SCIPY);
 	}
 
 	/**
@@ -69,21 +72,27 @@ public class FamilyScanTest {
 	@Test
 	public void sciPyWithoutAnInputIsWithheldNamingTheSimilarityKindFamily() {
 		DerivationRecord record = AvailabilityCheck.derive(
-				Collections.singletonList(SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY)), NOTHING_COLLECTED);
+				Collections.singletonList(SelfRegistration.prototypes(AlgorithmOperation.class).get(SciPyOperation.SCIPY)), NOTHING_COLLECTED);
 
 		FeatureAvailability sciPy = record.getFeatures().get(0);
 		assertThat(sciPy.isAvailable()).isFalse();
 		assertThat(sciPy.getFailedRequirements()).containsExactly("requires a Similarity kind as input");
 	}
 
-	/** Every kind the family finds is an input the SciPy algorithm accepts, as the check derives it. */
+	/** A Similarity of every kind the family finds is an input the SciPy operation accepts, as the check derives it from its kind name. */
 	@Test
-	public void sciPyAcceptsEveryKindTheFamilyFinds() {
-		Clustering sciPy = SelfRegistration.prototypes(Clustering.class).get(SciPyClustering.SCIPY);
+	public void sciPyAcceptsASimilarityOfEveryKindTheFamilyFinds() {
+		AlgorithmOperation sciPy = SelfRegistration.prototypes(AlgorithmOperation.class).get(SciPyOperation.SCIPY);
 
-		for (SimilarityKind kind : SelfRegistration.prototypes(SimilarityKind.class).values())
-			assertThat(AvailabilityCheck.derive(Collections.singletonList(sciPy), NOTHING_COLLECTED.withInput(kind)).availableNames())
-					.as(SelfRegistration.nameOf(kind)).containsExactly(SciPyClustering.SCIPY);
+		for (String kindName : SelfRegistration.prototypes(SimilarityKind.class).keySet())
+			assertThat(AvailabilityCheck.derive(Collections.singletonList(sciPy), NOTHING_COLLECTED.withInput(similarityOf(kindName))).availableNames())
+					.as(kindName).containsExactly(SciPyOperation.SCIPY);
+	}
+
+	private static Similarity similarityOf(String kindName) {
+		Similarity similarity = mock(Similarity.class);
+		when(similarity.getKindName()).thenReturn(kindName);
+		return similarity;
 	}
 
 	/**

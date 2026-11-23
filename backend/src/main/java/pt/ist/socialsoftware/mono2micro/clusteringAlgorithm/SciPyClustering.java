@@ -1,24 +1,19 @@
 package pt.ist.socialsoftware.mono2micro.clusteringAlgorithm;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.*;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
-import pt.ist.socialsoftware.mono2micro.feature.Requirement;
-import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
-import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
 
 import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
 
-@JsonTypeName(SciPyClustering.SCIPY)
 public class SciPyClustering extends Clustering {
 	public static final String SCIPY = "SciPy Clustering";
 	static final int MIN_CLUSTERS = 3, CLUSTER_STEP = 1;
@@ -31,11 +26,6 @@ public class SciPyClustering extends Clustering {
 	@Override
 	public String getType() {
 		return SCIPY;
-	}
-
-	@Override
-	public List<Requirement> requirements() {
-		return Collections.singletonList(Requires.of(SimilarityKind.class));
 	}
 
 	private JSONObject invokePythonCut(ClusterRepresentation decomposition, String similarityMatrixName, String linkageType, String cutType, float cutValue) {

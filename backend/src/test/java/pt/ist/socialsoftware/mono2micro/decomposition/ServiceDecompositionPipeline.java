@@ -233,7 +233,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	@Override
 	public String createDecomposition(String similarityId) {
 		try {
-			editingChainService.run(new SciPyOperation("N", 3), similarityService.getSimilarityById(similarityId));
+			editingChainService.runAlgorithmOperation(similarityId, new SciPyOperation("N", 3));
 		} catch (Exception e) {
 			throw new AssertionError("Could not create decomposition for " + similarityId, e);
 		}
