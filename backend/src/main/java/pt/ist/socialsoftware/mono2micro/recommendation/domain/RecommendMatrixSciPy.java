@@ -292,6 +292,10 @@ public class RecommendMatrixSciPy extends Recommendation {
 		else throw new RuntimeException("Number of entities is too small (less than 4)");
 	}
 
+	/**
+	 * Saves the chosen candidates, each as a {@link SciPyOperation} on the Similarity of its weights and the operation's output (D-016). The
+	 * Similarity is the equal one among {@code similarities}, or a new one that reuses the candidate's matrix.
+	 */
 	@Override
 	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames, EditingChainService editingChainService)
 			throws Exception {

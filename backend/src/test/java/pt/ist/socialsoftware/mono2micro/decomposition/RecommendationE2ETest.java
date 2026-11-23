@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.Operation;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.OperationRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,8 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * A recommendation runs its candidates through the SciPy operation and saves a chosen one as a cluster representation, on the Similarity of
- * the candidate's weights (D-030). The Repository kind explores two weights, so its run is short: 11 matrices, each cut into 3 to 5
+ * A recommendation runs its candidates through the SciPy operation and saves a chosen one as a SciPy operation and its output, on the Similarity
+ * of the candidate's weights (D-016, D-030). The Repository kind explores two weights, so its run is short: 11 matrices, each cut into 3 to 5
  * clusters on {@code quizzes-tutor}'s 13 entities.
  */
 @Tag("integration")
@@ -40,6 +43,9 @@ class RecommendationE2ETest {
 	@Autowired
 	private TestRestTemplate rest;
 
+	@Autowired
+	private OperationRepository operationRepository;
+
 	private final List<Runnable> cleanups = new ArrayList<>();
 
 	@AfterEach
@@ -49,8 +55,8 @@ class RecommendationE2ETest {
 	}
 
 	@Test
-	@DisplayName("A saved candidate is a cluster representation of its number of clusters, on a Similarity of the recommendation's kind")
-	void aSavedCandidateIsAClusterRepresentationOfItsSize() throws InterruptedException {
+	@DisplayName("A saved candidate is a SciPy operation and its output, on a Similarity of the recommendation's kind")
+	void aSavedCandidateIsASciPyOperationAndItsOutput() throws InterruptedException {
 		HttpDecompositionPipeline pipeline = pipeline();
 		String softwareSystem = system(pipeline);
 		Map<String, Object> request = recommendationRequest(pipeline, softwareSystem);
@@ -67,6 +73,11 @@ class RecommendationE2ETest {
 		assertThat(similarities.get(0).path("kindName").asText()).isEqualTo(KIND);
 		JsonNode outputs = pipeline.getDecompositions(similarities.get(0).path("id").asText());
 		assertThat(outputs).hasSize(1);
+
+		Operation operation = operationRepository.findByOutput_Id(outputs.get(0).path("id").asText()).orElseThrow(AssertionError::new);
+		assertThat(operation).isInstanceOf(SciPyOperation.class);
+		assertThat(((SciPyOperation) operation).getCutType()).isEqualTo("N");
+		assertThat(((SciPyOperation) operation).getCutValue()).isEqualTo(chosen.path("numberOfClusters").asInt());
 		assertThat(outputs.get(0).path("clusters").size()).isEqualTo(chosen.path("numberOfClusters").asInt());
 	}
 
