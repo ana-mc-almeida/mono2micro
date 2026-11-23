@@ -40,6 +40,9 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^12.1.5",
+    "@testing-library/user-event": "^14.5.2",
     "ajv": "^8.17.1",
     "css-loader": "^6.6.0",
     "style-loader": "^3.3.1"
@@ -49,5 +52,10 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!vis-network|vis-data|vis-util)"
+    ]
+  }
 }
