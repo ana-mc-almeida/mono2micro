@@ -26,7 +26,7 @@ public class Expert {
 
 	public ClusterRepresentation generateClusters(Similarity similarity, String expertName, Optional<MultipartFile> expertFile, Set<String> decompositionNames)
 			throws Exception {
-		ClusterRepresentation decomposition = new PartitionsClusterRepresentation(similarity);
+		PartitionsClusterRepresentation decomposition = new PartitionsClusterRepresentation(similarity);
 		decomposition.setExpert(true);
 
 		Map<Short, String> idToEntity;

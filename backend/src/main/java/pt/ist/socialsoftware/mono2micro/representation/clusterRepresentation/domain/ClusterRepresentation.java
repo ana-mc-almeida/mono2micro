@@ -1,12 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
-import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.history.domain.History;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
@@ -190,28 +186,6 @@ public abstract class ClusterRepresentation extends Representation {
 		}
 
 		return max;
-	}
-
-	/**
-	 * Adds a cluster for each entry of {@code clustersJSON}, which maps a cluster's name to its entities' ids, in name order. An imported
-	 * representation keeps the names it was given; otherwise each name is prefixed with "Cluster".
-	 */
-	public void addClusters(JSONObject clustersJSON, Map<Short, String> idToEntity) throws JSONException {
-		Iterator<String> names = clustersJSON.sortedKeys();
-		List<String> clusterNames = new ArrayList<>();
-		while (names.hasNext())
-			clusterNames.add(names.next());
-		Collections.sort(clusterNames);
-
-		for (String name : clusterNames) {
-			JSONArray entities = clustersJSON.getJSONArray(name);
-			Partition cluster = new Partition(isExpert() ? name : "Cluster" + name);
-			for (int i = 0; i < entities.length(); i++) {
-				short entityID = (short) entities.getInt(i);
-				cluster.addElement(new DomainEntity(entityID, idToEntity.get(entityID)));
-			}
-			addCluster(cluster);
-		}
 	}
 
 	public Map<Short, String> getEntityIDToClusterName() {
