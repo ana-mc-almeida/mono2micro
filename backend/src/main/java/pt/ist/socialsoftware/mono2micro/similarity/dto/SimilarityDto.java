@@ -2,7 +2,6 @@ package pt.ist.socialsoftware.mono2micro.similarity.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -87,23 +86,6 @@ public abstract class SimilarityDto {
 
 	protected static List<String> typesOf(List<Weights> weightsList) {
 		return weightsList == null ? Collections.emptyList() : weightsList.stream().map(Weights::getType).collect(Collectors.toList());
-	}
-
-	/**
-	 * Fills this request with the Similarity a recommendation's candidate with {@code weightsList} is saved with.
-	 *
-	 * @throws UnsupportedOperationException
-	 * for a type whose candidates cannot be saved: a known defect inherited from upstream (Gap 9, D-027), fixed in Phase 2
-	 */
-	public void describeCandidate(RecommendMatrixSciPy recommendation, List<Weights> weightsList) {
-		throw new UnsupportedOperationException("A " + recommendation.getKindName() + " recommendation's candidates cannot be saved (Gap 9, D-027).");
-	}
-
-	/** Copies where a recommendation's candidate comes from: the recommendation's kind and representations. */
-	protected void copyCandidateSource(RecommendMatrixSciPy recommendation) {
-		this.softwareSystemId = recommendation.getSoftwareSystem().getId();
-		this.kindName = recommendation.getKindName();
-		this.representationIds = recommendation.getRepresentationIds();
 	}
 
 	/** What a generated name starts with: the kind. */

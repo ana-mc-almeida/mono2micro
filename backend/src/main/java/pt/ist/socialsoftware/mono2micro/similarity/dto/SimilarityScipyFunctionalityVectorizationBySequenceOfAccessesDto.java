@@ -3,7 +3,6 @@ package pt.ist.socialsoftware.mono2micro.similarity.dto;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
@@ -29,14 +28,6 @@ public class SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto ex
 	@Override
 	public Similarity newSimilarity(List<Representation> representations) {
 		return new SimilarityScipyFunctionalityVectorizationBySequenceOfAccesses(getKindName(), representations, getName(), this);
-	}
-
-	public SimilarityScipyFunctionalityVectorizationBySequenceOfAccessesDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		copyCandidateSource(recommend);
-		this.name = recommend.getName();
-		this.type = SIMILARITY_SCIPY_FUNCTIONALITY_VECTORIZATION_SEQUENCE_ACCESSES;
-		this.linkageType = recommend.getLinkageType();
-		this.weightsList = weightsList;
 	}
 
 	public String getName() {

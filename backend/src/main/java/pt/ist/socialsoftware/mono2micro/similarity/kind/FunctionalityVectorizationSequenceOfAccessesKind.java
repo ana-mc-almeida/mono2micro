@@ -47,4 +47,10 @@ public class FunctionalityVectorizationSequenceOfAccessesKind extends Similarity
 	public boolean requiresClusterTypeConversion() {
 		return true;
 	}
+
+	/** Known defect, inherited from upstream (Gap 9, D-027): its candidates' Similarity was never described, so none can be saved. */
+	@Override
+	public boolean savesRecommendationCandidates() {
+		return false;
+	}
 }

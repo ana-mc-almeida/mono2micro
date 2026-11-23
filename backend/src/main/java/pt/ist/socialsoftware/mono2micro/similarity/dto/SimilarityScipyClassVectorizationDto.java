@@ -3,9 +3,7 @@ package pt.ist.socialsoftware.mono2micro.similarity.dto;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyClassVectorization;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 
 import java.util.List;
 
@@ -25,13 +23,6 @@ public class SimilarityScipyClassVectorizationDto extends SimilarityDto {
 	@Override
 	public Similarity newSimilarity(List<Representation> representations) {
 		return new SimilarityScipyClassVectorization(getKindName(), representations, getName(), this);
-	}
-
-	public SimilarityScipyClassVectorizationDto(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		copyCandidateSource(recommend);
-		this.name = recommend.getName();
-		this.type = SIMILARITY_SCIPY_CLASS_VECTORIZATION;
-		this.linkageType = recommend.getLinkageType();
 	}
 
 	public String getName() {

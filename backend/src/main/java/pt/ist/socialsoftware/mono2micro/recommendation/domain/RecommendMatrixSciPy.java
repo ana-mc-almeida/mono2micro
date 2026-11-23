@@ -1,16 +1,21 @@
 package pt.ist.socialsoftware.mono2micro.recommendation.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
+import pt.ist.socialsoftware.mono2micro.JsonSubtypeConfiguration;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendMatrixSciPyDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
 import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
@@ -21,7 +26,6 @@ import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weigh
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.WeightsFactory;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
-import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 
 import java.io.ByteArrayInputStream;
@@ -38,6 +42,13 @@ import static pt.ist.socialsoftware.mono2micro.utils.Constants.SCRIPTS_ADDRESS;
 @Document("recommendation")
 public class RecommendMatrixSciPy extends Recommendation {
 	private static final int MIN_CLUSTERS = 3, CLUSTER_STEP = 1;
+	/**
+	 * Reads a candidate's request as the controller reads the frontend's: with the self-registered subtypes, ignoring the settings a type lacks.
+	 * Its own mapper, because a domain object cannot be handed Spring's.
+	 */
+	private static final ObjectMapper JSON = new ObjectMapper()
+			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+			.registerModule(JsonSubtypeConfiguration.subtypesModule());
 
 	private int tracesMaxLimit;
 	private Constants.TraceType traceType;
@@ -291,18 +302,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 
 			System.out.println("Creating decomposition with name: " + name);
 
-			List<Weights> localWeightsList = WeightsFactory.getWeightsList(getAllWeightsTypes());
-
-			int i = 1;
-			for (Weights weights : localWeightsList) {
-				float[] w = new float[weights.getNumberOfWeights()];
-				for (int j = 0; j < w.length; j++)
-					w[j] = Float.parseFloat(properties[i++]);
-
-				weights.setWeightsFromArray(w);
-			}
-
-			SimilarityDto similarityInformation = getSimilarityInformationDto(localWeightsList);
+			SimilarityDto similarityInformation = getSimilarityInformationDto(weightsOf(properties));
 
 			// Find or create the candidate's Similarity
 			SimilarityScipy similarity = (SimilarityScipy) similarities.stream()
@@ -324,13 +324,53 @@ public class RecommendMatrixSciPy extends Recommendation {
 		}
 	}
 
+	/** The weights a candidate's name gives after its matrix's prefix, in this recommendation's weights order. */
+	private List<Weights> weightsOf(String[] properties) {
+		List<Weights> localWeightsList = WeightsFactory.getWeightsList(getAllWeightsTypes());
+		int i = 1;
+		for (Weights weights : localWeightsList) {
+			float[] w = new float[weights.getNumberOfWeights()];
+			for (int j = 0; j < w.length; j++)
+				w[j] = Float.parseFloat(properties[i++]);
+			weights.setWeightsFromArray(w);
+		}
+		return localWeightsList;
+	}
+
 	/**
-	 * The request for the Similarity a candidate with {@code localWeightsList} is saved with: one of the type that computes the kind, built by
-	 * the self-registration scan, so a new kind computed by an existing type needs no edit here.
+	 * The request for the Similarity a saved candidate with {@code localWeightsList} is found or created with.
+	 *
+	 * @throws UnsupportedOperationException
+	 * for a kind whose candidates cannot be saved: a known defect inherited from upstream (Gap 9, D-027), fixed in Phase 2
 	 */
 	public SimilarityDto getSimilarityInformationDto(List<Weights> localWeightsList) {
-		SimilarityDto candidate = SelfRegistration.newMember(SimilarityDto.class, SimilarityKind.getByName(getKindName()).similarityType());
-		candidate.describeCandidate(this, localWeightsList);
-		return candidate;
+		if (!SimilarityKind.getByName(getKindName()).savesRecommendationCandidates())
+			throw new UnsupportedOperationException("A " + getKindName() + " recommendation's candidates cannot be saved (Gap 9, D-027).");
+		return candidateRequest(localWeightsList);
+	}
+
+	/**
+	 * The request for a Similarity of this recommendation's kind, representations, profile and settings, weighed by {@code weightsList}. It is the
+	 * JSON the frontend would send, read through the self-registered request types, so the type that computes the kind picks the request's class
+	 * and this recommendation names none.
+	 */
+	SimilarityDto candidateRequest(List<Weights> weightsList) {
+		ObjectNode request = JSON.createObjectNode();
+		request.put("type", SimilarityKind.getByName(getKindName()).similarityType());
+		request.put("kindName", getKindName());
+		request.put("profileId", getProfileId());
+		request.put("linkageType", linkageType);
+		request.put("traceType", traceType == null ? null : traceType.name());
+		request.put("tracesMaxLimit", tracesMaxLimit);
+		request.set("weightsList", JSON.valueToTree(weightsList));
+		try {
+			SimilarityDto candidate = JSON.treeToValue(request, SimilarityDto.class);
+			candidate.setSoftwareSystemId(getSoftwareSystem().getId());
+			candidate.setRepresentationIds(getRepresentationIds());
+			candidate.setProfileName(Profile.nameOf(getProfile())); // the generated name shows the profile
+			return candidate;
+		} catch (JsonProcessingException e) {
+			throw new IllegalStateException("A " + getKindName() + " recommendation cannot describe its candidates' Similarity.", e);
+		}
 	}
 }

@@ -79,6 +79,14 @@ public abstract class SimilarityKind implements VariableFeature {
 	}
 
 	/**
+	 * Whether a recommendation of this kind can save the candidates it computes. The vectorization kinds cannot: a known defect inherited from
+	 * upstream (Gap 9, D-027), fixed in Phase 2.
+	 */
+	public boolean savesRecommendationCandidates() {
+		return true;
+	}
+
+	/**
 	 * The kind named {@code name}.
 	 *
 	 * @throws IllegalArgumentException

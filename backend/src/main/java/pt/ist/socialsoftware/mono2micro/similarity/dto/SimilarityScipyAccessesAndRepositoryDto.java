@@ -3,7 +3,6 @@ package pt.ist.socialsoftware.mono2micro.similarity.dto;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipyAccessesAndRepository;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.utils.Constants;
@@ -33,17 +32,6 @@ public class SimilarityScipyAccessesAndRepositoryDto extends SimilarityDto {
 	@Override
 	public Similarity newSimilarity(List<Representation> representations) {
 		return new SimilarityScipyAccessesAndRepository(getKindName(), representations, getName(), this);
-	}
-
-	@Override
-	public void describeCandidate(RecommendMatrixSciPy recommend, List<Weights> weightsList) {
-		copyCandidateSource(recommend);
-		this.type = SIMILARITY_SCIPY_ACCESSES_REPOSITORY;
-		this.weightsList = weightsList;
-		copyProfile(recommend.getProfile());
-		this.linkageType = recommend.getLinkageType();
-		this.tracesMaxLimit = recommend.getTracesMaxLimit();
-		this.traceType = recommend.getTraceType();
 	}
 
 	public String getName() {
