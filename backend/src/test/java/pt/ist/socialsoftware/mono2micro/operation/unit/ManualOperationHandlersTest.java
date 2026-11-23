@@ -116,7 +116,8 @@ public class ManualOperationHandlersTest {
 
 	@Test
 	public void theCheckFailsWhenAnOperationHasNoHandlerForAKind() {
-		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(new RecordingHandler<>(PartitionsClusterRepresentation.class)));
+		ManualOperationHandlers registry = new ManualOperationHandlers(
+				Collections.singletonList(new RecordingHandler<>(PartitionsClusterRepresentation.class)));
 
 		assertThatThrownBy(() -> registry.verify(Arrays.asList(RenameOperation.class, MergeOperation.class), kinds(PartitionsClusterRepresentation.class)))
 				.isInstanceOf(IllegalStateException.class)
@@ -126,7 +127,8 @@ public class ManualOperationHandlersTest {
 
 	@Test
 	public void theCheckAcceptsAKindCoveredByFallback() {
-		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(new RecordingHandler<>(PartitionsClusterRepresentation.class)));
+		ManualOperationHandlers registry = new ManualOperationHandlers(
+				Collections.singletonList(new RecordingHandler<>(PartitionsClusterRepresentation.class)));
 
 		assertThatCode(() -> registry.verify(Collections.singletonList(RenameOperation.class),
 				kinds(PartitionsClusterRepresentation.class, ChildPartitions.class)))
@@ -138,7 +140,8 @@ public class ManualOperationHandlersTest {
 		assertThat(SelfRegistration.types(Operation.class)).containsExactlyInAnyOrder(
 				FormClusterOperation.class, MergeOperation.class, RenameOperation.class, SplitOperation.class, TransferOperation.class);
 
-		assertThatCode(() -> ManualOperationHandlers.scanned().verify(SelfRegistration.types(Operation.class), SelfRegistration.types(ClusterRepresentation.class)))
+		assertThatCode(
+				() -> ManualOperationHandlers.scanned().verify(SelfRegistration.types(Operation.class), SelfRegistration.types(ClusterRepresentation.class)))
 				.doesNotThrowAnyException();
 	}
 

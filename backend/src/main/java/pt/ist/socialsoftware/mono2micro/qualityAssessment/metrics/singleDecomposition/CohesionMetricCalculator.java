@@ -20,7 +20,8 @@ public class CohesionMetricCalculator extends DecompositionMetricCalculator {
 	}
 
 	@Override
-	public Double calculateMetric(ClusterRepresentation decomposition) { // It might be extended to adapt for other kinds of decompositions without functionalities
+	public Double calculateMetric(ClusterRepresentation decomposition) {
+		// It might be extended to adapt for other kinds of decompositions without functionalities
 		Map<String, List<Functionality>> clustersFunctionalities = Utils.getClustersFunctionalities(decomposition);
 		return calculateMetric(decomposition, clustersFunctionalities);
 	}

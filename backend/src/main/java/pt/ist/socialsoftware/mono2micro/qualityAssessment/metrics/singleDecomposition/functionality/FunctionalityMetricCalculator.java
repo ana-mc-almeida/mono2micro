@@ -6,5 +6,9 @@ import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dom
 import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.MetricCalculator;
 
 public abstract class FunctionalityMetricCalculator extends MetricCalculator {
-	public abstract Object calculateMetric(AccessesInformation accessesInformation, ClusterRepresentation decomposition, Functionality functionality) throws Exception;
+	public abstract Object calculateMetric(
+			AccessesInformation accessesInformation,
+			ClusterRepresentation decomposition,
+			Functionality functionality
+	) throws Exception;
 }

@@ -54,7 +54,7 @@ public abstract class ClusterRepresentation extends Representation {
 	 * Fails unless it is measured with a Similarity of its own software system (D-015). Checked whenever it is saved.
 	 *
 	 * @throws IllegalStateException
-	 *                               if it has no Similarity or no software system, or its Similarity belongs to another software system
+	 * if it has no Similarity or no software system, or its Similarity belongs to another software system
 	 */
 	public void requireSimilarityOfItsSoftwareSystem() {
 		if (similarity == null)

@@ -67,8 +67,12 @@ public class FunctionalityRedesign {
 		this.redesign = redesign;
 	}
 
-	public void calculateMetrics(GridFsService gridFsService, ClusterRepresentation decomposition, AccessesInformation accessesInformation, Functionality functionality)
-			throws Exception {
+	public void calculateMetrics(
+			GridFsService gridFsService,
+			ClusterRepresentation decomposition,
+			AccessesInformation accessesInformation,
+			Functionality functionality
+	) throws Exception {
 		FunctionalityRedesignMetricCalculator[] metricObjects;
 		if (functionality.getType() == FunctionalityType.SAGA)
 			metricObjects = new FunctionalityRedesignMetricCalculator[] { new FunctionalityRedesignComplexityMetricCalculator(gridFsService),
