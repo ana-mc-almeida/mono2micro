@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
@@ -91,6 +92,8 @@ class DecompositionE2ETest {
 	private SimilarityService similarityService;
 	@Autowired
 	private ClusterRepresentationService decompositionService;
+	@Autowired
+	private EditingChainService editingChainService;
 
 	private final List<Runnable> cleanups = new ArrayList<>();
 
@@ -177,7 +180,7 @@ class DecompositionE2ETest {
 				new HttpDecompositionPipeline(rest, port, caseName),
 				new ServiceDecompositionPipeline(
 						softwareSystemService, representationService,
-						similarityService, decompositionService, caseName));
+						similarityService, decompositionService, editingChainService, caseName));
 	}
 
 	/**

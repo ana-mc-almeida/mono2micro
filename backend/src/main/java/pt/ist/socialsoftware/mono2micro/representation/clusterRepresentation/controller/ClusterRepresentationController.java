@@ -10,7 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDtoFactory;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.operation.Operation;
 
@@ -29,26 +28,6 @@ public class ClusterRepresentationController {
 
 	@Autowired
 	ClusterRepresentationService decompositionService;
-
-	@PostMapping(value = "/similarity/createDecomposition")
-	public ResponseEntity<HttpStatus> createDecomposition(
-			@RequestBody DecompositionRequest decompositionRequest
-	) {
-		logger.debug("createDecomposition");
-
-		try {
-			decompositionService.createDecomposition(decompositionRequest);
-			return new ResponseEntity<>(HttpStatus.OK);
-
-		} catch (KeyAlreadyExistsException e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
 
 	@PostMapping(value = "/similarity/{similarityId}/createExpertDecomposition")
 	public ResponseEntity<HttpStatus> createExpertDecomposition(

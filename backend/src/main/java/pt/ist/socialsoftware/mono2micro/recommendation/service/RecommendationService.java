@@ -10,6 +10,7 @@ import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.ProfileService;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
@@ -31,6 +32,9 @@ public class RecommendationService {
 
 	@Autowired
 	GridFsService gridFsService;
+
+	@Autowired
+	EditingChainService editingChainService;
 
 	/**
 	 * Returns the new recommendation of the requested kind on the software system, or the existing one equal to the request.
@@ -60,11 +64,15 @@ public class RecommendationService {
 		return RecommendationDtoFactory.getRecommendationDto(recommendation);
 	}
 
-	/** Saves the chosen candidates, each with the Similarity of its weights, found among the software system's of the same kind or created (D-016). */
+	/**
+	 * Saves the chosen candidates, each as a SciPy operation and its output on the Similarity of its weights, found among the software system's
+	 * of the same kind or created (D-016).
+	 */
 	public void createDecompositions(String recommendationId, List<String> decompositionNames) throws Exception {
 		Recommendation recommendation = getRecommendationById(recommendationId);
 		recommendation.createDecompositions(
-				similarityService.getSimilaritiesOfKind(recommendation.getSoftwareSystem().getId(), recommendation.getKindName()), decompositionNames);
+				similarityService.getSimilaritiesOfKind(recommendation.getSoftwareSystem().getId(), recommendation.getKindName()), decompositionNames,
+				editingChainService);
 	}
 
 	public List<Recommendation> getRecommendations(String softwareSystemId) {

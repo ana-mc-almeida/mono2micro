@@ -6,15 +6,11 @@ import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.*;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.RecommendMatrixSciPy;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
-import pt.ist.socialsoftware.mono2micro.similarity.domain.SimilarityScipy;
 import pt.ist.socialsoftware.mono2micro.similarity.kind.SimilarityKind;
 
 import java.io.ByteArrayInputStream;
@@ -42,23 +38,6 @@ public class SciPyClustering extends Clustering {
 		return Collections.singletonList(Requires.of(SimilarityKind.class));
 	}
 
-	@Override
-	public ClusterRepresentation generateDecomposition(Similarity s, DecompositionRequest request, Set<String> decompositionNames) throws Exception {
-		SciPyRequestDto dto = (SciPyRequestDto) request;
-		SimilarityScipy similarity = (SimilarityScipy) s;
-
-		PartitionsClusterRepresentation decomposition = new PartitionsClusterRepresentation(similarity);
-
-		decomposition.setName(getDecompositionName(similarity, dto.getCutType(), dto.getCutValue(), decompositionNames));
-
-		JSONObject clustersJSON = invokePythonCut(decomposition, similarity.getId(), similarity.getLinkageType(), dto.getCutType(), dto.getCutValue());
-
-		Map<Short, String> idToEntity = similarity.getIDToEntityName();
-		decomposition.addClusters(clustersJSON, idToEntity);
-
-		return decomposition;
-	}
-
 	private JSONObject invokePythonCut(ClusterRepresentation decomposition, String similarityMatrixName, String linkageType, String cutType, float cutValue) {
 		String response = WebClient.create(SCRIPTS_ADDRESS)
 				.get()
@@ -77,18 +56,6 @@ public class SciPyClustering extends Clustering {
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
-	}
-
-	public String getDecompositionName(Similarity similarity, String cutType, float cutValue, Set<String> decompositionNames) {
-		String cutValueString = Float.valueOf(cutValue).toString().replaceAll("\\.?0*$", "");
-
-		if (decompositionNames.contains(similarity.getName() + " " + cutType + cutValueString)) {
-			int i = 2;
-			while (decompositionNames.contains(similarity.getName() + " " + cutType + cutValueString + "(" + i + ")"))
-				i++;
-			return similarity.getName() + " " + cutType + cutValueString + "(" + i + ")";
-
-		} else return similarity.getName() + " " + cutType + cutValueString;
 	}
 
 	// This prevents bug where, during the generateMultipleDecompositions, SCRIPTS_ADDRESS is not loaded

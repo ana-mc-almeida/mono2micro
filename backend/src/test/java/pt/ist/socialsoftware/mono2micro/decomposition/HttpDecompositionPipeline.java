@@ -174,7 +174,7 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				new HttpEntity<>(body, jsonHeaders()),
 				String.class);
 
-		// 200, not 201: ClusterRepresentationController returns OK here while every other create
+		// 200, not 201: the old create endpoint returns OK here while every other create
 		// endpoint in the pipeline returns CREATED.
 		require(response, HttpStatus.OK, "create decomposition for " + similarityId);
 
@@ -339,6 +339,10 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 				new HttpEntity<>(form, headers),
 				String.class,
 				similarityId);
+	}
+
+	void deleteSimilarity(String similarityId) {
+		rest.delete(base + "/similarity/{id}/delete", similarityId);
 	}
 
 	JsonNode getDecompositions(String similarityId) {

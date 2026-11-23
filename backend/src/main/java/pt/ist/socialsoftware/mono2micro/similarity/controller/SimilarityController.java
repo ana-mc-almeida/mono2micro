@@ -9,8 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDto;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDtoFactory;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDtoFactory;
@@ -28,6 +32,31 @@ public class SimilarityController {
 
 	@Autowired
 	SimilarityService similarityService;
+
+	@Autowired
+	EditingChainService editingChainService;
+
+	/**
+	 * Runs SciPy on the request's Similarity through the editing chain, which saves the output and the operation. The frontend's create endpoint,
+	 * kept until the operations' own endpoint replaces it.
+	 */
+	@PostMapping(value = "/similarity/createDecomposition")
+	public ResponseEntity<HttpStatus> createDecomposition(
+			@RequestBody DecompositionRequest decompositionRequest
+	) {
+		logger.debug("createDecomposition");
+
+		try {
+			SciPyRequestDto request = (SciPyRequestDto) decompositionRequest;
+			editingChainService.run(new SciPyOperation(request.getCutType(), request.getCutValue()),
+					similarityService.getSimilarityById(request.getSimilarityId()));
+			return new ResponseEntity<>(HttpStatus.OK);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
 	/** Every Similarity kind, offered or withheld, with what each failed: the derivation record (D-013). */
 	@GetMapping(value = "/softwareSystems/{softwareSystemId}/similarities/available")

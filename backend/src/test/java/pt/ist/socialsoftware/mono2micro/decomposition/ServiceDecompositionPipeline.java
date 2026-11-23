@@ -3,7 +3,8 @@ package pt.ist.socialsoftware.mono2micro.decomposition;
 import org.springframework.mock.web.MockMultipartFile;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
@@ -47,6 +48,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	private final RepresentationService representationService;
 	private final SimilarityService similarityService;
 	private final ClusterRepresentationService decompositionService;
+	private final EditingChainService editingChainService;
 
 	/** The fixture folder to read representation files from, e.g. {@code quizzes-tutor}. */
 	private final String caseName;
@@ -56,12 +58,14 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 			RepresentationService representationService,
 			SimilarityService similarityService,
 			ClusterRepresentationService decompositionService,
+			EditingChainService editingChainService,
 			String caseName
 	) {
 		this.softwareSystemService = softwareSystemService;
 		this.representationService = representationService;
 		this.similarityService = similarityService;
 		this.decompositionService = decompositionService;
+		this.editingChainService = editingChainService;
 		this.caseName = caseName;
 	}
 
@@ -228,10 +232,8 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 
 	@Override
 	public String createDecomposition(String similarityId) {
-		SciPyRequestDto request = new SciPyRequestDto(similarityId, "N", 3);
-
 		try {
-			decompositionService.createDecomposition(request);
+			editingChainService.run(new SciPyOperation("N", 3), similarityService.getSimilarityById(similarityId));
 		} catch (Exception e) {
 			throw new AssertionError("Could not create decomposition for " + similarityId, e);
 		}

@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
 
@@ -110,5 +111,6 @@ public abstract class Recommendation {
 
 	public abstract void generateRecommendation(RecommendationRepository recommendationRepository);
 
-	public abstract void createDecompositions(List<Similarity> similarities, List<String> decompositionNames) throws Exception;
+	public abstract void createDecompositions(List<Similarity> similarities, List<String> decompositionNames, EditingChainService editingChainService)
+			throws Exception;
 }

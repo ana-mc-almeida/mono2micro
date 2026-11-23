@@ -4,10 +4,8 @@ import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Expert;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.repository.ClusterRepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.history.service.HistoryService;
@@ -41,18 +39,6 @@ public class ClusterRepresentationService {
 
 	@Autowired
 	GridFsService gridFsService;
-
-	public void createDecomposition(DecompositionRequest request) throws Exception {
-		createDecomposition(similarityRepository.getById(request.getSimilarityId()), request);
-	}
-
-	public void createDecomposition(Similarity similarity, DecompositionRequest request) throws Exception {
-		Clustering clustering = similarity.getClustering();
-		ClusterRepresentation decomposition = clustering.generateDecomposition(similarity, request,
-				decompositionRepository.findNamesBySimilarityId(similarity.getId()));
-
-		setupDecomposition(decomposition);
-	}
 
 	public void createExpertDecomposition(String similarityId, String expertName, Optional<MultipartFile> expertFile) throws Exception {
 		Similarity similarity = similarityRepository.getById(similarityId);

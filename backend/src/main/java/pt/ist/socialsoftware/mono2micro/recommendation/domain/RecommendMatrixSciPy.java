@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
 import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
-import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendMatrixSciPyDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendationDto;
 import pt.ist.socialsoftware.mono2micro.recommendation.repository.RecommendationRepository;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.EditingChainService;
+import pt.ist.socialsoftware.mono2micro.refactoring.servicesRefactoring.algorithms.SciPyOperation;
 import pt.ist.socialsoftware.mono2micro.representation.entityDictionary.IDToEntityRepresentation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.*;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.dendrogram.Dendrogram;
@@ -177,9 +177,9 @@ public class RecommendMatrixSciPy extends Recommendation {
 	}
 
 	@Override
-	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames) throws Exception {
+	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames, EditingChainService editingChainService)
+			throws Exception {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		ClusterRepresentationService decompositionService = ContextManager.get().getBean(ClusterRepresentationService.class);
 
 		for (String name : decompositionNames) {
 			String[] properties = name.split(",");
@@ -218,8 +218,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 				similarities.add(similarity); // a later candidate with the same weights reuses it
 			}
 
-			decompositionService.createDecomposition(similarity,
-					new SciPyRequestDto(similarity.getId(), "N", Float.parseFloat(properties[properties.length - 1])));
+			editingChainService.run(new SciPyOperation("N", Float.parseFloat(properties[properties.length - 1])), similarity);
 		}
 	}
 
