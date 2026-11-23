@@ -160,6 +160,11 @@ class HttpDecompositionPipeline implements DecompositionPipeline {
 		rest.delete(base + "/representation/{id}/delete", representationId);
 	}
 
+	/** Deletes one cluster representation, as the frontend's delete button does. */
+	void deleteDecomposition(String decompositionId) {
+		rest.delete(base + "/decomposition/{id}/delete", decompositionId);
+	}
+
 	/** Runs the SciPy operation on the Similarity, cut into 3 clusters, and returns its output's id. */
 	@Override
 	public String createDecomposition(String similarityId) {

@@ -98,7 +98,7 @@ class AlgorithmOperationE2ETest {
 
 	@Test
 	@DisplayName("Deleting a Similarity deletes the operations that produced its cluster representations")
-	void deletingTheOutputDeletesItsOperation() {
+	void deletingTheSimilarityDeletesItsOperations() {
 		HttpDecompositionPipeline pipeline = pipeline();
 		String similarity = pipeline.createSimilarity(system(pipeline), SimilarityCase.accesses());
 		String output = pipeline.createDecomposition(similarity);
@@ -106,6 +106,21 @@ class AlgorithmOperationE2ETest {
 		pipeline.deleteSimilarity(similarity);
 
 		assertThat(operationRepository.findByOutput_Id(output)).isEmpty();
+	}
+
+	@Test
+	@DisplayName("Deleting a cluster representation deletes the operation that produced it, and only that one")
+	void deletingTheOutputDeletesItsOperation() {
+		HttpDecompositionPipeline pipeline = pipeline();
+		String similarity = pipeline.createSimilarity(system(pipeline), SimilarityCase.accesses());
+		String output = pipeline.createDecomposition(similarity);
+		String other = pipeline.createDecomposition(similarity);
+
+		pipeline.deleteDecomposition(output);
+
+		assertThat(operationRepository.findByOutput_Id(output)).isEmpty();
+		assertThat(operationRepository.findByOutput_Id(other)).as("the other run's operation").isPresent();
+		assertThat(pipeline.getDecompositions(similarity)).extracting(d -> d.path("id").asText()).containsExactly(other);
 	}
 
 	@Test
