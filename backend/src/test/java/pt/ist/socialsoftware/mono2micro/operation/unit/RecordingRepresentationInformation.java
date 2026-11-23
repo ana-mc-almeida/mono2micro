@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.operation.unit;
 
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition.DecompositionMetricCalculator;
 
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ class RecordingRepresentationInformation extends RepresentationInformation {
 	private final List<String> renames = new ArrayList<>();
 
 	@Override
-	public void removeFunctionalitiesWithEntityIDs(Decomposition decomposition, Set<Short> elements) {
+	public void removeFunctionalitiesWithEntityIDs(ClusterRepresentation decomposition, Set<Short> elements) {
 		// Sorted and copied: the caller's set is built from live cluster state.
 		removedEntityIDs.add(new TreeSet<>(elements));
 	}
@@ -76,15 +76,15 @@ class RecordingRepresentationInformation extends RepresentationInformation {
 	}
 
 	@Override
-	public void setup(Decomposition decomposition) {
+	public void setup(ClusterRepresentation decomposition) {
 	}
 
 	@Override
-	public void update(Decomposition decomposition) {
+	public void update(ClusterRepresentation decomposition) {
 	}
 
 	@Override
-	public void snapshot(Decomposition snapshotDecomposition, Decomposition decomposition) {
+	public void snapshot(ClusterRepresentation snapshotDecomposition, ClusterRepresentation decomposition) {
 	}
 
 	@Override
@@ -98,12 +98,12 @@ class RecordingRepresentationInformation extends RepresentationInformation {
 	}
 
 	@Override
-	public String getEdgeWeights(Decomposition decomposition) {
+	public String getEdgeWeights(ClusterRepresentation decomposition) {
 		return "{}";
 	}
 
 	@Override
-	public String getSearchItems(Decomposition decomposition) {
+	public String getSearchItems(ClusterRepresentation decomposition) {
 		return "{}";
 	}
 }

@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
-import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
 import pt.ist.socialsoftware.mono2micro.similarity.service.SimilarityService;
 
@@ -90,7 +90,7 @@ class DecompositionE2ETest {
 	@Autowired
 	private SimilarityService similarityService;
 	@Autowired
-	private DecompositionService decompositionService;
+	private ClusterRepresentationService decompositionService;
 
 	private final List<Runnable> cleanups = new ArrayList<>();
 

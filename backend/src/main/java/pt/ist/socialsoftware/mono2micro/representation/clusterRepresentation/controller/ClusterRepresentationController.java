@@ -1,0 +1,232 @@
+package pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDtoFactory;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
+import pt.ist.socialsoftware.mono2micro.operation.Operation;
+
+import javax.management.openmbean.KeyAlreadyExistsException;
+import javax.servlet.http.HttpServletResponse;
+import java.nio.file.NoSuchFileException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.zip.ZipOutputStream;
+
+@RestController
+@RequestMapping(value = "/mono2micro")
+public class ClusterRepresentationController {
+
+	private static final Logger logger = LoggerFactory.getLogger(ClusterRepresentationController.class);
+
+	@Autowired
+	ClusterRepresentationService decompositionService;
+
+	@PostMapping(value = "/similarity/createDecomposition")
+	public ResponseEntity<HttpStatus> createDecomposition(
+			@RequestBody DecompositionRequest decompositionRequest
+	) {
+		logger.debug("createDecomposition");
+
+		try {
+			decompositionService.createDecomposition(decompositionRequest);
+			return new ResponseEntity<>(HttpStatus.OK);
+
+		} catch (KeyAlreadyExistsException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@PostMapping(value = "/similarity/{similarityId}/createExpertDecomposition")
+	public ResponseEntity<HttpStatus> createExpertDecomposition(
+			@PathVariable String similarityId,
+			@RequestParam String expertName,
+			@RequestParam Optional<MultipartFile> expertFile
+	) {
+		logger.debug("createExpertDecomposition");
+
+		try {
+			decompositionService.createExpertDecomposition(similarityId, expertName, expertFile);
+			return new ResponseEntity<>(HttpStatus.OK);
+
+		} catch (KeyAlreadyExistsException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/decomposition/{decompositionId}")
+	public ResponseEntity<ClusterRepresentationDto> getDecomposition(
+			@PathVariable String decompositionId
+	) {
+		logger.debug("getDecomposition");
+
+		try {
+			return new ResponseEntity<>(
+					ClusterRepresentationDtoFactory.getDecompositionDto(decompositionService.getDecompositionById(decompositionId)),
+					HttpStatus.OK
+			);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/decomposition/{decompositionId}/getClusters")
+	public ResponseEntity<Map<String, Cluster>> getClusters(
+			@PathVariable String decompositionId
+	) {
+		logger.debug("getClusters");
+
+		try {
+			return new ResponseEntity<>(decompositionService.getDecompositionById(decompositionId).getClusters(), HttpStatus.OK);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/decomposition/{decompositionId}/export")
+	public void exportDecomposition(
+			HttpServletResponse response,
+			@PathVariable String decompositionId
+	) {
+		logger.debug("exportDecomposition");
+
+		try {
+			response.setHeader("Content-Disposition", "attachment; filename=m2m_decomposition_data.zip");
+			response.setContentType("application/zip");
+			decompositionService.exportDecompositionToContextMapper(decompositionId, new ZipOutputStream(response.getOutputStream()));
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.flushBuffer();
+
+		} catch (NoSuchFileException e) {
+			e.printStackTrace();
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		}
+	}
+
+	@DeleteMapping(value = "/decomposition/{decompositionId}/delete")
+	public ResponseEntity<HttpStatus> deleteDecomposition(
+			@PathVariable String decompositionId
+	) {
+		logger.debug("deleteDecomposition");
+
+		try {
+			decompositionService.deleteSingleDecomposition(decompositionId);
+			return new ResponseEntity<>(HttpStatus.OK);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Applies one manual operation, whichever it is: the body's {@code type} picks the {@link Operation} subclass, and the operation finds its
+	 * handler (D-014), so a new manual operation needs no endpoint of its own.
+	 */
+	@PostMapping(value = "/decomposition/{decompositionId}/operations")
+	public ResponseEntity<Map<String, Cluster>> applyOperation(
+			@PathVariable String decompositionId,
+			@RequestBody Operation operation
+	) {
+		logger.debug("applyOperation {}", operation.getOperationType());
+		try {
+			decompositionService.applyOperation(decompositionId, operation);
+			return new ResponseEntity<>(HttpStatus.OK);
+
+		} catch (KeyAlreadyExistsException e) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/decomposition/{decompositionId}/snapshotDecomposition")
+	public ResponseEntity<HttpStatus> snapshotDecomposition(
+			@PathVariable String decompositionId
+	) {
+		logger.debug("snapshotDecomposition");
+
+		try {
+			decompositionService.snapshotDecomposition(decompositionId);
+			return new ResponseEntity<>(HttpStatus.OK);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/decomposition/{decompositionId}/{representationInfo}/getEdgeWeights")
+	public ResponseEntity<String> getEdgeWeights(
+			@PathVariable String decompositionId,
+			@PathVariable String representationInfo
+	) {
+		logger.debug("getEdgeWeights");
+
+		try {
+			return new ResponseEntity<>(decompositionService.getEdgeWeights(decompositionId, representationInfo), HttpStatus.OK);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/decomposition/{decompositionId}/{representationInfo}/getSearchItems")
+	public ResponseEntity<String> getSearchItems(
+			@PathVariable String decompositionId,
+			@PathVariable String representationInfo
+	) {
+		logger.debug("getSearchItems");
+
+		try {
+			return new ResponseEntity<>(decompositionService.getSearchItems(decompositionId, representationInfo), HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping(value = "/decomposition/{decompositionId}/update")
+	public ResponseEntity<ClusterRepresentationDto> update(
+			@PathVariable String decompositionId
+	) {
+		logger.debug("update");
+
+		try {
+			return new ResponseEntity<>(ClusterRepresentationDtoFactory.getDecompositionDto(
+					decompositionService.updateDecomposition(decompositionId)), HttpStatus.OK);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+}

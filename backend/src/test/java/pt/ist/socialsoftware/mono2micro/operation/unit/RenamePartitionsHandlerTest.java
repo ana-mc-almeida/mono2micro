@@ -3,9 +3,9 @@ package pt.ist.socialsoftware.mono2micro.operation.unit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
 import pt.ist.socialsoftware.mono2micro.operation.InMemoryHistory;
@@ -42,7 +42,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("moves the cluster to its new name, keeping the same instance")
 		void renamesClusterKeyAndName() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.build();
@@ -64,7 +64,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves the other clusters untouched")
 		void leavesOtherClustersAlone() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2, 3)
 					.build();
@@ -83,7 +83,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("rewrites the keys of dependencies pointing at the renamed cluster")
 		void rewritesDependencyKeys() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.cluster("C3", 3)
@@ -102,7 +102,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves dependencies pointing elsewhere alone")
 		void leavesUnrelatedDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.cluster("C3", 3)
@@ -131,7 +131,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("merges into an existing dependency key rather than replacing it")
 		void mergesIntoExistingDependencyKey() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.dependency("C2", "C1", 1)
@@ -161,7 +161,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("is allowed and changes nothing")
 		void selfRenameIsANoOp() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.dependency("C2", "C1", 1)
@@ -178,7 +178,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("undoes to itself")
 		void undoOfSelfRenameIsANoOp() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.dependency("C2", "C1", 1)
@@ -202,7 +202,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("rejects renaming onto another existing cluster, changing nothing")
 		void rejectsExistingName() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.dependency("C2", "C1", 1)
@@ -220,15 +220,15 @@ class RenamePartitionsHandlerTest {
 		}
 
 		/**
-		 * {@code Decomposition.removeCluster} throws {@code java.lang.Error} rather than an
-		 * exception. {@code DecompositionController}
+		 * {@code ClusterRepresentation.removeCluster} throws {@code java.lang.Error} rather than an
+		 * exception. {@code ClusterRepresentationController}
 		 * catches {@code Exception}, so this reaches the client as a 500 rather than a 400 —
 		 * recorded in the gap analysis, pinned here so the behaviour is not changed by accident.
 		 */
 		@Test
 		@DisplayName("fails with Error when the cluster does not exist")
 		void failsOnUnknownCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -245,7 +245,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("restores the original name and dependency keys")
 		void undoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.dependency("C2", "C1", 1)
@@ -264,7 +264,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("round-trips again after a redo")
 		void redoThenUndoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 3)
 					.dependency("C2", "C1", 1)
@@ -304,7 +304,7 @@ class RenamePartitionsHandlerTest {
 		@Test
 		@DisplayName("does nothing when no representation information is attached")
 		void noRepresentationInformation() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -319,7 +319,7 @@ class RenamePartitionsHandlerTest {
 		@DisplayName("passes the old and new names downstream")
 		void passesNamesDownstream() {
 			RecordingRepresentationInformation recorder = new RecordingRepresentationInformation();
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.representationInformation(recorder)
 					.build();
@@ -332,7 +332,7 @@ class RenamePartitionsHandlerTest {
 	}
 
 	private static java.util.Map<String, java.util.Set<Short>> dependenciesOf(
-			PartitionsDecomposition decomposition, String clusterName) {
+			PartitionsClusterRepresentation decomposition, String clusterName) {
 		return ((Partition) decomposition.getCluster(clusterName)).getCouplingDependencies();
 	}
 }

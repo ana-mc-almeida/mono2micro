@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDto;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.decomposition.DecompositionDtoFactory;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDto;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.ClusterRepresentationDtoFactory;
 import pt.ist.socialsoftware.mono2micro.feature.DerivationRecord;
 import pt.ist.socialsoftware.mono2micro.feature.UnavailableFeatureException;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -117,14 +117,14 @@ public class SimilarityController {
 	}
 
 	@GetMapping(value = "/similarity/{similarityId}/decompositions")
-	public ResponseEntity<List<DecompositionDto>> getDecompositions(
+	public ResponseEntity<List<ClusterRepresentationDto>> getDecompositions(
 			@PathVariable String similarityId
 	) {
 		logger.debug("getDecompositions");
 
 		try {
 			return new ResponseEntity<>(
-					DecompositionDtoFactory.getDecompositionDtos(similarityService.getDecompositions(similarityId)),
+					ClusterRepresentationDtoFactory.getDecompositionDtos(similarityService.getDecompositions(similarityId)),
 					HttpStatus.OK
 			);
 

@@ -2,7 +2,7 @@ package pt.ist.socialsoftware.mono2micro.operation;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 /**
@@ -14,6 +14,6 @@ public class ManualOperationHandlerCheck implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() {
-		ManualOperationHandlers.scanned().verify(SelfRegistration.types(Operation.class), SelfRegistration.types(Decomposition.class));
+		ManualOperationHandlers.scanned().verify(SelfRegistration.types(Operation.class), SelfRegistration.types(ClusterRepresentation.class));
 	}
 }

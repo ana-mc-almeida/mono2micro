@@ -1,15 +1,15 @@
 package pt.ist.socialsoftware.mono2micro.operation.rename;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandler;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.Set;
 
 /** Renames a partition and the coupling dependencies and functionalities that name it. */
-public class RenamePartitionsHandler implements ManualOperationHandler<RenameOperation, PartitionsDecomposition> {
+public class RenamePartitionsHandler implements ManualOperationHandler<RenameOperation, PartitionsClusterRepresentation> {
 
 	@Override
 	public Class<RenameOperation> operation() {
@@ -17,12 +17,12 @@ public class RenamePartitionsHandler implements ManualOperationHandler<RenameOpe
 	}
 
 	@Override
-	public Class<PartitionsDecomposition> clusterKind() {
-		return PartitionsDecomposition.class;
+	public Class<PartitionsClusterRepresentation> clusterKind() {
+		return PartitionsClusterRepresentation.class;
 	}
 
 	@Override
-	public void apply(RenameOperation operation, PartitionsDecomposition decomposition) {
+	public void apply(RenameOperation operation, PartitionsClusterRepresentation decomposition) {
 		rename(operation.getClusterName(), operation.getNewClusterName(), decomposition);
 		decomposition.getRepresentationInformations()
 				.forEach(representationInformation -> representationInformation.renameClusterInFunctionalities(operation.getClusterName(),
@@ -31,11 +31,11 @@ public class RenamePartitionsHandler implements ManualOperationHandler<RenameOpe
 	}
 
 	@Override
-	public void undo(RenameOperation operation, PartitionsDecomposition decomposition) {
+	public void undo(RenameOperation operation, PartitionsClusterRepresentation decomposition) {
 		apply(new RenameOperation(operation.getNewClusterName(), operation.getClusterName()), decomposition);
 	}
 
-	private void rename(String clusterName, String newClusterName, PartitionsDecomposition decomposition) {
+	private void rename(String clusterName, String newClusterName, PartitionsClusterRepresentation decomposition) {
 		if (decomposition.clusterNameExists(newClusterName) && !clusterName.equals(newClusterName))
 			throw new KeyAlreadyExistsException("Cluster with name: " + newClusterName + " already exists");
 

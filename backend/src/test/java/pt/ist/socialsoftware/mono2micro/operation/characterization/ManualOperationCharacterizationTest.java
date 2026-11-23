@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.FunctionalityRedesign;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
@@ -63,7 +63,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * every redesign. Every other operation keeps a functionality untouched if it touches none of the
  * entities the operation reports as affected, and otherwise drops it, deleting its redesigns,
  * and marks the decomposition outdated. An outdated decomposition recomputes its missing
- * functionalities from the traces when {@code DecompositionService.updateDecomposition} next runs
+ * functionalities from the traces when {@code ClusterRepresentationService.updateDecomposition} next runs
  * on it (not on every read: {@code getDecomposition} does not), which is not reached offline;
  * "outdated" is what promises it here.
  *
@@ -96,7 +96,7 @@ class ManualOperationCharacterizationTest {
 	private AccessesInformation accessesInformation;
 	/** Functionality name → its generated id, which names its redesign files. */
 	private final Map<String, String> functionalityIds = new TreeMap<>();
-	private PartitionsDecomposition decomposition;
+	private PartitionsClusterRepresentation decomposition;
 	private ManualEditing editing;
 
 	@BeforeEach

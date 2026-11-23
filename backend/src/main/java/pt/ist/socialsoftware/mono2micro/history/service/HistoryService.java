@@ -2,8 +2,8 @@ package pt.ist.socialsoftware.mono2micro.history.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.repository.ClusterRepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.history.domain.History;
 import pt.ist.socialsoftware.mono2micro.history.repository.HistoryRepository;
 import pt.ist.socialsoftware.mono2micro.operation.Operation;
@@ -15,7 +15,7 @@ import java.util.Map;
 public class HistoryService {
 
 	@Autowired
-	DecompositionRepository decompositionRepository;
+	ClusterRepresentationRepository decompositionRepository;
 
 	@Autowired
 	HistoryRepository historyRepository;
@@ -29,7 +29,7 @@ public class HistoryService {
 		historyRepository.deleteById(history.getId());
 	}
 
-	public void undoOperation(Decomposition decomposition) {
+	public void undoOperation(ClusterRepresentation decomposition) {
 		History history = decomposition.getHistory();
 		if (history.getCurrentHistoryOperationDepth() == 0)
 			throw new RuntimeException("No more operations to undo");
@@ -43,7 +43,7 @@ public class HistoryService {
 		decompositionRepository.save(decomposition);
 	}
 
-	public void redoOperation(Decomposition decomposition) {
+	public void redoOperation(ClusterRepresentation decomposition) {
 		History history = decomposition.getHistory();
 		if (history.getCurrentHistoryOperationDepth() == history.getMaxHistoryDepth())
 			throw new RuntimeException("No more operations to redo");
@@ -56,7 +56,7 @@ public class HistoryService {
 		decompositionRepository.save(decomposition);
 	}
 
-	public Map<String, Boolean> canUndoRedo(Decomposition decomposition) {
+	public Map<String, Boolean> canUndoRedo(ClusterRepresentation decomposition) {
 		History history = decomposition.getHistory();
 		Map<String, Boolean> canUndoRedo = new HashMap<>();
 		if (history.getMaxHistoryDepth() == history.getCurrentHistoryOperationDepth())

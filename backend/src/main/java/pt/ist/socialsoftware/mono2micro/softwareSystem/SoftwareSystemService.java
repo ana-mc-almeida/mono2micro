@@ -2,8 +2,8 @@ package pt.ist.socialsoftware.mono2micro.softwareSystem;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.repository.ClusterRepresentationRepository;
 import pt.ist.socialsoftware.mono2micro.recommendation.domain.Recommendation;
 import pt.ist.socialsoftware.mono2micro.recommendation.service.RecommendationService;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.Similarity;
@@ -41,7 +41,7 @@ public class SoftwareSystemService {
 	RecommendationService recommendationService;
 
 	@Autowired
-	DecompositionRepository decompositionRepository;
+	ClusterRepresentationRepository decompositionRepository;
 
 	public SoftwareSystem createSoftwareSystem(String softwareSystemName) {
 		if (softwareSystemRepository.existsByName(softwareSystemName))
@@ -79,7 +79,7 @@ public class SoftwareSystemService {
 	}
 
 	/** The decompositions of the software system: those of its Similarities. */
-	public List<Decomposition> getDecompositions(String softwareSystemId) {
+	public List<ClusterRepresentation> getDecompositions(String softwareSystemId) {
 		return similarityService.getSimilarities(softwareSystemId).stream()
 				.flatMap(similarity -> decompositionRepository.findBySimilarityId(similarity.getId()).stream())
 				.collect(Collectors.toList());

@@ -1,9 +1,9 @@
 package pt.ist.socialsoftware.mono2micro.operation.characterization;
 
 import org.springframework.test.util.ReflectionTestUtils;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.repository.DecompositionRepository;
-import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.repository.ClusterRepresentationRepository;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.history.repository.HistoryRepository;
 import pt.ist.socialsoftware.mono2micro.history.service.HistoryService;
 import pt.ist.socialsoftware.mono2micro.operation.formCluster.FormClusterOperation;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
  * history stands, issued the way the REST controllers issue them.
  *
  * <p>Each request is the base {@code *Operation} a controller binds from JSON, handed to the
- * same {@code DecompositionService} method the controller calls; undo and redo go through the
+ * same {@code ClusterRepresentationService} method the controller calls; undo and redo go through the
  * real {@code HistoryService}. Only the two repositories are mocks: {@code getById} returns the
  * decomposition under test and every {@code save} does nothing. So a test written against this
  * says what an edit does to a decomposition and never which class did it.
@@ -37,14 +37,14 @@ final class ManualEditing {
 	/** The id every request addresses. */
 	static final String DECOMPOSITION_ID = "decomposition-under-test";
 
-	private final Decomposition decomposition;
-	private final DecompositionService decompositionService = new DecompositionService();
+	private final ClusterRepresentation decomposition;
+	private final ClusterRepresentationService decompositionService = new ClusterRepresentationService();
 	private final HistoryService historyService = new HistoryService();
 
-	ManualEditing(Decomposition decomposition) {
+	ManualEditing(ClusterRepresentation decomposition) {
 		this.decomposition = decomposition;
 
-		DecompositionRepository decompositionRepository = mock(DecompositionRepository.class);
+		ClusterRepresentationRepository decompositionRepository = mock(ClusterRepresentationRepository.class);
 		when(decompositionRepository.getById(DECOMPOSITION_ID)).thenReturn(decomposition);
 		HistoryRepository historyRepository = mock(HistoryRepository.class);
 

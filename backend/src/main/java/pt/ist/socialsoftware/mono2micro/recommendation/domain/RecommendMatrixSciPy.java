@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.SciPyClustering;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
-import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.fileManager.GridFsService;
 import pt.ist.socialsoftware.mono2micro.recommendation.dto.RecommendMatrixSciPyDto;
@@ -169,7 +169,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 		});
 	}
 
-	public void getDecompositionPropertiesForRecommendation(Decomposition decomposition) throws Exception {
+	public void getDecompositionPropertiesForRecommendation(ClusterRepresentation decomposition) throws Exception {
 		SimilarityScipy similarity = SimilarityScipyFactory.getSimilarityScipy(this);
 		decomposition.setSimilarity(similarity);
 		decomposition.setup();
@@ -179,7 +179,7 @@ public class RecommendMatrixSciPy extends Recommendation {
 	@Override
 	public void createDecompositions(List<Similarity> similarities, List<String> decompositionNames) throws Exception {
 		GridFsService gridFsService = ContextManager.get().getBean(GridFsService.class);
-		DecompositionService decompositionService = ContextManager.get().getBean(DecompositionService.class);
+		ClusterRepresentationService decompositionService = ContextManager.get().getBean(ClusterRepresentationService.class);
 
 		for (String name : decompositionNames) {
 			String[] properties = name.split(",");

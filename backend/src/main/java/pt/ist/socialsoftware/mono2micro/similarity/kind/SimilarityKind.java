@@ -1,6 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.feature.VariableFeature;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;

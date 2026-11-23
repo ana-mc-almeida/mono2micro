@@ -6,10 +6,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.*;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.DecompositionRequest;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.*;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.DecompositionRequest;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
 import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 import pt.ist.socialsoftware.mono2micro.fileManager.ContextManager;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
@@ -46,11 +46,11 @@ public class SciPyClustering extends Clustering {
 	}
 
 	@Override
-	public Decomposition generateDecomposition(Similarity s, DecompositionRequest request, Set<String> decompositionNames) throws Exception {
+	public ClusterRepresentation generateDecomposition(Similarity s, DecompositionRequest request, Set<String> decompositionNames) throws Exception {
 		SciPyRequestDto dto = (SciPyRequestDto) request;
 		SimilarityScipy similarity = (SimilarityScipy) s;
 
-		PartitionsDecomposition decomposition = new PartitionsDecomposition(similarity);
+		PartitionsClusterRepresentation decomposition = new PartitionsClusterRepresentation(similarity);
 
 		decomposition.setName(getDecompositionName(similarity, dto.getCutType(), dto.getCutValue(), decompositionNames));
 
@@ -62,7 +62,7 @@ public class SciPyClustering extends Clustering {
 		return decomposition;
 	}
 
-	private JSONObject invokePythonCut(Decomposition decomposition, String similarityMatrixName, String linkageType, String cutType, float cutValue) {
+	private JSONObject invokePythonCut(ClusterRepresentation decomposition, String similarityMatrixName, String linkageType, String cutType, float cutValue) {
 		String response = WebClient.create(SCRIPTS_ADDRESS)
 				.get()
 				.uri("/scipy/{similarityMatrixName}/{linkageType}/{cutType}/{cutValue}/createDecomposition",
@@ -95,7 +95,7 @@ public class SciPyClustering extends Clustering {
 	}
 
 	public static void addClustersAndEntities(
-			Decomposition decomposition,
+			ClusterRepresentation decomposition,
 			JSONObject clustersJSON,
 			Map<Short, String> idToEntity
 	) throws JSONException {
@@ -147,7 +147,7 @@ public class SciPyClustering extends Clustering {
 
 				do {
 					try {
-						Decomposition decomposition = new PartitionsDecomposition();
+						ClusterRepresentation decomposition = new PartitionsClusterRepresentation();
 						decomposition.setName(similarityMatrixName + "," + numberOfClusters);
 
 						JSONObject clustersJSON = invokePythonCut(decomposition, similarityMatrixName, recommendation.getLinkageType(), "N", numberOfClusters);
@@ -191,7 +191,7 @@ public class SciPyClustering extends Clustering {
 
 				for (int numberOfClusters = MIN_CLUSTERS; numberOfClusters <= maxClusters; numberOfClusters += CLUSTER_STEP) {
 					try {
-						Decomposition decomposition = new PartitionsDecomposition();
+						ClusterRepresentation decomposition = new PartitionsClusterRepresentation();
 						decomposition.setName(similarityMatrixName + "," + numberOfClusters);
 
 						JSONObject clustersJSON = invokePythonCut(decomposition, similarityMatrixName, recommendation.getLinkageType(), "N", numberOfClusters);

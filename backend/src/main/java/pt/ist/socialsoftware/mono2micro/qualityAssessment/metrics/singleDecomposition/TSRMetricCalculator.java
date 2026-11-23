@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepositoryInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepositoryInformation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 
 import java.math.BigDecimal;
@@ -22,7 +22,7 @@ public class TSRMetricCalculator extends DecompositionMetricCalculator {
 	}
 
 	@Override
-	public Double calculateMetric(Decomposition decomposition) {
+	public Double calculateMetric(ClusterRepresentation decomposition) {
 		RepositoryInformation repositoryInformation = (RepositoryInformation) decomposition.getRepresentationInformationByType(REPOSITORY_TYPE);
 		double authorsPerClusterSum = 0;
 		double cpm;

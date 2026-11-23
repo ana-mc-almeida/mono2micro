@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 import pt.ist.socialsoftware.mono2micro.utils.Utils;
 
@@ -20,12 +20,12 @@ public class CohesionMetricCalculator extends DecompositionMetricCalculator {
 	}
 
 	@Override
-	public Double calculateMetric(Decomposition decomposition) { // It might be extended to adapt for other kinds of decompositions without functionalities
+	public Double calculateMetric(ClusterRepresentation decomposition) { // It might be extended to adapt for other kinds of decompositions without functionalities
 		Map<String, List<Functionality>> clustersFunctionalities = Utils.getClustersFunctionalities(decomposition);
 		return calculateMetric(decomposition, clustersFunctionalities);
 	}
 
-	public Double calculateMetric(Decomposition decomposition, Map<String, List<Functionality>> clustersFunctionalities) {
+	public Double calculateMetric(ClusterRepresentation decomposition, Map<String, List<Functionality>> clustersFunctionalities) {
 		double totalCohesion = 0;
 
 		for (Cluster cluster : decomposition.getClusters().values()) {

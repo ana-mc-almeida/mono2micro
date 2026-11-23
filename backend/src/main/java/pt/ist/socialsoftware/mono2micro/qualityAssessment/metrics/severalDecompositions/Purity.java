@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.severalDecompositions;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 
 import java.io.IOException;
 import java.util.*;
@@ -18,7 +18,7 @@ public class Purity extends Analysis {
 		return PURITY;
 	}
 
-	public Purity(Decomposition decomposition1, Decomposition decomposition2) throws IOException {
+	public Purity(ClusterRepresentation decomposition1, ClusterRepresentation decomposition2) throws IOException {
 		analyse(decomposition1, decomposition2);
 	}
 
@@ -29,7 +29,7 @@ public class Purity extends Analysis {
 	public Map<String, String> getClusterMapping() { return clusterMapping; }
 
 	@Override
-	public void analyse(Decomposition decomposition1, Decomposition decomposition2) throws IOException {
+	public void analyse(ClusterRepresentation decomposition1, ClusterRepresentation decomposition2) throws IOException {
 		Map<String, Set<Short>> expertDecompositionClusterEntities = decomposition1.getClusters().values().stream()
 				.collect(Collectors.toMap(Cluster::getName, Cluster::getElementsIDs));
 

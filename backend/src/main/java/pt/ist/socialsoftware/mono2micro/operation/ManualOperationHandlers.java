@@ -1,6 +1,6 @@
 package pt.ist.socialsoftware.mono2micro.operation;
 
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.utils.SelfRegistration;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.Optional;
 
 /**
  * The registry keyed by (operation, cluster kind) that a manual operation finds its code in (D-014). A kind with no handler of its own falls
- * back to its superclass's, up to {@link Decomposition}.
+ * back to its superclass's, up to {@link ClusterRepresentation}.
  */
 public final class ManualOperationHandlers {
 
@@ -48,12 +48,12 @@ public final class ManualOperationHandlers {
 	}
 
 	/** Runs {@code operation}'s handler for {@code decomposition}'s cluster kind. */
-	public void apply(Operation operation, Decomposition decomposition) {
+	public void apply(Operation operation, ClusterRepresentation decomposition) {
 		apply(handlerFor(operation.getClass(), decomposition.getClass()), operation, decomposition);
 	}
 
 	/** Runs the undo of {@code operation}'s handler for {@code decomposition}'s cluster kind. */
-	public void undo(Operation operation, Decomposition decomposition) {
+	public void undo(Operation operation, ClusterRepresentation decomposition) {
 		undo(handlerFor(operation.getClass(), decomposition.getClass()), operation, decomposition);
 	}
 
@@ -63,9 +63,9 @@ public final class ManualOperationHandlers {
 	 * @throws IllegalStateException
 	 * naming the first uncovered pair
 	 */
-	public void verify(Collection<Class<? extends Operation>> operations, Collection<Class<? extends Decomposition>> kinds) {
+	public void verify(Collection<Class<? extends Operation>> operations, Collection<Class<? extends ClusterRepresentation>> kinds) {
 		for (Class<? extends Operation> operation : operations)
-			for (Class<? extends Decomposition> kind : kinds)
+			for (Class<? extends ClusterRepresentation> kind : kinds)
 				handlerFor(operation, kind);
 	}
 
@@ -75,7 +75,7 @@ public final class ManualOperationHandlers {
 	}
 
 	private Optional<ManualOperationHandler<?, ?>> find(Class<?> operation, Class<?> kind) {
-		for (Class<?> type = kind; type != null && Decomposition.class.isAssignableFrom(type); type = type.getSuperclass()) {
+		for (Class<?> type = kind; type != null && ClusterRepresentation.class.isAssignableFrom(type); type = type.getSuperclass()) {
 			ManualOperationHandler<?, ?> handler = handlers.get(new Key(operation, type));
 			if (handler != null)
 				return Optional.of(handler);
@@ -83,13 +83,13 @@ public final class ManualOperationHandlers {
 		return Optional.empty();
 	}
 
-	private static <O extends Operation, D extends Decomposition> void apply(ManualOperationHandler<O, D> handler, Operation operation,
-			Decomposition decomposition) {
+	private static <O extends Operation, D extends ClusterRepresentation> void apply(ManualOperationHandler<O, D> handler, Operation operation,
+			ClusterRepresentation decomposition) {
 		handler.apply(handler.operation().cast(operation), handler.clusterKind().cast(decomposition));
 	}
 
-	private static <O extends Operation, D extends Decomposition> void undo(ManualOperationHandler<O, D> handler, Operation operation,
-			Decomposition decomposition) {
+	private static <O extends Operation, D extends ClusterRepresentation> void undo(ManualOperationHandler<O, D> handler, Operation operation,
+			ClusterRepresentation decomposition) {
 		handler.undo(handler.operation().cast(operation), handler.clusterKind().cast(decomposition));
 	}
 

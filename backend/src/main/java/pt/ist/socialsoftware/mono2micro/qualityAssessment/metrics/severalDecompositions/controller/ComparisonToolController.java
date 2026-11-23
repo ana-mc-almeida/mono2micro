@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.severalDecompositions.dto.ComparisonToolResponseFactory;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.severalDecompositions.dto.ComparisonToolResponse;
-import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 
 @RestController
 @RequestMapping(value = "/mono2micro")
@@ -17,7 +17,7 @@ public class ComparisonToolController {
 	private static final Logger logger = LoggerFactory.getLogger(ComparisonToolController.class);
 
 	@Autowired
-	DecompositionService decompositionService;
+	ClusterRepresentationService decompositionService;
 
 	@PostMapping(value = "/comparison/{decomposition1Id}/{decomposition2Id}")
 	public ResponseEntity<ComparisonToolResponse> getAnalysis(
@@ -27,8 +27,8 @@ public class ComparisonToolController {
 		logger.debug("getAnalysis");
 
 		try {
-			Decomposition decomposition1 = decompositionService.updateDecomposition(decomposition1Id);
-			Decomposition decomposition2 = decompositionService.updateDecomposition(decomposition2Id);
+			ClusterRepresentation decomposition1 = decompositionService.updateDecomposition(decomposition1Id);
+			ClusterRepresentation decomposition2 = decompositionService.updateDecomposition(decomposition2Id);
 
 			ComparisonToolResponse comparisonToolResponse = ComparisonToolResponseFactory.getComparisonToolResponse(decomposition1, decomposition2);
 			return new ResponseEntity<>(comparisonToolResponse, HttpStatus.OK);

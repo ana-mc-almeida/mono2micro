@@ -17,7 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.StructureWeights;
 import pt.ist.socialsoftware.mono2micro.similarity.domain.similarityMatrix.weights.Weights;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;

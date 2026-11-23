@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition;
 
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 
 import java.math.BigDecimal;
@@ -18,7 +18,7 @@ public class PerformanceMetricCalculator extends DecompositionMetricCalculator {
 	}
 
 	@Override
-	public Double calculateMetric(Decomposition decomposition) {
+	public Double calculateMetric(ClusterRepresentation decomposition) {
 		AccessesInformation accessesInformation = (AccessesInformation) decomposition.getRepresentationInformationByType(ACCESSES_TYPE);
 		double performance = 0;
 

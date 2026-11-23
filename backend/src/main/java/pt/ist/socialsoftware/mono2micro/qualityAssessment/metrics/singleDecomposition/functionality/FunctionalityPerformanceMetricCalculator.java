@@ -1,7 +1,7 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition.functionality;
 
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.ReducedTraceElementDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.TraceDto;
@@ -22,7 +22,7 @@ public class FunctionalityPerformanceMetricCalculator extends FunctionalityMetri
 	}
 
 	@Override
-	public Double calculateMetric(AccessesInformation accessesInformation, Decomposition decomposition, Functionality functionality) {
+	public Double calculateMetric(AccessesInformation accessesInformation, ClusterRepresentation decomposition, Functionality functionality) {
 		double functionalityPerformance = 0;
 		Map<Short, String> entityIDToClusterName = decomposition.getEntityIDToClusterName();
 		for (TraceDto t : functionality.getTraces()) {

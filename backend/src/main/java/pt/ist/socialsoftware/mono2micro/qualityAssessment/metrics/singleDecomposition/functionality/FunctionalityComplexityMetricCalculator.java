@@ -2,9 +2,9 @@ package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecompo
 
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.LocalTransaction;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
@@ -21,7 +21,7 @@ public class FunctionalityComplexityMetricCalculator extends FunctionalityMetric
 	}
 
 	@Override
-	public Double calculateMetric(AccessesInformation accessesInformation, Decomposition decomposition, Functionality functionality) {
+	public Double calculateMetric(AccessesInformation accessesInformation, ClusterRepresentation decomposition, Functionality functionality) {
 		double value;
 
 		// Since metric calculation is always done during the creation of the functionalities, we can use createLocalTransactionGraph,

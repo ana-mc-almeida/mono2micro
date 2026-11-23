@@ -14,8 +14,8 @@ import { addSearchParamsToUrl } from "../utils/url";
 import {RepresentationFactory} from "../models/representation/RepresentationFactory";
 import Similarity from "../models/similarity/Similarity";
 import {SimilarityFactory} from "../models/similarity/SimilarityFactory";
-import {DecompositionFactory} from "../models/decompositions/DecompositionFactory";
-import Decomposition from "../models/decompositions/Decomposition";
+import {ClusterRepresentationFactory} from "../models/clusterRepresentations/ClusterRepresentationFactory";
+import ClusterRepresentation from "../models/clusterRepresentations/ClusterRepresentation";
 import SoftwareSystem from "../models/softwareSystem/SoftwareSystem";
 import {RecommendationFactory} from "../models/recommendation/RecommendationFactory";
 import Recommendation from "../models/recommendation/Recommendation";
@@ -95,7 +95,7 @@ export class APIService {
     }
 
     getSoftwareSystemDecompositions(softwareSystemId: string) {
-        return this.axios.get<Decomposition[]>("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemDecompositions");
+        return this.axios.get<ClusterRepresentation[]>("/softwareSystems/" + softwareSystemId + "/getSoftwareSystemDecompositions");
     }
 
     deleteSoftwareSystem(softwareSystemId: string) {
@@ -291,13 +291,13 @@ export class APIService {
     getDecompositions(
         similarityId: string
     ) {
-        return this.axios.get<Decomposition[]>(
+        return this.axios.get<ClusterRepresentation[]>(
             "/similarity/" + similarityId + "/decompositions",
         ).then(responseList => {
             if (responseList.data.length == 0)
                 return responseList.data;
             return responseList.data.map((response: any) => {
-                return DecompositionFactory.getDecomposition(response);
+                return ClusterRepresentationFactory.getClusterRepresentation(response);
             });
         });
     }
@@ -305,8 +305,8 @@ export class APIService {
     getDecomposition(
         decompositionId: string
     ) {
-        return this.axios.get<Decomposition>("/decomposition/" + decompositionId)
-            .then(response => DecompositionFactory.getDecomposition(response.data));
+        return this.axios.get<ClusterRepresentation>("/decomposition/" + decompositionId)
+            .then(response => ClusterRepresentationFactory.getClusterRepresentation(response.data));
     }
 
     getClusters(
@@ -318,7 +318,7 @@ export class APIService {
     updateDecomposition(
         decompositionId: string
     ) {
-        return this.axios.get<Decomposition>(
+        return this.axios.get<ClusterRepresentation>(
             "/decomposition/" + decompositionId + "/update"
         );
     }

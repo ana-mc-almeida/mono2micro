@@ -1,0 +1,30 @@
+package pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request;
+
+public class SciPyRequestDto extends DecompositionRequest {
+	private String cutType;
+	private float cutValue;
+
+	public SciPyRequestDto() {}
+
+	public SciPyRequestDto(String similarityId, String cutType, float cutValue) {
+		this.similarityId = similarityId;
+		this.cutType = cutType;
+		this.cutValue = cutValue;
+	}
+
+	public String getCutType() {
+		return cutType;
+	}
+
+	public void setCutType(String cutType) {
+		this.cutType = cutType;
+	}
+
+	public float getCutValue() {
+		return cutValue;
+	}
+
+	public void setCutValue(float cutValue) {
+		this.cutValue = cutValue;
+	}
+}

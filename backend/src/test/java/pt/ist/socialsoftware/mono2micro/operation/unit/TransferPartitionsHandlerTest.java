@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionFixture;
 import pt.ist.socialsoftware.mono2micro.operation.DecompositionSnapshot;
@@ -47,7 +47,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("moves the listed entities to the target cluster")
 		void movesListedEntities() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2, 3)
 					.cluster("C2", 4)
 					.build();
@@ -64,7 +64,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("silently skips entities absent from the source cluster")
 		void silentlySkipsAbsentEntities() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 4)
 					.build();
@@ -78,7 +78,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves the source cluster in place when every entity moves out")
 		void leavesEmptySourceCluster() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 4)
 					.build();
@@ -97,7 +97,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("retargets dependencies for an entity that did not move")
 		void retargetsDependenciesForUnmovedEntity() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 4)
 					.cluster("C3", 5)
@@ -121,7 +121,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("retargets a third party's dependency on the moved entities")
 		void retargetsThirdPartyDependency() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 3)
 					.cluster("C2", 4)
 					.cluster("C3", 5)
@@ -144,7 +144,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("drops the dependency when the entity moves into the cluster that reached it")
 		void dropsDependencyOnSelf() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 4)
 					.dependency("C2", "C1", 1)
@@ -160,7 +160,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("leaves dependencies naming other clusters alone")
 		void leavesUnrelatedDependencies() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 4)
 					.cluster("C3", 5)
@@ -184,7 +184,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("fails with Error when the source cluster does not exist")
 		void failsOnUnknownSource() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -196,7 +196,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("fails with Error when the target cluster does not exist")
 		void failsOnUnknownTarget() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.build();
 
@@ -209,7 +209,7 @@ class TransferPartitionsHandlerTest {
 		@ValueSource(strings = { "abc", "1,abc", "", "1,,2" })
 		@DisplayName("fails on a malformed entity list")
 		void rejectsMalformedEntityIds(String entities) {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.build();
@@ -226,7 +226,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("restores the original clusters and dependencies")
 		void undoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 4)
 					.cluster("C3", 5)
@@ -257,7 +257,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("does not restore a dependency that the forward pass suppressed")
 		void undoDoesNotRestoreASuppressedSelfDependency() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 4)
 					.dependency("C2", "C1", 1)
@@ -281,7 +281,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("round-trips again after a redo")
 		void redoThenUndoRestoresOriginal() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1, 2)
 					.cluster("C2", 4)
 					.cluster("C3", 5)
@@ -313,7 +313,7 @@ class TransferPartitionsHandlerTest {
 		@Test
 		@DisplayName("does nothing when no representation information is attached")
 		void noRepresentationInformation() {
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.build();
@@ -335,7 +335,7 @@ class TransferPartitionsHandlerTest {
 		@DisplayName("reports the requested entities, including ones that did not move")
 		void reportsRequestedEntitiesNotMovedOnes() {
 			RecordingRepresentationInformation recorder = new RecordingRepresentationInformation();
-			PartitionsDecomposition decomposition = DecompositionFixture.with()
+			PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
 					.cluster("C1", 1)
 					.cluster("C2", 2)
 					.representationInformation(recorder)
@@ -349,7 +349,7 @@ class TransferPartitionsHandlerTest {
 	}
 
 	private static Map<String, Set<Short>> dependenciesOf(
-			PartitionsDecomposition decomposition, String clusterName) {
+			PartitionsClusterRepresentation decomposition, String clusterName) {
 		return ((Partition) decomposition.getCluster(clusterName)).getCouplingDependencies();
 	}
 }

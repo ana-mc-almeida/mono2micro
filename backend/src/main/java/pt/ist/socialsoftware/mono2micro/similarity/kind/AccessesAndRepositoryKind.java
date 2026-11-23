@@ -2,9 +2,9 @@ package pt.ist.socialsoftware.mono2micro.similarity.kind;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AccessesRepresentation;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepositoryInformation;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepositoryInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.feature.Requirement;
 import pt.ist.socialsoftware.mono2micro.feature.Requires;
 import pt.ist.socialsoftware.mono2micro.representation.analytical.domain.AuthorRepresentation;

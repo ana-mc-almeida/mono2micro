@@ -2,9 +2,9 @@ package pt.ist.socialsoftware.mono2micro.decomposition;
 
 import org.springframework.mock.web.MockMultipartFile;
 import pt.ist.socialsoftware.mono2micro.softwareSystem.SoftwareSystemService;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.dto.request.SciPyRequestDto;
-import pt.ist.socialsoftware.mono2micro.decomposition.service.DecompositionService;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.dto.request.SciPyRequestDto;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.service.ClusterRepresentationService;
 import pt.ist.socialsoftware.mono2micro.representation.service.RepresentationService;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityScipyAccessesAndRepositoryDto;
@@ -46,7 +46,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 	private final SoftwareSystemService softwareSystemService;
 	private final RepresentationService representationService;
 	private final SimilarityService similarityService;
-	private final DecompositionService decompositionService;
+	private final ClusterRepresentationService decompositionService;
 
 	/** The fixture folder to read representation files from, e.g. {@code quizzes-tutor}. */
 	private final String caseName;
@@ -55,7 +55,7 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 			SoftwareSystemService softwareSystemService,
 			RepresentationService representationService,
 			SimilarityService similarityService,
-			DecompositionService decompositionService,
+			ClusterRepresentationService decompositionService,
 			String caseName
 	) {
 		this.softwareSystemService = softwareSystemService;
@@ -236,12 +236,12 @@ class ServiceDecompositionPipeline implements DecompositionPipeline {
 			throw new AssertionError("Could not create decomposition for " + similarityId, e);
 		}
 
-		List<Decomposition> decompositions = similarityService.getDecompositions(similarityId);
+		List<ClusterRepresentation> decompositions = similarityService.getDecompositions(similarityId);
 		if (decompositions.isEmpty())
 			throw new AssertionError("No decomposition was created for " + similarityId);
 
 		// The query has no order. ObjectIds sort by creation, so the greatest is the newest.
-		return decompositions.stream().map(Decomposition::getId).max(String::compareTo).get();
+		return decompositions.stream().map(ClusterRepresentation::getId).max(String::compareTo).get();
 	}
 
 	@Override

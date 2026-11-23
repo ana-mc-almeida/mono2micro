@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.qualityAssessment.metrics.singleDecomposition.functionalityRedesign;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityType;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.LocalTransactionTypes;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
@@ -24,7 +24,7 @@ public class SystemComplexityMetricCalculator extends FunctionalityRedesignMetri
 
 	@Override
 	public Integer calculateMetric(
-			Decomposition decomposition,
+			ClusterRepresentation decomposition,
 			AccessesInformation accessesInformation,
 			Functionality functionality,
 			FunctionalityRedesign functionalityRedesign

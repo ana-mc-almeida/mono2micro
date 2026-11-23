@@ -1,18 +1,18 @@
 package pt.ist.socialsoftware.mono2micro.operation;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.granularity.DomainEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Builds a {@link PartitionsDecomposition} for a unit test, as data.
+ * Builds a {@link PartitionsClusterRepresentation} for a unit test, as data.
  *
  * <pre>
- * PartitionsDecomposition decomposition = DecompositionFixture.with()
+ * PartitionsClusterRepresentation decomposition = DecompositionFixture.with()
  * .cluster("C1", 1, 2)
  * .cluster("C2", 3)
  * .dependency("C2", "C1", 1) // C2 reaches entity 1, which lives in C1
@@ -20,7 +20,7 @@ import java.util.Map;
  * </pre>
  *
  * <p>The operations under test need no Spring context, no Mongo and no Docker, because
- * everything they touch is a plain object: {@code PartitionsDecomposition}'s no-argument
+ * everything they touch is a plain object: {@code PartitionsClusterRepresentation}'s no-argument
  * constructor only sets a type string, and {@code clusters}, {@code metrics} and
  * {@code representationInformations} all have inline initializers, so a bare instance has
  * non-null empty collections.
@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public final class DecompositionFixture {
 
-	private final PartitionsDecomposition decomposition = new PartitionsDecomposition();
+	private final PartitionsClusterRepresentation decomposition = new PartitionsClusterRepresentation();
 
 	/**
 	 * One {@link DomainEntity} instance per ID, shared across clusters.
@@ -105,7 +105,7 @@ public final class DecompositionFixture {
 		return this;
 	}
 
-	public PartitionsDecomposition build() {
+	public PartitionsClusterRepresentation build() {
 		if (withHistory)
 			decomposition.setHistory(new InMemoryHistory());
 		return decomposition;

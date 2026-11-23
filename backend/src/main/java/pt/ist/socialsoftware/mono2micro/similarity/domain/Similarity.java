@@ -5,7 +5,7 @@ import pt.ist.socialsoftware.mono2micro.softwareSystem.domain.SoftwareSystem;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import pt.ist.socialsoftware.mono2micro.clusteringAlgorithm.Clustering;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.RepresentationInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.RepresentationInformation;
 import pt.ist.socialsoftware.mono2micro.representation.domain.Representation;
 import pt.ist.socialsoftware.mono2micro.refactoring.domainKnowledge.expertKnowledge.Profile;
 import pt.ist.socialsoftware.mono2micro.similarity.dto.SimilarityDto;

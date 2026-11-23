@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.operation.unit;
 
 import org.junit.jupiter.api.Test;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandler;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandlers;
 import pt.ist.socialsoftware.mono2micro.operation.Operation;
@@ -31,11 +31,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ManualOperationHandlersTest {
 
 	/** A cluster kind with no handlers of its own. */
-	class ChildPartitions extends PartitionsDecomposition {
+	class ChildPartitions extends PartitionsClusterRepresentation {
 	}
 
 	/** Records which (operation, decomposition) pairs it was asked to apply or undo. */
-	class RecordingHandler<D extends Decomposition> implements ManualOperationHandler<RenameOperation, D> {
+	class RecordingHandler<D extends ClusterRepresentation> implements ManualOperationHandler<RenameOperation, D> {
 		private final Class<D> kind;
 		final List<String> calls = new ArrayList<>();
 
@@ -72,20 +72,20 @@ public class ManualOperationHandlersTest {
 
 	@Test
 	public void aKindWithItsOwnHandlerUsesIt() {
-		RecordingHandler<PartitionsDecomposition> partitions = new RecordingHandler<>(PartitionsDecomposition.class);
+		RecordingHandler<PartitionsClusterRepresentation> partitions = new RecordingHandler<>(PartitionsClusterRepresentation.class);
 		RecordingHandler<ChildPartitions> child = new RecordingHandler<>(ChildPartitions.class);
 		ManualOperationHandlers registry = new ManualOperationHandlers(Arrays.asList(partitions, child));
 
 		registry.apply(rename("C1"), new ChildPartitions());
-		registry.undo(rename("C1"), new PartitionsDecomposition());
+		registry.undo(rename("C1"), new PartitionsClusterRepresentation());
 
 		assertThat(child.calls).containsExactly("apply C1 on ChildPartitions");
-		assertThat(partitions.calls).containsExactly("undo C1 on PartitionsDecomposition");
+		assertThat(partitions.calls).containsExactly("undo C1 on PartitionsClusterRepresentation");
 	}
 
 	@Test
 	public void aKindWithoutAHandlerFallsBackToItsSuperclasssHandler() {
-		RecordingHandler<PartitionsDecomposition> partitions = new RecordingHandler<>(PartitionsDecomposition.class);
+		RecordingHandler<PartitionsClusterRepresentation> partitions = new RecordingHandler<>(PartitionsClusterRepresentation.class);
 		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(partitions));
 
 		registry.apply(rename("C1"), new ChildPartitions());
@@ -98,16 +98,16 @@ public class ManualOperationHandlersTest {
 	public void anOperationWithNoHandlerUpTheHierarchyIsRefused() {
 		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(new RecordingHandler<>(ChildPartitions.class)));
 
-		assertThatThrownBy(() -> registry.apply(rename("C1"), new PartitionsDecomposition()))
+		assertThatThrownBy(() -> registry.apply(rename("C1"), new PartitionsClusterRepresentation()))
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("RenameOperation")
-				.hasMessageContaining("PartitionsDecomposition");
+				.hasMessageContaining("PartitionsClusterRepresentation");
 	}
 
 	@Test
 	public void twoHandlersForOnePairAreRefused() {
-		List<RecordingHandler<PartitionsDecomposition>> twins = Arrays.asList(
-				new RecordingHandler<>(PartitionsDecomposition.class), new RecordingHandler<>(PartitionsDecomposition.class));
+		List<RecordingHandler<PartitionsClusterRepresentation>> twins = Arrays.asList(
+				new RecordingHandler<>(PartitionsClusterRepresentation.class), new RecordingHandler<>(PartitionsClusterRepresentation.class));
 
 		assertThatThrownBy(() -> new ManualOperationHandlers(twins))
 				.isInstanceOf(IllegalStateException.class)
@@ -116,20 +116,20 @@ public class ManualOperationHandlersTest {
 
 	@Test
 	public void theCheckFailsWhenAnOperationHasNoHandlerForAKind() {
-		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(new RecordingHandler<>(PartitionsDecomposition.class)));
+		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(new RecordingHandler<>(PartitionsClusterRepresentation.class)));
 
-		assertThatThrownBy(() -> registry.verify(Arrays.asList(RenameOperation.class, MergeOperation.class), kinds(PartitionsDecomposition.class)))
+		assertThatThrownBy(() -> registry.verify(Arrays.asList(RenameOperation.class, MergeOperation.class), kinds(PartitionsClusterRepresentation.class)))
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("MergeOperation")
-				.hasMessageContaining("PartitionsDecomposition");
+				.hasMessageContaining("PartitionsClusterRepresentation");
 	}
 
 	@Test
 	public void theCheckAcceptsAKindCoveredByFallback() {
-		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(new RecordingHandler<>(PartitionsDecomposition.class)));
+		ManualOperationHandlers registry = new ManualOperationHandlers(Collections.singletonList(new RecordingHandler<>(PartitionsClusterRepresentation.class)));
 
 		assertThatCode(() -> registry.verify(Collections.singletonList(RenameOperation.class),
-				kinds(PartitionsDecomposition.class, ChildPartitions.class)))
+				kinds(PartitionsClusterRepresentation.class, ChildPartitions.class)))
 				.doesNotThrowAnyException();
 	}
 
@@ -138,12 +138,12 @@ public class ManualOperationHandlersTest {
 		assertThat(SelfRegistration.types(Operation.class)).containsExactlyInAnyOrder(
 				FormClusterOperation.class, MergeOperation.class, RenameOperation.class, SplitOperation.class, TransferOperation.class);
 
-		assertThatCode(() -> ManualOperationHandlers.scanned().verify(SelfRegistration.types(Operation.class), SelfRegistration.types(Decomposition.class)))
+		assertThatCode(() -> ManualOperationHandlers.scanned().verify(SelfRegistration.types(Operation.class), SelfRegistration.types(ClusterRepresentation.class)))
 				.doesNotThrowAnyException();
 	}
 
 	@SafeVarargs
-	private static List<Class<? extends Decomposition>> kinds(Class<? extends Decomposition>... kinds) {
+	private static List<Class<? extends ClusterRepresentation>> kinds(Class<? extends ClusterRepresentation>... kinds) {
 		return Arrays.asList(kinds);
 	}
 }

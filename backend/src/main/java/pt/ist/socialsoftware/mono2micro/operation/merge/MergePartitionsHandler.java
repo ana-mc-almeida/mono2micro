@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.operation.merge;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandler;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandlers;
@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /** Merges two partitions into one; undo splits the second one's entities back out and restores the first one's name. */
-public class MergePartitionsHandler implements ManualOperationHandler<MergeOperation, PartitionsDecomposition> {
+public class MergePartitionsHandler implements ManualOperationHandler<MergeOperation, PartitionsClusterRepresentation> {
 
 	@Override
 	public Class<MergeOperation> operation() {
@@ -23,12 +23,12 @@ public class MergePartitionsHandler implements ManualOperationHandler<MergeOpera
 	}
 
 	@Override
-	public Class<PartitionsDecomposition> clusterKind() {
-		return PartitionsDecomposition.class;
+	public Class<PartitionsClusterRepresentation> clusterKind() {
+		return PartitionsClusterRepresentation.class;
 	}
 
 	@Override
-	public void apply(MergeOperation operation, PartitionsDecomposition decomposition) {
+	public void apply(MergeOperation operation, PartitionsClusterRepresentation decomposition) {
 		merge(operation, decomposition);
 		decomposition.getRepresentationInformations().forEach(representationInformation -> representationInformation.removeFunctionalitiesWithEntityIDs(
 				decomposition,
@@ -38,7 +38,7 @@ public class MergePartitionsHandler implements ManualOperationHandler<MergeOpera
 	}
 
 	@Override
-	public void undo(MergeOperation operation, PartitionsDecomposition decomposition) {
+	public void undo(MergeOperation operation, PartitionsClusterRepresentation decomposition) {
 		ManualOperationHandlers handlers = ManualOperationHandlers.scanned();
 		if (operation.getCluster1Name().equals(operation.getNewName())) {
 			handlers.apply(new SplitOperation(operation.getNewName(), operation.getCluster2Name(), operation.getCluster2Entities()), decomposition);
@@ -49,7 +49,7 @@ public class MergePartitionsHandler implements ManualOperationHandler<MergeOpera
 		}
 	}
 
-	private void merge(MergeOperation operation, PartitionsDecomposition decomposition) {
+	private void merge(MergeOperation operation, PartitionsClusterRepresentation decomposition) {
 		String newName = operation.getNewName();
 		Cluster cluster1 = decomposition.getCluster(operation.getCluster1Name());
 		Cluster cluster2 = decomposition.getCluster(operation.getCluster2Name());

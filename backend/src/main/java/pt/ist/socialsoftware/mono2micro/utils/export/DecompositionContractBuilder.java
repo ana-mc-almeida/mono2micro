@@ -3,7 +3,7 @@ package pt.ist.socialsoftware.mono2micro.utils.export;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,12 +14,12 @@ import java.io.InputStream;
  */
 public abstract class DecompositionContractBuilder {
 
-	protected Decomposition decomposition;
+	protected ClusterRepresentation decomposition;
 	protected JSONObject accessesRepresentationAsJSON;
 	protected JSONObject structureRepresentationAsJSON;
 	protected JSONObject sagaRefactorizationAsJSON;
 
-	public DecompositionContractBuilder(Decomposition decomposition) {
+	public DecompositionContractBuilder(ClusterRepresentation decomposition) {
 		this.decomposition = decomposition;
 	}
 

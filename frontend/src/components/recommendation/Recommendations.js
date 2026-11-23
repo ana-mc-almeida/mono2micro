@@ -8,7 +8,7 @@ import {useParams} from "react-router-dom";
 import {APIService} from "../../services/APIService";
 import {toast, ToastContainer} from "react-toastify";
 import {RecommendMatrixSciPy} from "./forms/RecommendMatrixSciPy";
-import {DecompositionFactory} from "../../models/decompositions/DecompositionFactory";
+import {ClusterRepresentationFactory} from "../../models/clusterRepresentations/ClusterRepresentationFactory";
 
 export const Recommendations = () => {
     let { softwareSystemId } = useParams();
@@ -32,7 +32,7 @@ export const Recommendations = () => {
         service.getSoftwareSystemDecompositions(
             softwareSystemId
         ).then(response => {
-            setDecompositions(response.data.map(decomposition => DecompositionFactory.getDecomposition(decomposition)));
+            setDecompositions(response.data.map(decomposition => ClusterRepresentationFactory.getClusterRepresentation(decomposition)));
             toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Decompositions Loaded.", isLoading: false});
             setTimeout(() => {toast.dismiss(toastId)}, 1000);
         }).catch(() => {

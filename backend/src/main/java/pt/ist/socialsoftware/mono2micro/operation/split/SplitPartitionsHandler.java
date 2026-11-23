@@ -1,8 +1,8 @@
 package pt.ist.socialsoftware.mono2micro.operation.split;
 
-import pt.ist.socialsoftware.mono2micro.cluster.Cluster;
-import pt.ist.socialsoftware.mono2micro.cluster.Partition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.PartitionsDecomposition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Cluster;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.Partition;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.PartitionsClusterRepresentation;
 import pt.ist.socialsoftware.mono2micro.granularity.Element;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandler;
 import pt.ist.socialsoftware.mono2micro.operation.ManualOperationHandlers;
@@ -12,7 +12,7 @@ import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.stream.Collectors;
 
 /** Moves some of a partition's entities into a new partition; undo merges it back under the original name. */
-public class SplitPartitionsHandler implements ManualOperationHandler<SplitOperation, PartitionsDecomposition> {
+public class SplitPartitionsHandler implements ManualOperationHandler<SplitOperation, PartitionsClusterRepresentation> {
 
 	@Override
 	public Class<SplitOperation> operation() {
@@ -20,12 +20,12 @@ public class SplitPartitionsHandler implements ManualOperationHandler<SplitOpera
 	}
 
 	@Override
-	public Class<PartitionsDecomposition> clusterKind() {
-		return PartitionsDecomposition.class;
+	public Class<PartitionsClusterRepresentation> clusterKind() {
+		return PartitionsClusterRepresentation.class;
 	}
 
 	@Override
-	public void apply(SplitOperation operation, PartitionsDecomposition decomposition) {
+	public void apply(SplitOperation operation, PartitionsClusterRepresentation decomposition) {
 		split(operation, decomposition);
 		decomposition.getRepresentationInformations().forEach(representationInformation -> representationInformation.removeFunctionalitiesWithEntityIDs(
 				decomposition,
@@ -35,12 +35,12 @@ public class SplitPartitionsHandler implements ManualOperationHandler<SplitOpera
 	}
 
 	@Override
-	public void undo(SplitOperation operation, PartitionsDecomposition decomposition) {
+	public void undo(SplitOperation operation, PartitionsClusterRepresentation decomposition) {
 		ManualOperationHandlers.scanned().apply(
 				new MergeOperation(operation.getOriginalCluster(), operation.getNewCluster(), operation.getOriginalCluster()), decomposition);
 	}
 
-	private void split(SplitOperation operation, PartitionsDecomposition decomposition) {
+	private void split(SplitOperation operation, PartitionsClusterRepresentation decomposition) {
 		String[] entitiesList = operation.getEntities().split(",");
 		if (decomposition.clusterNameExists(operation.getNewCluster()))
 			throw new KeyAlreadyExistsException("Cluster with name: " + operation.getNewCluster() + " already exists");

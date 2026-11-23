@@ -12,8 +12,8 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.Decomposition;
-import pt.ist.socialsoftware.mono2micro.decomposition.domain.representationInformation.AccessesInformation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.ClusterRepresentation;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.domain.representationInformation.AccessesInformation;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.FunctionalityType;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.AccessDto;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.ReducedTraceElementDto;
@@ -371,7 +371,7 @@ public class Functionality {
 		return successorListOf(localTransactionsGraph, lt);
 	}
 
-	public void calculateMetrics(AccessesInformation accessesInformation, Decomposition decomposition) throws Exception {
+	public void calculateMetrics(AccessesInformation accessesInformation, ClusterRepresentation decomposition) throws Exception {
 		FunctionalityMetricCalculator[] metricObjects = new FunctionalityMetricCalculator[] { new FunctionalityComplexityMetricCalculator(),
 				new FunctionalityPerformanceMetricCalculator() };
 

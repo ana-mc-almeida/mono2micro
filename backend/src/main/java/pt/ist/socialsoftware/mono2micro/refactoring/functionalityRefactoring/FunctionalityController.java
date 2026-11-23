@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.ist.socialsoftware.mono2micro.decomposition.controller.DecompositionController;
+import pt.ist.socialsoftware.mono2micro.representation.clusterRepresentation.controller.ClusterRepresentationController;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.domain.Functionality;
 import pt.ist.socialsoftware.mono2micro.refactoring.functionalityRefactoring.dto.FunctionalityDto;
 
