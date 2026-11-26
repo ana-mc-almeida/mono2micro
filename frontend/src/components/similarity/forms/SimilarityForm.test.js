@@ -230,22 +230,19 @@ describe('the Similarities of the software system page', () => {
 
         await user.click(within(cardOf('sim1')).getByRole('button', { name: 'Delete' }));
 
-        await waitFor(() => expect(backend.sent()).toEqual([...ON_OPENING, 'DELETE /similarity/sim1/delete', SIMILARITIES_URL]));
-        // P3 (ticket 09): upstream's screen showed "Similarity deleted."; the page renders
-        // no ToastContainer, so the deletion's toasts show nothing.
-        await expect(screen.findByText('Similarity deleted.', {}, { timeout: 300 })).rejects.toThrow();
+        // P3 fixed: the page renders a ToastContainer, so the deletion's toasts show, as upstream's did.
+        expect(await screen.findByText('Similarity deleted.')).toBeInTheDocument();
+        expect(backend.sent()).toEqual([...ON_OPENING, 'DELETE /similarity/sim1/delete', SIMILARITIES_URL]);
     });
 
-    it('does not reload when a delete fails', async () => {
+    it('says when a delete fails, and does not reload', async () => {
         backend.on('DELETE /similarity/sim1/delete', reply(400));
         const { user } = renderAt(AT);
         await screen.findByText('sim1');
 
         await user.click(within(cardOf('sim1')).getByRole('button', { name: 'Delete' }));
 
-        await waitFor(() => expect(backend.sent()).toEqual([...ON_OPENING, 'DELETE /similarity/sim1/delete']));
-        // P3 (ticket 09): upstream said "Error deleting sim1."; now nothing shows.
-        await expect(screen.findByText('Error deleting sim1.', {}, { timeout: 300 })).rejects.toThrow();
+        expect(await screen.findByText('Error deleting sim1.')).toBeInTheDocument();
         expect(backend.sent()).toEqual([...ON_OPENING, 'DELETE /similarity/sim1/delete']);
     });
 
@@ -320,10 +317,20 @@ describe('the Similarities of the software system page', () => {
         await waitFor(() => expect(screen.getByRole('button', { name: GENERATE })).toBeEnabled());
     });
 
-    // P4 (ticket 09): upstream said "Error while loading strategy's similarity." and kept
-    // the form. SoftwareSystemPage's loadSimilarities has no .catch, so a failed load is an
-    // unhandled rejection, which fails any test of it: blocked like U7's.
-    it.todo('says when the Similarities cannot be loaded, but still offers the kinds');
+    // P4 fixed: as upstream's screen did, a failed load says so (ticket 09: of "the
+    // Similarities"; upstream: "strategy's similarity"), and the kinds are still offered.
+    // react-toastify drops an update to a toast its container has not shown yet, so the
+    // failure answers only once the loading toast is up.
+    it('says when the Similarities cannot be loaded, but still offers the kinds', async () => {
+        const similarities = held(reply(400));
+        backend.on(SIMILARITIES_URL, similarities.route);
+        renderAt(AT);
+        await screen.findByText('Fetching Similarities...');
+        similarities.release();
+
+        expect(await screen.findByText('Error while loading the Similarities.')).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: 'Accesses' })).toBeInTheDocument();
+    });
 });
 
 // Upstream's SimilarityMatrixSciPyForm, for Accesses and/or Repository strategies.

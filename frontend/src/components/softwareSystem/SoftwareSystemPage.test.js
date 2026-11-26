@@ -193,9 +193,8 @@ describe('the software system page', () => {
         ]));
     });
 
-    // U25: the page raises a "Deleting representation..." toast, but renders no
-    // ToastContainer, so nothing is shown, even while the deletion is pending.
-    it('shows no toast while a representation deletion is pending', async () => {
+    // U25 fixed with P3: the page renders a ToastContainer, so the toast shows.
+    it('shows a toast while a representation deletion is pending', async () => {
         const deletion = held(null);
         backend.on('DELETE /representation/rep-Accesses/delete', deletion.route);
         const { user } = await openPage();
@@ -204,7 +203,7 @@ describe('the software system page', () => {
         await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }));
         await waitFor(() => expect(backend.sent()).toContain('DELETE /representation/rep-Accesses/delete'));
 
-        await expect(screen.findByText('Deleting representation...', {}, { timeout: 300 })).rejects.toThrow();
+        expect(await screen.findByText('Deleting representation...')).toBeInTheDocument();
 
         deletion.release();
         await waitFor(() => expect(backend.sent()).toEqual([...ON_OPENING,
