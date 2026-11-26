@@ -13,7 +13,7 @@ jest.mock('vis-network/standalone', () => {
     return { ...actual, Network: require('../../../testing/fakeVisNetwork').FakeNetwork };
 });
 
-const URL = '/codebases/ldod/ldod_Structure/sim1/dec1/structureView';
+const URL = '/softwareSystems/sys1/similarities/sim1/dec1/structureView';
 
 const CLUSTERS = {
     Cluster0: {
@@ -25,8 +25,8 @@ const CLUSTERS = {
 };
 
 const DECOMPOSITION = {
-    name: 'dec1', codebaseName: 'ldod', strategyName: 'ldod_Structure', similarityName: 'sim1',
-    type: 'Partitions Decomposition', metrics: {}, outdated: false, expert: false,
+    id: 'dec1', name: 'dec1', softwareSystemId: 'sys1', softwareSystemName: 'ldod', similarityId: 'sim1', similarityName: 'sim1',
+    type: 'Partitions Cluster Representation', metrics: {}, outdated: false, expert: false,
     clusters: CLUSTERS,
     representationInformations: [{
         type: 'Structure Based',
@@ -52,7 +52,7 @@ describe('the structure view screen', () => {
             'GET /history/dec1/canUndoRedo': { undo: false, redo: false },
             'GET /positionHistory/dec1/getGraphPositions': reply(404),
             'POST /positionHistory/dec1/saveGraphPositions': null,
-            'GET /decomposition/dec1/Structure/getSearchItems': [
+            'GET /decomposition/dec1/Structure%20Based/getSearchItems': [
                 { name: 'Cluster0', type: 'Cluster', id: 'Cluster0', entities: '2' },
                 { name: 'Author', type: 'Entity', id: '1', cluster: 'Cluster0' },
             ],
@@ -82,7 +82,7 @@ describe('the structure view screen', () => {
         expect(graphEdges()).toEqual(['Cluster0 -- Cluster1']);
         const nav = screen.getByRole('navigation', { name: 'breadcrumb' });
         expect(within(nav).getAllByRole('listitem').map(i => i.textContent))
-            .toEqual(['Home', 'Codebases', 'ldod', 'ldod_Structure', 'sim1', 'dec1']);
+            .toEqual(['Home', 'Software Systems', 'ldod', 'sim1', 'dec1']);
     });
 
     it('weighs the edges by references and extensions, and saves positions under the appearences property', async () => {
@@ -101,9 +101,9 @@ describe('the structure view screen', () => {
         await chooseFromSpeedDial(user, 'Search Element');
 
         const dialog = await screen.findByRole('dialog');
-        // BUG: as in the accesses view, the strategy type ("Structure") is sent where
-        // the backend expects the representation type ("Structure Based").
-        expect(backend.sent().slice(-1)).toEqual(['GET /decomposition/dec1/Structure/getSearchItems']);
+        // U1 is resolved by ticket 09, as in the accesses view: the representation
+        // type ("Structure Based") is sent.
+        expect(backend.sent().slice(-1)).toEqual(['GET /decomposition/dec1/Structure%20Based/getSearchItems']);
         await within(dialog).findByText('Author');
         expect(within(dialog).getAllByRole('columnheader').map(th => th.firstChild.textContent))
             .toEqual(['Name', 'Type', 'Belongs to Cluster', 'Entities']);

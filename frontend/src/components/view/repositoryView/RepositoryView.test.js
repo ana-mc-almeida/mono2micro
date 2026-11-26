@@ -13,7 +13,7 @@ jest.mock('vis-network/standalone', () => {
     return { ...actual, Network: require('../../../testing/fakeVisNetwork').FakeNetwork };
 });
 
-const URL = '/codebases/ldod/ldod_Repository/sim1/dec1/repositoryView';
+const URL = '/softwareSystems/sys1/similarities/sim1/dec1/repositoryView';
 
 const CLUSTERS = {
     Cluster0: {
@@ -24,8 +24,8 @@ const CLUSTERS = {
 };
 
 const DECOMPOSITION = {
-    name: 'dec1', codebaseName: 'ldod', strategyName: 'ldod_Repository', similarityName: 'sim1',
-    type: 'Partitions Decomposition', metrics: { Cohesion: 0.5 }, outdated: false, expert: false,
+    id: 'dec1', name: 'dec1', softwareSystemId: 'sys1', softwareSystemName: 'ldod', similarityId: 'sim1', similarityName: 'sim1',
+    type: 'Partitions Cluster Representation', metrics: { Cohesion: 0.5 }, outdated: false, expert: false,
     clusters: CLUSTERS,
     representationInformations: [{
         type: 'Repository Based',
@@ -52,7 +52,7 @@ describe('the repository view screen', () => {
             'GET /history/dec1/canUndoRedo': { undo: false, redo: false },
             'GET /positionHistory/dec1/getGraphPositions': reply(404),
             'POST /positionHistory/dec1/saveGraphPositions': null,
-            'GET /decomposition/dec1/Repository/getSearchItems': [
+            'GET /decomposition/dec1/Repository%20Based/getSearchItems': [
                 { name: 'Cluster0', type: 'Cluster', id: 'Cluster0', entities: '2' },
                 { name: 'Author', type: 'Entity', id: '1', cluster: 'Cluster0' },
             ],
@@ -82,13 +82,13 @@ describe('the repository view screen', () => {
         expect(graphEdges()).toEqual(['Cluster0 -- Cluster1']);
         const nav = screen.getByRole('navigation', { name: 'breadcrumb' });
         expect(within(nav).getAllByRole('listitem').map(i => i.textContent))
-            .toEqual(['Home', 'Codebases', 'ldod', 'ldod_Repository', 'sim1', 'dec1']);
+            .toEqual(['Home', 'Software Systems', 'ldod', 'sim1', 'dec1']);
     });
 
     it('weighs the edges by the commits their entities share, and saves positions under that property', async () => {
         const { network } = await open();
 
-        // ODDITY: value is meant as the commits in common (2 + 1), but the backend sends each
+        // U20: value is meant as the commits in common (2 + 1), but the backend sends each
         // pair's commits as indexes 0..n-1, which the union dedups to 2. length: mean distance x 400
         expect(network.edges()).toEqual([
             { id: 'Cluster0&Cluster1', from: 'Cluster0', to: 'Cluster1', type: 6, length: 200, value: 2 },
@@ -109,16 +109,16 @@ describe('the repository view screen', () => {
         await chooseFromSpeedDial(user, 'Search Element');
 
         const dialog = await screen.findByRole('dialog');
-        // BUG: as in the accesses view, the strategy type ("Repository") is sent where
-        // the backend expects the representation type ("Repository Based").
-        expect(backend.sent().slice(-1)).toEqual(['GET /decomposition/dec1/Repository/getSearchItems']);
+        // U1 is resolved by ticket 09, as in the accesses view: the representation
+        // type ("Repository Based") is sent.
+        expect(backend.sent().slice(-1)).toEqual(['GET /decomposition/dec1/Repository%20Based/getSearchItems']);
         await within(dialog).findByText('Author');
         expect(within(dialog).getAllByRole('columnheader').map(th => th.firstChild.textContent))
             .toEqual(['Name', 'Type', 'Belongs to Cluster', 'Entities']);
     });
 
     it('offers the same cluster operations as the other views, and renames through the same request', async () => {
-        backend.on('POST /decomposition/dec1/rename', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         backend.on('GET /decomposition/dec1/getClusters', CLUSTERS);
         const { user, network } = await open();
 
@@ -130,7 +130,7 @@ describe('the repository view screen', () => {
         await user.click(screen.getByRole('button', { name: 'Rename' }));
 
         expect(await screen.findByText('Successfully changed name!')).toBeInTheDocument();
-        expect(backend.bodyOf('POST /decomposition/dec1/rename'))
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'RenameOperation', clusterName: 'Cluster1', newClusterName: 'Readers' });
     });
 
@@ -165,7 +165,7 @@ describe('the repository view screen', () => {
 
         const dialog = await screen.findByRole('dialog');
         expect(within(dialog).getByText('Entity Reader informations')).toBeInTheDocument();
-        // ODDITY: "Total commits" and "Number of modifications done" show the same number
+        // U21: "Total commits" and "Number of modifications done" show the same number
         expect(within(dialog).getAllByRole('button').map(b => [b.textContent, b.disabled])).toEqual([
             ['Total commits: 4', true], ['Belongs to: Cluster1', true], ['Number of modifications done: 4', true],
             ['Related Authors', false], ['Close', false],

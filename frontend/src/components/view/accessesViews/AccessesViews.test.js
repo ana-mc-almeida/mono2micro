@@ -15,7 +15,14 @@ jest.mock('vis-network/standalone', () => {
     return { ...actual, Network: require('../../../testing/fakeVisNetwork').FakeNetwork };
 });
 
-const URL = '/codebases/ldod/ldod_Accesses/sim1/dec1/accessesViews';
+const URL = '/softwareSystems/sys1/similarities/sim1/dec1/accessesViews';
+
+// Ticket 07: the view loads its decomposition by id, for the breadcrumbs' names.
+const DECOMPOSITION = {
+    id: 'dec1', name: 'dec1', softwareSystemId: 'sys1', softwareSystemName: 'ldod', similarityId: 'sim1', similarityName: 'sim1',
+    type: 'Partitions Cluster Representation', metrics: {}, outdated: false, expert: false, clusters: {},
+    representationInformations: [{ type: 'Accesses Based' }],
+};
 
 const CLUSTERS = {
     Cluster0: {
@@ -74,14 +81,15 @@ describe('the accesses view screen', () => {
         resetNetworks();
         window.scrollTo = jest.fn();
         backend = fakeBackend({
+            'GET /decomposition/dec1': DECOMPOSITION,
             'GET /accesses/dec1/getClustersAndClustersFunctionalities':
                 { clusters: CLUSTERS, clustersFunctionalities: CLUSTERS_FUNCTIONALITIES },
-            'GET /representation/ldod/getIdToEntity': { 1: 'Author', 2: 'Book', 3: 'Reader', 4: 'Shelf' },
+            'GET /representation/sys1/getIdToEntity': { 1: 'Author', 2: 'Book', 3: 'Reader', 4: 'Shelf' },
             'GET /decomposition/dec1/Accesses%20Based/getEdgeWeights': EDGE_WEIGHTS,
             'GET /history/dec1/canUndoRedo': { undo: false, redo: false },
             'GET /positionHistory/dec1/getGraphPositions': reply(404),
             'POST /positionHistory/dec1/saveGraphPositions': null,
-            'GET /decomposition/dec1/Accesses/getSearchItems': SEARCH_ITEMS,
+            'GET /decomposition/dec1/Accesses%20Based/getSearchItems': SEARCH_ITEMS,
             'GET /decomposition/dec1/getClusters': CLUSTERS,
             'GET /accesses/dec1/getFunctionalitiesAndFunctionalitiesClusters': {
                 functionalities: { lend: functionalityDto(LEND), getBook: functionalityDto(GET_BOOK) },
@@ -105,8 +113,9 @@ describe('the accesses view screen', () => {
 
         await waitFor(() => expect(graphNodes()).toEqual(['Cluster0', 'Cluster1', 'Cluster2']));
         expect(backend.sent()).toEqual([
+            'GET /decomposition/dec1',
             'GET /accesses/dec1/getClustersAndClustersFunctionalities',
-            'GET /representation/ldod/getIdToEntity',
+            'GET /representation/sys1/getIdToEntity',
             'GET /history/dec1/canUndoRedo',
             'GET /history/dec1/canUndoRedo',
             'GET /history/dec1/canUndoRedo',
@@ -118,8 +127,8 @@ describe('the accesses view screen', () => {
 
         const nav = screen.getByRole('navigation', { name: 'breadcrumb' });
         expect(within(nav).getAllByRole('listitem').map(i => i.textContent))
-            .toEqual(['Home', 'Codebases', 'ldod', 'ldod_Accesses', 'sim1', 'dec1']);
-        expect(within(nav).getByText('sim1')).toHaveAttribute('href', '/codebases/ldod/ldod_Accesses/sim1/decomposition');
+            .toEqual(['Home', 'Software Systems', 'ldod', 'sim1', 'dec1']);
+        expect(within(nav).getByText('sim1')).toHaveAttribute('href', '/softwareSystems/sys1/similarities/sim1/decomposition');
     });
 
     it('hands the graph cluster nodes, and edges weighted by the functionalities their entities share', async () => {
@@ -217,9 +226,9 @@ describe('the accesses view screen', () => {
         await chooseFromSpeedDial(user, 'Search Element');
 
         const dialog = await screen.findByRole('dialog');
-        // BUG: the search bar asks by strategy type ("Accesses"), but the backend looks
-        // the items up by representation type ("Accesses Based"), so it answers 400.
-        expect(backend.sent().slice(-1)).toEqual(['GET /decomposition/dec1/Accesses/getSearchItems']);
+        // U1 is resolved by ticket 09: the search bar now asks by representation
+        // type ("Accesses Based"), the type the backend looks the items up by.
+        expect(backend.sent().slice(-1)).toEqual(['GET /decomposition/dec1/Accesses%20Based/getSearchItems']);
         await within(dialog).findByText('Author');
         // each header is its title followed by its filter
         expect(within(dialog).getAllByRole('columnheader').map(th => th.firstChild.textContent))
@@ -249,7 +258,7 @@ describe('the accesses view screen', () => {
     });
 
     it('renames a cluster, then reloads the clusters and relabels the node', async () => {
-        backend.on('POST /decomposition/dec1/rename', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         const { user, network } = await open();
 
         rightClick(network, 'Cluster0');
@@ -260,7 +269,7 @@ describe('the accesses view screen', () => {
         await user.click(within(dialog).getByRole('button', { name: 'Rename' }));
 
         expect(await screen.findByText('Successfully changed name!')).toBeInTheDocument();
-        expect(backend.bodyOf('POST /decomposition/dec1/rename'))
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'RenameOperation', clusterName: 'Cluster0', newClusterName: 'Authors' });
         await waitFor(() => expect(backend.sent()).toContain('GET /decomposition/dec1/getClusters'));
         await waitFor(() => expect(graphNodes()).toEqual(['Cluster1', 'Cluster2', 'Authors']));
@@ -273,7 +282,7 @@ describe('the accesses view screen', () => {
         await waitFor(() => expect(saves()).toBe(savedBefore + 1));
     });
 
-    // BUG: ClusterView.js:181 (and :195, :209, :223, :236) chains the clusters'
+    // U7: ClusterView.js:181 (and :195, :209, :223, :236) chains the clusters'
     // reload on the operation's request without a catch, so a refused operation
     // (e.g. a rename to a taken name, 401) leaves an unhandled promise rejection.
     // Jest fails any test that causes one, so the refusal toast ("This name is
@@ -281,7 +290,7 @@ describe('the accesses view screen', () => {
     it.todo('says when the new cluster name is taken');
 
     it('merges two clusters, the second picked by clicking it, under a new name', async () => {
-        backend.on('POST /decomposition/dec1/merge', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         const { user, network } = await open();
 
         rightClick(network, 'Cluster0');
@@ -297,13 +306,13 @@ describe('the accesses view screen', () => {
         await user.click(within(dialog).getByRole('button', { name: 'Merge' }));
 
         expect(await screen.findByText('Successfully merged clusters!')).toBeInTheDocument();
-        expect(backend.bodyOf('POST /decomposition/dec1/merge'))
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'MergeOperation', cluster1Name: 'Cluster0', cluster2Name: 'Cluster1', newName: 'Library' });
         await waitFor(() => expect(graphNodes()).toEqual(['Cluster2', 'Library']));
     });
 
     it('splits the chosen entities of a cluster into a new cluster', async () => {
-        backend.on('POST /decomposition/dec1/split', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         const { user, network } = await open();
 
         rightClick(network, 'Cluster0');
@@ -316,13 +325,13 @@ describe('the accesses view screen', () => {
         await user.click(within(dialog).getByRole('button', { name: 'Split' }));
 
         expect(await screen.findByText('Successfully split cluster!')).toBeInTheDocument();
-        expect(backend.bodyOf('POST /decomposition/dec1/split'))
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'SplitOperation', originalCluster: 'Cluster0', newCluster: 'Writers', entities: '1' });
         await waitFor(() => expect(graphNodes()).toEqual(['Cluster0', 'Cluster1', 'Cluster2', 'Writers']));
     });
 
     it('turns a split of every entity into a rename', async () => {
-        backend.on('POST /decomposition/dec1/rename', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         const { user, network } = await open();
 
         rightClick(network, 'Cluster0');
@@ -332,13 +341,13 @@ describe('the accesses view screen', () => {
         await user.click(screen.getByText('Book'));
         await user.click(screen.getByRole('button', { name: 'Split' }));
 
-        await waitFor(() => expect(backend.sent()).toContain('POST /decomposition/dec1/rename'));
-        expect(backend.bodyOf('POST /decomposition/dec1/rename'))
+        await waitFor(() => expect(backend.sent()).toContain('POST /decomposition/dec1/operations'));
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'RenameOperation', clusterName: 'Cluster0', newClusterName: 'Writers' });
     });
 
     it('transfers the chosen entities to the cluster clicked next', async () => {
-        backend.on('POST /decomposition/dec1/transfer', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         const { user, network } = await open();
 
         rightClick(network, 'Cluster0');
@@ -351,12 +360,12 @@ describe('the accesses view screen', () => {
         await user.click(within(dialog).getByRole('button', { name: 'Transfer' }));
 
         expect(await screen.findByText('Successfully transferred entities!')).toBeInTheDocument();
-        expect(backend.bodyOf('POST /decomposition/dec1/transfer'))
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'TransferOperation', fromCluster: 'Cluster0', toCluster: 'Cluster2', entities: '2' });
     });
 
     it('turns a transfer of every entity into a merge named after the receiving cluster', async () => {
-        backend.on('POST /decomposition/dec1/merge', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         const { user, network } = await open();
 
         rightClick(network, 'Cluster1');
@@ -365,13 +374,13 @@ describe('the accesses view screen', () => {
         await user.click(await within(await screen.findByRole('dialog')).findByText('Reader'));
         await user.click(screen.getByRole('button', { name: 'Transfer' }));
 
-        await waitFor(() => expect(backend.sent()).toContain('POST /decomposition/dec1/merge'));
-        expect(backend.bodyOf('POST /decomposition/dec1/merge'))
+        await waitFor(() => expect(backend.sent()).toContain('POST /decomposition/dec1/operations'));
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'MergeOperation', cluster1Name: 'Cluster1', cluster2Name: 'Cluster2', newName: 'Cluster2' });
     });
 
     it('forms a new cluster from entities of several selected clusters', async () => {
-        backend.on('POST /decomposition/dec1/formCluster', null);
+        backend.on('POST /decomposition/dec1/operations', null);
         const { user, network } = await open();
 
         network.selected = ['Cluster0', 'Cluster1'];
@@ -389,7 +398,7 @@ describe('the accesses view screen', () => {
         await user.click(within(dialog).getByRole('button', { name: 'Create' }));
 
         expect(await screen.findByText('Successfully formed new cluster!')).toBeInTheDocument();
-        expect(backend.bodyOf('POST /decomposition/dec1/formCluster'))
+        expect(backend.bodyOf('POST /decomposition/dec1/operations'))
             .toEqual({ type: 'FormClusterOperation', newCluster: 'Readers', entities: { Cluster0: [2], Cluster1: [3] } });
         await waitFor(() => expect(graphNodes()).toEqual(['Cluster0', 'Cluster2', 'Readers']));
     });

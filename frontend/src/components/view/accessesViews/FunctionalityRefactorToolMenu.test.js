@@ -4,14 +4,22 @@ import { renderAt } from '../../../testing/renderAt';
 import { tableRows } from '../../../testing/screenReaders';
 import { quietConsole } from '../../../testing/quietConsole';
 
-const URL = '/codebases/ldod/ldod_Accesses/sim1/dec1/functionalityRefactor';
+const URL = '/softwareSystems/sys1/similarities/sim1/dec1/functionalityRefactor';
+
+// Ticket 07: the view loads its decomposition by id, for the breadcrumbs' names.
+const DECOMPOSITION = {
+    id: 'dec1', name: 'dec1', softwareSystemId: 'sys1', softwareSystemName: 'ldod', similarityId: 'sim1', similarityName: 'sim1',
+    type: 'Partitions Cluster Representation', metrics: {}, outdated: false, expert: false, clusters: {},
+    representationInformations: [{ type: 'Accesses Based' }],
+};
 
 // The refactorization tool is a second service; the fake keeps its full URL.
 const REFACTOR_TOOL = 'http://localhost:5001/api/v1';
 const VIEW_REFACTOR = `GET ${REFACTOR_TOOL}/refactor/decomposition/dec1`;
 const REFACTOR = `POST ${REFACTOR_TOOL}/refactor`;
 
-// Shapes from tools/functionality_refactor/src/app/refactor/values/values.go
+// Shapes from tools/functionality_refactor/src/app/refactor/values/values.go;
+// ticket 07 changed the tool's decomposition_name to decomposition_id.
 const COMPLETED = {
     name: 'lend', status: 'COMPLETED', error: '',
     monolith: { complexity_metrics: { functionality_complexity: 10, system_complexity: 20, invocations_count: 5, accesses_count: 9 } },
@@ -29,18 +37,19 @@ const FAILED = { name: 'getBook', status: 'FAILED', error: 'functionality is a q
 const REFACTORING = { name: 'returnBook', status: 'REFACTORING', error: '' };
 
 function refactorization(functionalities) {
-    return { decomposition_name: 'dec1', data_dependence_threshold: 0, status: 'COMPLETED', functionalities };
+    return { decomposition_id: 'dec1', data_dependence_threshold: 0, status: 'COMPLETED', functionalities };
 }
 
 describe('the functionality refactorization tool screen', () => {
     let backend;
-    // BUG: FunctionalityRefactorToolMenu.js:207-208 log every translated entity
+    // U8: FunctionalityRefactorToolMenu.js logs every translated entity
     // (renderAt translates an id as itself, so the lines are bare numbers).
     quietConsole({ log: [/^\d+$/] });
     beforeEach(() => {
         backend = fakeBackend({
+            'GET /decomposition/dec1': DECOMPOSITION,
             [VIEW_REFACTOR]: refactorization({ lend: COMPLETED, getBook: FAILED }),
-            'GET /representation/ldod/getIdToEntity': { 1: 'Author', 2: 'Book', 3: 'Reader' },
+            'GET /representation/sys1/getIdToEntity': { 1: 'Author', 2: 'Book', 3: 'Reader' },
             [REFACTOR]: refactorization({ lend: COMPLETED }),
         });
     });
@@ -49,8 +58,8 @@ describe('the functionality refactorization tool screen', () => {
         renderAt(URL);
 
         const table = await screen.findByRole('table');
-        // ODDITY: the refactorization is fetched twice, the effect on translateEntity also runs on mount
-        expect(backend.sent()).toEqual([VIEW_REFACTOR, 'GET /representation/ldod/getIdToEntity', VIEW_REFACTOR]);
+        // U22: the refactorization is fetched twice, the effect on translateEntity also runs on mount
+        expect(backend.sent()).toEqual(['GET /decomposition/dec1', VIEW_REFACTOR, 'GET /representation/sys1/getIdToEntity', VIEW_REFACTOR]);
         expect(within(table).getByText('Results of last estimation for the valid Saga functionalities:')).toBeInTheDocument();
         expect(tableRows(table)).toEqual([
             ['Functionality', 'Status', 'Orch.', 'FRC', 'SAC', 'Invocations', 'Accesses', 'FRC Reduction', 'SAC Reduction', 'Merges'],
@@ -61,12 +70,12 @@ describe('the functionality refactorization tool screen', () => {
 
         const nav = screen.getByRole('navigation', { name: 'breadcrumb' });
         expect(within(nav).getAllByRole('listitem').map(i => i.textContent))
-            .toEqual(['Home', 'Codebases', 'ldod', 'ldod_Accesses', 'sim1', 'dec1']);
+            .toEqual(['Home', 'Software Systems', 'ldod', 'sim1', 'dec1']);
     });
 
     describe('with the duplicate-key warning held back', () => {
-        // BUG: the redesign table is keyed by 'functionality', a field its rows lack
-        // (FunctionalityRefactorToolMenu.js:296), so React warns of duplicate keys.
+        // U9: the redesign table is keyed by 'functionality', a field its rows lack,
+        // so React warns of duplicate keys.
         quietConsole({ error: [/unique "key" prop/] });
 
         it('expands a completed functionality into its saga redesign and its monolith metrics', async () => {
@@ -117,7 +126,7 @@ describe('the functionality refactorization tool screen', () => {
 
         const dialog = await screen.findByRole('dialog');
         expect(within(dialog).getByText('Error Message')).toBeInTheDocument();
-        expect(within(dialog).getByText('ERROR: Failed to view refactorization of the codebase.')).toBeInTheDocument();
+        expect(within(dialog).getByText('ERROR: Failed to view refactorization of the software system.')).toBeInTheDocument();
     });
 
     it('has one field, the data dependence distance from 0 to 5, and Start', async () => {
@@ -152,11 +161,11 @@ describe('the functionality refactorization tool screen', () => {
 
         const table = await screen.findByRole('table');
         expect(backend.sent().slice(-1)).toEqual([REFACTOR]);
-        // BUG: functionality_names is never filled, so it is always every functionality ([]);
+        // U10: functionality_names is never filled, so it is always every functionality ([]);
         // the timeout slider is commented out, so the timeout is Number(null) = 0;
         // override_previous is not a field the refactorization tool reads.
         expect(backend.bodyOf(REFACTOR)).toEqual({
-            decomposition_name: 'dec1',
+            decomposition_id: 'dec1',
             functionality_names: [],
             data_dependence_threshold: 2,
             minimize_sum_of_complexities: false,
@@ -174,7 +183,7 @@ describe('the functionality refactorization tool screen', () => {
         await user.click(screen.getByRole('button', { name: 'Start' }));
 
         const dialog = await screen.findByRole('dialog');
-        expect(within(dialog).getByText('ERROR: Failed to request refactorization of the codebase.')).toBeInTheDocument();
+        expect(within(dialog).getByText('ERROR: Failed to request refactorization of the software system.')).toBeInTheDocument();
     });
 
     it('reloads the last refactorization on Update table', async () => {
