@@ -37,12 +37,12 @@ describe('the software system list screen', () => {
         const { user } = renderAt('/softwareSystems');
         await screen.findByText('ldod');
 
-        // P1 (ticket 07): the placeholder capitalizes only its first word ("Software system Name").
-        expect(screen.getAllByRole('textbox').map(f => f.placeholder)).toEqual(['Software system Name']);
+        // Ticket 07: "Software System Name" (upstream: "Codebase Name"); P1 fixed its capitalization.
+        expect(screen.getAllByRole('textbox').map(f => f.placeholder)).toEqual(['Software System Name']);
         const create = screen.getByRole('button', { name: 'Create Software System' });
         expect(create).toBeDisabled();
 
-        await user.type(screen.getByPlaceholderText('Software system Name'), 'newOne');
+        await user.type(screen.getByPlaceholderText('Software System Name'), 'newOne');
         expect(create).toBeEnabled();
     });
 
@@ -50,7 +50,7 @@ describe('the software system list screen', () => {
         const { user } = renderAt('/softwareSystems');
         await screen.findByText('ldod');
 
-        await user.type(screen.getByPlaceholderText('Software system Name'), 'newOne');
+        await user.type(screen.getByPlaceholderText('Software System Name'), 'newOne');
         await user.click(screen.getByRole('button', { name: 'Create Software System' }));
 
         expect(await screen.findByText('Creation completed successfully.')).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe('the software system list screen', () => {
         const { user } = renderAt('/softwareSystems');
         await screen.findByText('ldod');
 
-        await user.type(screen.getByPlaceholderText('Software system Name'), 'ldod');
+        await user.type(screen.getByPlaceholderText('Software System Name'), 'ldod');
         await user.click(screen.getByRole('button', { name: 'Create Software System' }));
 
         expect(await screen.findByText('Creation failed. Software system name already exists.')).toBeInTheDocument();

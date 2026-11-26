@@ -106,7 +106,7 @@ export const SoftwareSystems = () => {
                         <FormControl
                             type="text"
                             maxLength="256"
-                            placeholder="Software system Name"
+                            placeholder="Software System Name"
                             value={newSoftwareSystemName}
                             onChange={handleChangeNewSoftwareSystemName}
                         />
