@@ -185,18 +185,17 @@ describe('the recommendation screen', () => {
         expect(within(crumbs).getByText('Recommendation').closest('a')).toBeNull();
     });
 
-    // Ticket 09: the form waits for a kind. P2 (ticket 09, unclear whether
-    // intended; to investigate): the decompositions, though loaded on opening,
-    // also show only once a kind is chosen.
-    it('offers the available kinds, none chosen, and shows neither the form nor the decompositions until one is', async () => {
+    // Ticket 09: the form waits for a kind. The decompositions show on opening, as
+    // upstream's did once its strategy loaded (P2 fixed: they had waited for a kind too).
+    it('offers the available kinds, none chosen, and shows the decompositions but not the form until one is', async () => {
         await open();
 
         expect(screen.getAllByRole('radio').map(r => [r.labels[0].textContent, r.checked])).toEqual([
             ['Accesses', false], [KIND, false], ['Class Vectorization', false],
         ]);
         expect(screen.queryByRole('button', { name: 'Recommend Decompositions' })).toBeNull();
-        expect(screen.queryByRole('heading', { name: 'Decompositions' })).toBeNull();
-        expect(screen.queryByText('d1')).toBeNull();
+        expect(await screen.findByRole('heading', { name: 'Decompositions' })).toBeInTheDocument();
+        expect(screen.getByText('d1')).toBeInTheDocument();
     });
 
     it('loads the kind and whether it takes a profile once chosen', async () => {
