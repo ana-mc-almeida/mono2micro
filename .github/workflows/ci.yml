@@ -115,8 +115,7 @@ jobs:
       # `checkstyle:checkstyle`, not `checkstyle:check` — the latter counts only
       # violations at or above <violationSeverity> (error) while the config
       # emits `warning`, so it reports 0 while the report file holds 97. The
-      # `|| true` matches the advisory convention used for `npm test` and
-      # `go vet` below.
+      # `|| true` matches the advisory convention used for `go vet` below.
       #
       # `if: always()` so the report still appears when the gate above fired:
       # that is exactly when you want to see everything at once.
@@ -206,13 +205,14 @@ jobs:
           if-no-files-found: warn
 
       # -- frontend -----------------------------------------------------------
-      # Node 16 matches frontend/Dockerfile. react-scripts 5 hits
-      # ERR_OSSL_EVP_UNSUPPORTED on Node >= 17.
-      - name: Set up Node 16
+      # Node 16 (frontend/.nvmrc) matches frontend/Dockerfile. react-scripts 5
+      # hits ERR_OSSL_EVP_UNSUPPORTED on Node >= 17, and the screen tests fail
+      # on Node 26.
+      - name: Set up Node
         if: matrix.component == 'frontend'
         uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version-file: frontend/.nvmrc
 
       # No package-lock.json is committed, so `npm ci` is impossible; the peer-dep
       # conflicts are why Dockerfile uses --legacy-peer-deps too.
@@ -221,20 +221,15 @@ jobs:
         working-directory: frontend
         run: npm install --legacy-peer-deps
 
-      # Advisory. The one test is CRA's stock "renders without crashing", and it
-      # already fails on a pre-existing problem unrelated to any change under
-      # review: Jest cannot parse `vis-network/standalone`, whose package ships
-      # ESM, because package.json sets no `transformIgnorePatterns`. Making the
-      # job red on that from its first run would train everyone to ignore it.
-      # Add that Jest config, then drop the `|| true` to enforce it.
-      #
+      # The screen tests (ticket 25): each pins what a screen shows and the
+      # requests it sends, so a change to a screen must update its tests.
       # CI=true also keeps react-scripts out of watch mode, which would hang.
-      - name: Test frontend (advisory)
+      - name: Test frontend
         if: matrix.component == 'frontend'
         working-directory: frontend
         env:
           CI: true
-        run: npm test || true
+        run: npm test
 
       - name: Build frontend
         if: matrix.component == 'frontend'

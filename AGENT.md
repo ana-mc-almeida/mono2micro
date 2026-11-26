@@ -251,9 +251,11 @@ make lint-imports    # Checkstyle import report; never fails, read the output
 - **`fast`** — every push and PR, no Docker. (A push to a branch that already has an
   open PR skips it, since the `pull_request` run covers the same commit; a small `dedup`
   job decides.) Backend `mvn -DskipTests clean install`,
-  frontend install/test/build, Go `go build`. The frontend test and `go vet` run
-  **advisory** (`|| true`) because both already fail on pre-existing problems unrelated
-  to any change; fix those, then drop the `|| true`.
+  frontend install/test/build, Go `go build`. The frontend test gates the job; it runs on
+  the Node version in `frontend/.nvmrc` (16, as `frontend/Dockerfile`), and locally
+  `nvm use` in `frontend/` picks the same one. `go vet` runs **advisory** (`|| true`)
+  because it already fails on pre-existing problems unrelated to any change; fix those,
+  then drop the `|| true`.
 - **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
   because it builds the ~8GB scripts image. Brings up mongo + scripts via
   `docker compose`, runs `mvn -Dexcluded.groups= test` (the whole suite, **no**
