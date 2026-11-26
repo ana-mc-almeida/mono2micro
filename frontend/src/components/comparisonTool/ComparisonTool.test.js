@@ -3,15 +3,17 @@ import { fakeBackend, reply } from '../../testing/fakeBackend';
 import { renderAt } from '../../testing/renderAt';
 import { tableRows } from '../../testing/screenReaders';
 
-const CODEBASES = [
-    { name: 'ldod', representations: [] },
-    { name: 'quizzes', representations: [] },
+// Ticket 07: software systems, picked by name but addressed by id.
+const SOFTWARE_SYSTEMS = [
+    { id: 'sys1', name: 'ldod', representations: [] },
+    { id: 'sys2', name: 'quizzes', representations: [] },
 ];
 
 function decomposition(name, expert, clusters, metrics) {
     return {
-        name, codebaseName: 'ldod', strategyName: 'ldod_Accesses', similarityName: 'sim1',
-        type: 'Partitions Decomposition', metrics, outdated: false, expert,
+        // Ticket 07: ids differ from names, so a request by name would show; ticket 10: the type
+        id: name + '-id', name, softwareSystemId: 'sys1', softwareSystemName: 'ldod', similarityId: 'sim1', similarityName: 'sim1',
+        type: 'Partitions Cluster Representation', metrics, outdated: false, expert,
         clusters: Object.fromEntries(Object.entries(clusters).map(([clusterName, elements]) =>
             [clusterName, { name: clusterName, metrics: {}, couplingDependencies: {}, elements }])),
         representationInformations: [{ type: 'Accesses Based' }],
@@ -49,11 +51,11 @@ describe('the comparison tool screen', () => {
     let backend;
     beforeEach(() => {
         backend = fakeBackend({
-            'GET /codebases': CODEBASES,
-            'GET /codebase/ldod/getCodebaseDecompositions': [DEC1, EXPERT, DEC2],
+            'GET /softwareSystems': SOFTWARE_SYSTEMS,
+            'GET /softwareSystems/sys1/getSoftwareSystemDecompositions': [DEC1, EXPERT, DEC2],
             // the backend answers 200, and the screen accepts nothing else
-            'POST /comparison/expert/dec1': reply(200, COMPARISON),
-            'GET /representation/ldod/getIdToEntity': { 1: 'Author', 2: 'Book', 3: 'Reader', 4: 'Shelf' },
+            'POST /comparison/expert-id/dec1-id': reply(200, COMPARISON),
+            'GET /representation/sys1/getIdToEntity': { 1: 'Author', 2: 'Book', 3: 'Reader', 4: 'Shelf' },
         });
     });
 
@@ -66,37 +68,37 @@ describe('the comparison tool screen', () => {
     }
 
     async function compare(user) {
-        await choose(user, 'Codebase', 'ldod');
-        await waitFor(() => expect(backend.sent()).toContain('GET /codebase/ldod/getCodebaseDecompositions'));
+        await choose(user, 'Software System', 'ldod');
+        await waitFor(() => expect(backend.sent()).toContain('GET /softwareSystems/sys1/getSoftwareSystemDecompositions'));
         await choose(user, 'Source of Truth', 'expert');
         await choose(user, 'Compare to Cut', 'dec1');
         await user.click(screen.getByRole('button', { name: 'Submit' }));
         await screen.findByText('Upload completed successfully.');
     }
 
-    it('loads the codebases on opening, and has three choices and a disabled Submit', async () => {
+    it('loads the software systems on opening, and has three choices and a disabled Submit', async () => {
         const { user } = renderAt('/comparisonTool');
 
-        await waitFor(() => expect(backend.sent()).toEqual(['GET /codebases']));
+        await waitFor(() => expect(backend.sent()).toEqual(['GET /softwareSystems']));
         expect(screen.getByRole('heading', { name: 'Comparison Tool' })).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Metrics' })).toBeInTheDocument();
-        expect(field('Codebase').getByRole('button')).toHaveTextContent('Select Codebase');
+        expect(field('Software System').getByRole('button')).toHaveTextContent('Select Software System');
         expect(field('Source of Truth').getByRole('button')).toHaveTextContent('Select Cut');
         expect(field('Compare to Cut').getByRole('button')).toHaveTextContent('Select Cut');
         expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
 
-        await user.click(field('Codebase').getByRole('button'));
-        expect(field('Codebase').getAllByRole('button').slice(1).map(b => b.textContent)).toEqual(['ldod', 'quizzes']);
+        await user.click(field('Software System').getByRole('button'));
+        expect(field('Software System').getAllByRole('button').slice(1).map(b => b.textContent)).toEqual(['ldod', 'quizzes']);
     });
 
-    it('loads the decompositions of the chosen codebase, the expert ones first', async () => {
+    it('loads the decompositions of the chosen software system, the expert ones first', async () => {
         const { user } = renderAt('/comparisonTool');
 
-        await choose(user, 'Codebase', 'ldod');
+        await choose(user, 'Software System', 'ldod');
 
         await waitFor(() => expect(backend.sent())
-            .toEqual(['GET /codebases', 'GET /codebase/ldod/getCodebaseDecompositions']));
-        expect(field('Codebase').getAllByRole('button')[0]).toHaveTextContent('ldod');
+            .toEqual(['GET /softwareSystems', 'GET /softwareSystems/sys1/getSoftwareSystemDecompositions']));
+        expect(field('Software System').getAllByRole('button')[0]).toHaveTextContent('ldod');
         for (const label of ['Source of Truth', 'Compare to Cut']) {
             await user.click(field(label).getByRole('button', { name: 'Select Cut' }));
             expect(field(label).getAllByRole(/button|separator/).slice(1).map(b => b.textContent || '---'))
@@ -105,12 +107,12 @@ describe('the comparison tool screen', () => {
         }
     });
 
-    it('enables Submit once a codebase and both cuts are chosen', async () => {
+    it('enables Submit once a software system and both cuts are chosen', async () => {
         const { user } = renderAt('/comparisonTool');
         const submit = screen.getByRole('button', { name: 'Submit' });
 
-        await choose(user, 'Codebase', 'ldod');
-        await waitFor(() => expect(backend.sent()).toContain('GET /codebase/ldod/getCodebaseDecompositions'));
+        await choose(user, 'Software System', 'ldod');
+        await waitFor(() => expect(backend.sent()).toContain('GET /softwareSystems/sys1/getSoftwareSystemDecompositions'));
         await choose(user, 'Source of Truth', 'expert');
         expect(submit).toBeDisabled();
         await choose(user, 'Compare to Cut', 'dec1');
@@ -120,30 +122,30 @@ describe('the comparison tool screen', () => {
         expect(field('Compare to Cut').getAllByRole('button')[0]).toHaveTextContent('dec1');
     });
 
-    it('compares the two cuts by name, then loads the entity names', async () => {
+    it('compares the two cuts by id, then loads the entity names', async () => {
         const { user } = renderAt('/comparisonTool');
 
         await compare(user);
 
         await waitFor(() => expect(backend.sent()).toEqual([
-            'GET /codebases',
-            'GET /codebase/ldod/getCodebaseDecompositions',
-            'POST /comparison/expert/dec1',
-            'GET /representation/ldod/getIdToEntity',
+            'GET /softwareSystems',
+            'GET /softwareSystems/sys1/getSoftwareSystemDecompositions',
+            'POST /comparison/expert-id/dec1-id',
+            'GET /representation/sys1/getIdToEntity',
         ]));
-        expect(backend.bodyOf('POST /comparison/expert/dec1')).toBeUndefined();
-        // ODDITY: the comparison reports itself in upload wording
+        expect(backend.bodyOf('POST /comparison/expert-id/dec1-id')).toBeUndefined();
+        // U19: the comparison reports itself in upload wording
         expect(screen.getByText('Upload completed successfully.')).toBeInTheDocument();
         expect(sectionTitles()).toEqual(
             ['MojoFM', 'Entity Pairs', 'False Pairs', 'Purity Results', 'Statistics', 'Decomposition Differences']);
     });
 
     it('says when the comparison fails, and shows no results', async () => {
-        backend.on('POST /comparison/expert/dec1', reply(400));
+        backend.on('POST /comparison/expert-id/dec1-id', reply(400));
         const { user } = renderAt('/comparisonTool');
 
-        await choose(user, 'Codebase', 'ldod');
-        await waitFor(() => expect(backend.sent()).toContain('GET /codebase/ldod/getCodebaseDecompositions'));
+        await choose(user, 'Software System', 'ldod');
+        await waitFor(() => expect(backend.sent()).toContain('GET /softwareSystems/sys1/getSoftwareSystemDecompositions'));
         await choose(user, 'Source of Truth', 'expert');
         await choose(user, 'Compare to Cut', 'dec1');
         await user.click(screen.getByRole('button', { name: 'Submit' }));
@@ -204,7 +206,7 @@ describe('the comparison tool screen', () => {
         expect(cells(await openSection(user, 'Statistics'))).toEqual([
             'Property', 'expert', 'dec1',
             'Largest Cluster Size:', '2', '3',
-            // BUG: the first cut's smallest size is seeded with the second cut's first
+            // U2: the first cut's smallest size is seeded with the second cut's first
             // cluster (DefaultComparisonTool.js:25), so expert shows 1 where its smallest is 2.
             'Smallest Cluster Size:', '1', '1',
             'Number of Singleton Clusters:', '0', '1',
@@ -231,12 +233,12 @@ describe('the comparison tool screen', () => {
     });
 });
 
-// The titles of the closed accordion sections. The codebase and cut pickers are
+// The titles of the closed accordion sections. The software system and cut pickers are
 // closed dropdown buttons too, titled by their prompt or by the choice made, so
 // those texts are left out.
 function sectionTitles() {
     return screen.queryAllByRole('button', { expanded: false }).map(b => b.textContent)
-        .filter(t => !['Select Codebase', 'Select Cut', 'ldod', 'expert', 'dec1'].includes(t));
+        .filter(t => !['Select Software System', 'Select Cut', 'ldod', 'expert', 'dec1'].includes(t));
 }
 
 // The texts of the innermost elements of a region: the cells of its grids.
