@@ -220,9 +220,15 @@ make build
 - **Go tool:** unit and integration tests are separated by **build tags**
   (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
   `_test.go` files, so `make test` passes vacuously.
-- **Frontend:** `npm test` (react-scripts, jsdom). The single CRA default test currently
-  fails: Jest cannot parse `vis-network/standalone` (ESM) because `package.json` sets no
-  `transformIgnorePatterns`.
+- **Frontend:** `CI=true npm test` (react-scripts, jsdom), on the Node version in
+  `frontend/.nvmrc` (`nvm use`); newer Node fails the graph-positions toast test in
+  `AccessesViews.test.js`. Each screen has a test file beside it that renders it by URL
+  (`renderAt`), answers its requests from `fakeBackend` and pins both what it shows and
+  what it sends. The graph views draw through `fakeVisNetwork`, since jsdom has no
+  canvas. The helpers are in `frontend/src/testing/`. Known upstream bugs are pinned as
+  they behave today and tagged `U<n>`, matching ticket 28's table in
+  `../implementation/.scratch/phase-1-restructure/issues/`. Under D-031, a change to a
+  screen or to a request it sends updates that screen's test in the same diff.
 
 ## Formatting (backend)
 
@@ -251,9 +257,12 @@ make lint-imports    # Checkstyle import report; never fails, read the output
 - **`fast`** — every push and PR, no Docker. (A push to a branch that already has an
   open PR skips it, since the `pull_request` run covers the same commit; a small `dedup`
   job decides.) Backend `mvn -DskipTests clean install`,
-  frontend install/test/build, Go `go build`. The frontend test and `go vet` run
-  **advisory** (`|| true`) because both already fail on pre-existing problems unrelated
-  to any change; fix those, then drop the `|| true`.
+  frontend install/test/build, Go `go build`. The frontend test gates the job on pull
+  requests only (a ticket updates its screen tests before its PR, D-031; a push still
+  installs and builds the frontend); it runs on the Node version in `frontend/.nvmrc` (16, as `frontend/Dockerfile`), and locally
+  `nvm use` in `frontend/` picks the same one. `go vet` runs **advisory** (`|| true`)
+  because it already fails on pre-existing problems unrelated to any change; fix those,
+  then drop the `|| true`.
 - **`e2e`** — PRs, nightly (03:00 UTC), and `workflow_dispatch`; not on plain pushes,
   because it builds the ~8GB scripts image. Brings up mongo + scripts via
   `docker compose`, runs `mvn -Dexcluded.groups= test` (the whole suite, **no**

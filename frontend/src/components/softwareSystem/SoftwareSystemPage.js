@@ -12,7 +12,7 @@ import Popover from "react-bootstrap/Popover";
 import {APIService} from "../../services/APIService";
 import HttpStatus from "http-status-codes";
 import {Modal, ModalBody, ModalFooter, ModalTitle} from "react-bootstrap";
-import {toast} from "react-toastify";
+import {toast, ToastContainer} from "react-toastify";
 import FormControl from "react-bootstrap/FormControl";
 import {AddCircleOutline, CheckCircle} from "@mui/icons-material";
 import MUIButton from "@mui/material/Button";
@@ -85,8 +85,15 @@ export function SoftwareSystemPage() {
     }
 
     function loadSimilarities() {
+        const toastId = toast.loading("Fetching Similarities...");
         const service = new APIService();
-        service.getSimilarities(softwareSystemId).then(response => setSimilarities(response));
+        service.getSimilarities(softwareSystemId)
+            .then(response => {
+                setSimilarities(response);
+                toast.update(toastId, {type: toast.TYPE.SUCCESS, render: "Similarities Loaded.", isLoading: false});
+                setTimeout(() => {toast.dismiss(toastId)}, 1000);
+            })
+            .catch(() => toast.update(toastId, {type: toast.TYPE.ERROR, render: "Error while loading the Similarities.", isLoading: false}));
     }
 
     function handleDeleteSimilarity(similarity) {
@@ -351,6 +358,11 @@ export function SoftwareSystemPage() {
 
     return (
         <div style={{ paddingLeft: "2rem" }}>
+            <ToastContainer
+                position="top-center"
+                theme="colored"
+            />
+
             { renderDeleteModal() }
 
             { renderAddModal() }

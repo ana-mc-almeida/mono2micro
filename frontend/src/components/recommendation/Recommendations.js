@@ -115,25 +115,23 @@ export const Recommendations = () => {
             </Form.Group>
 
             {selectedKind !== undefined &&
-                <>
-                    <RecommendMatrixSciPy
-                        key={selectedKind}
-                        softwareSystemId={softwareSystemId}
-                        kind={selectedKind}
-                        onDecompositionsCreated={loadDecompositions}
-                    />
-
-                    {decompositions.length !== 0 &&
-                        <h4 style={{color: "#666666", marginTop: "16px"}}>
-                            Decompositions
-                        </h4>
-                    }
-
-                    <Row className={"d-flex flex-wrap mw-100"} style={{gap: '1rem 1rem'}}>
-                        {decompositions.map(decomposition => decomposition.printCard(loadDecompositions, handleDeleteDecomposition, handleExportDecomposition))}
-                    </Row>
-                </>
+                <RecommendMatrixSciPy
+                    key={selectedKind}
+                    softwareSystemId={softwareSystemId}
+                    kind={selectedKind}
+                    onDecompositionsCreated={loadDecompositions}
+                />
             }
+
+            {decompositions.length !== 0 &&
+                <h4 style={{color: "#666666", marginTop: "16px"}}>
+                    Decompositions
+                </h4>
+            }
+
+            <Row className={"d-flex flex-wrap mw-100"} style={{gap: '1rem 1rem'}}>
+                {decompositions.map(decomposition => decomposition.printCard(loadDecompositions, handleDeleteDecomposition, handleExportDecomposition))}
+            </Row>
         </div>
     )
 }
