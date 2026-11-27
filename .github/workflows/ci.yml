@@ -222,10 +222,13 @@ jobs:
         run: npm install --legacy-peer-deps
 
       # The screen tests (ticket 25): each pins what a screen shows and the
-      # requests it sends, so a change to a screen must update its tests.
+      # requests it sends, so a change to a screen must update its tests. They run
+      # on pull requests only: a ticket updates its screens' tests before it
+      # closes, which is when its PR opens (D-031), so mid-ticket pushes may be
+      # red. A push still installs and builds the frontend.
       # CI=true also keeps react-scripts out of watch mode, which would hang.
       - name: Test frontend
-        if: matrix.component == 'frontend'
+        if: matrix.component == 'frontend' && github.event_name == 'pull_request'
         working-directory: frontend
         env:
           CI: true
