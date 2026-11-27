@@ -119,13 +119,17 @@ describe('the decomposition screen', () => {
         expect(screen.queryByRole('button', { name: /Decomposition$/ })).toBeNull();
     });
 
-    it('shows no Decompositions heading when the similarity has none', async () => {
-        backend.on(LOAD_DECOMPOSITIONS, []);
-        renderAt(URL_PATH);
+    // Starts from one decomposition so the heading is there to lose: an empty
+    // list on opening would look the same whether or not it was read.
+    it('shows no Decompositions heading once the similarity has none', async () => {
+        const { user } = await open();
+        expect(screen.getByRole('heading', { name: 'Decompositions' })).toBeInTheDocument();
 
-        await screen.findByRole('button', { name: 'Generate Decomposition' });
-        await waitFor(() => expect(backend.sent()).toEqual(OPENING));
-        expect(screen.queryByRole('heading', { name: 'Decompositions' })).toBeNull();
+        backend.on(LOAD_DECOMPOSITIONS, []);
+        await user.click(within(cardOf('d1')).getByRole('button', { name: 'Delete' }));
+
+        await waitFor(() => expect(screen.queryByRole('heading', { name: 'Decompositions' })).toBeNull());
+        expect(screen.queryByText('d1')).toBeNull();
     });
 
     describe('generating a decomposition by cutting the dendrogram', () => {

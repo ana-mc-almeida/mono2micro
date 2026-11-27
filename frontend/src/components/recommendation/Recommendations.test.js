@@ -472,11 +472,17 @@ describe('the recommendation screen', () => {
             .toEqual(['View Accesses', 'View Repository', 'Refactorization Tool', 'Delete']);
     });
 
-    it('shows no Decompositions heading when the software system has none', async () => {
-        backend.on(LOAD_DECOMPOSITIONS, []);
-        await openWithKind();
+    // Starts from one decomposition so the heading is there to lose: an empty
+    // list on opening would look the same whether or not it was read.
+    it('shows no Decompositions heading once the software system has none', async () => {
+        const { user } = await openWithKind();
+        expect(screen.getByRole('heading', { name: 'Decompositions' })).toBeInTheDocument();
 
-        expect(screen.queryByRole('heading', { name: 'Decompositions' })).toBeNull();
+        backend.on(LOAD_DECOMPOSITIONS, []);
+        await user.click(within(cardOf('d1')).getByRole('button', { name: 'Delete' }));
+
+        await waitFor(() => expect(screen.queryByRole('heading', { name: 'Decompositions' })).toBeNull());
+        expect(screen.queryByText('d1')).toBeNull();
     });
 
     it('deletes a decomposition by id, then reloads the decompositions', async () => {

@@ -206,13 +206,17 @@ describe('the Similarities of the software system page', () => {
         expect(titles).toEqual(['sim1', 'sim2']);
     });
 
-    it('shows no cards when the software system has no Similarities', async () => {
-        backend.on(SIMILARITIES_URL, []);
-        renderAt(AT);
-        await screen.findByRole('radio', { name: 'Accesses' });
-        await waitFor(() => expect(backend.sent()).toEqual(ON_OPENING));
+    // Starts from cards so there are some to lose: an empty list on opening
+    // would look the same whether or not it was read.
+    it('shows no cards once the software system has no Similarities', async () => {
+        const { user } = renderAt(AT);
+        await screen.findByText('sim1');
 
-        expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+        backend.on(SIMILARITIES_URL, []);
+        await user.click(within(cardOf('sim1')).getByRole('button', { name: 'Delete' }));
+
+        await waitFor(() => expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument());
+        expect(screen.queryByText('sim2')).not.toBeInTheDocument();
     });
 
     // Ticket 09: no strategy, so no form until a kind is chosen (upstream showed the
