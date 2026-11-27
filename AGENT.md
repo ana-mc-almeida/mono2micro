@@ -220,9 +220,15 @@ make build
 - **Go tool:** unit and integration tests are separated by **build tags**
   (`-tags=unit`, `-tags=integration`), not by file location. There are currently no
   `_test.go` files, so `make test` passes vacuously.
-- **Frontend:** `npm test` (react-scripts, jsdom). The single CRA default test currently
-  fails: Jest cannot parse `vis-network/standalone` (ESM) because `package.json` sets no
-  `transformIgnorePatterns`.
+- **Frontend:** `CI=true npm test` (react-scripts, jsdom), on the Node version in
+  `frontend/.nvmrc` (`nvm use`); newer Node fails the graph-positions toast test in
+  `AccessesViews.test.js`. Each screen has a test file beside it that renders it by URL
+  (`renderAt`), answers its requests from `fakeBackend` and pins both what it shows and
+  what it sends. The graph views draw through `fakeVisNetwork`, since jsdom has no
+  canvas. The helpers are in `frontend/src/testing/`. Known upstream bugs are pinned as
+  they behave today and tagged `U<n>`, matching ticket 28's table in
+  `../implementation/.scratch/phase-1-restructure/issues/`. Under D-031, a change to a
+  screen or to a request it sends updates that screen's test in the same diff.
 
 ## Formatting (backend)
 

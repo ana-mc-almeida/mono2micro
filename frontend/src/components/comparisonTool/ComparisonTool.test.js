@@ -207,7 +207,8 @@ describe('the comparison tool screen', () => {
             'Property', 'expert', 'dec1',
             'Largest Cluster Size:', '2', '3',
             // U2: the first cut's smallest size is seeded with the second cut's first
-            // cluster (DefaultComparisonTool.js:25), so expert shows 1 where its smallest is 2.
+            // cluster (DefaultComparisonTool's "Smallest Cluster Size" reduce), so expert
+            // shows 1 where its smallest is 2.
             'Smallest Cluster Size:', '1', '1',
             'Number of Singleton Clusters:', '0', '1',
             'Cohesion:', '0.8', '0.5',

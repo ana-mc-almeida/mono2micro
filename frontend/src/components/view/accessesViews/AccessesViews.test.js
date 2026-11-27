@@ -282,9 +282,10 @@ describe('the accesses view screen', () => {
         await waitFor(() => expect(saves()).toBe(savedBefore + 1));
     });
 
-    // U7: ClusterView.js:181 (and :195, :209, :223, :236) chains the clusters'
-    // reload on the operation's request without a catch, so a refused operation
-    // (e.g. a rename to a taken name, 401) leaves an unhandled promise rejection.
+    // U7: ClusterView's dialogResponse effect chains the clusters' reload on each
+    // operation's request (rename, transfer, merge, split, form) without a catch,
+    // so a refused operation (e.g. a rename to a taken name, 401) leaves an
+    // unhandled promise rejection.
     // Jest fails any test that causes one, so the refusal toast ("This name is
     // already being used by a cluster.") cannot be pinned here.
     it.todo('says when the new cluster name is taken');
